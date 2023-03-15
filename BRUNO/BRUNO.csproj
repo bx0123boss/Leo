@@ -23,7 +23,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>157</ApplicationRevision>
+    <ApplicationRevision>161</ApplicationRevision>
     <ApplicationVersion>1.0.4.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -139,6 +139,12 @@
     </Compile>
     <Compile Include="frmAgregarCompras.Designer.cs">
       <DependentUpon>frmAgregarCompras.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmAgregarCompras2.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmAgregarCompras2.Designer.cs">
+      <DependentUpon>frmAgregarCompras2.cs</DependentUpon>
     </Compile>
     <Compile Include="frmAgregarDinasti.cs">
       <SubType>Form</SubType>
@@ -283,6 +289,12 @@
     </Compile>
     <Compile Include="frmCompras.Designer.cs">
       <DependentUpon>frmCompras.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmCompras2.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmCompras2.Designer.cs">
+      <DependentUpon>frmCompras2.cs</DependentUpon>
     </Compile>
     <Compile Include="frmConfiguracion.cs">
       <SubType>Form</SubType>
@@ -674,6 +686,12 @@
     <Compile Include="frmVentasVendedorFechas.Designer.cs">
       <DependentUpon>frmVentasVendedorFechas.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmVerCompra.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmVerCompra.Designer.cs">
+      <DependentUpon>frmVerCompra.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Ticketsito.cs" />
@@ -703,6 +721,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmAgregarCompras.resx">
       <DependentUpon>frmAgregarCompras.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmAgregarCompras2.resx">
+      <DependentUpon>frmAgregarCompras2.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmAgregarDinasti.resx">
       <DependentUpon>frmAgregarDinasti.cs</DependentUpon>
@@ -776,6 +797,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmCompras.resx">
       <DependentUpon>frmCompras.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmCompras2.resx">
+      <DependentUpon>frmCompras2.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmConfiguracion.resx">
       <DependentUpon>frmConfiguracion.cs</DependentUpon>
@@ -972,6 +996,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmVentasVendedorFechas.resx">
       <DependentUpon>frmVentasVendedorFechas.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmVerCompra.resx">
+      <DependentUpon>frmVerCompra.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

@@ -32,5 +32,10 @@ namespace BRUNO
             dataGridView1.Columns[0].Visible = false;
             dataGridView1.Columns[1].Visible = false;
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

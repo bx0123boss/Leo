@@ -46,13 +46,24 @@ namespace BRUNO
         //public static string Font = "calibri";
         //public static string impresora = "print";
         //Refacciones, Muelles y Tornillos en General de San Juan
-        
+
         //ZAPATERIA
-        public static string lugar = "ZAPATERIA";
-        public static int MaxChar = 32;
+        //public static string lugar = "ZAPATERIA";
+        //public static int MaxChar = 32;
+        //public static int FontSize = 9;
+        //public static int MaxCharDescription = 16;
+        //public static string[] datosTicket = new string[] { "", "", "", "" };
+        //public static string[] pieDeTicket = new string[] { "No sé admiten devoluciones ni cambios", "", "**GRACIAS POR SU COMPRA**" };
+        //public static string Font = "";
+        //public static string impresora = "print";
+
+
+        //PASTELES DIAZ
+        public static string lugar = "PASTELES DIAZ";
+        public static int MaxChar = 30;
         public static int FontSize = 9;
         public static int MaxCharDescription = 16;
-        public static string[] datosTicket = new string[] { "", "", "", "" };
+        public static string[] datosTicket = new string[] { "PASTELES DÍAZ", "", "", "" };
         public static string[] pieDeTicket = new string[] { "No sé admiten devoluciones ni cambios", "", "**GRACIAS POR SU COMPRA**" };
         public static string Font = "";
         public static string impresora = "print";

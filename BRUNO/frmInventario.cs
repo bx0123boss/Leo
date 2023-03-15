@@ -634,5 +634,12 @@ namespace BRUNO
             cap.Show();
             this.Close();
         }
+
+        private void button17_Click(object sender, EventArgs e)
+        {
+            frmCompras2 COM = new frmCompras2();
+            COM.Show();
+            this.Close();
+        }
     }
 }

@@ -195,7 +195,7 @@ namespace BRUNO
             try
             {
                 this.BackgroundImage = Image.FromFile("C:\\Jaeger Soft\\w2.jpg");
-                pictureBox1.Image = Image.FromFile("C:\\Jaeger Soft\\logo2.jpg");
+                pictureBox1.Image = Image.FromFile("C:\\Jaeger Soft\\logo.png");
             }catch(Exception ex)
             { 
             }

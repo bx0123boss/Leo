@@ -1,20 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <asmv1:assembly xsi:schemaLocation="urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd" manifestVersion="1.0" xmlns:asmv1="urn:schemas-microsoft-com:asm.v1" xmlns="urn:schemas-microsoft-com:asm.v2" xmlns:asmv2="urn:schemas-microsoft-com:asm.v2" xmlns:xrml="urn:mpeg:mpeg21:2003:01-REL-R-NS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns:co.v1="urn:schemas-microsoft-com:clickonce.v1" xmlns:co.v2="urn:schemas-microsoft-com:clickonce.v2">
-  <assemblyIdentity name="JaegerSoft BreackPoint.application" version="1.0.4.156" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" xmlns="urn:schemas-microsoft-com:asm.v1" />
+  <assemblyIdentity name="JaegerSoft BreackPoint.application" version="1.0.4.160" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" xmlns="urn:schemas-microsoft-com:asm.v1" />
   <description asmv2:publisher="JaegerSoft BreackPoint" asmv2:product="JaegerSoft BreackPoint" xmlns="urn:schemas-microsoft-com:asm.v1" />
   <deployment install="true" mapFileExtensions="true" />
   <compatibleFrameworks xmlns="urn:schemas-microsoft-com:clickonce.v2">
     <framework targetVersion="4.5" profile="Full" supportedRuntime="4.0.30319" />
   </compatibleFrameworks>
   <dependency>
-    <dependentAssembly dependencyType="install" codebase="Application Files\JaegerSoft BreackPoint_1_0_4_156\JaegerSoft BreackPoint.exe.manifest" size="4749">
-      <assemblyIdentity name="JaegerSoft BreackPoint.exe" version="1.0.4.156" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
+    <dependentAssembly dependencyType="install" codebase="Application Files\JaegerSoft BreackPoint_1_0_4_160\JaegerSoft BreackPoint.exe.manifest" size="4749">
+      <assemblyIdentity name="JaegerSoft BreackPoint.exe" version="1.0.4.160" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>aHZkem1MYS5c400Hr48BOZBvFt5FAYHbVZcv6FSW9/k=</dsig:DigestValue>
+        <dsig:DigestValue>sJydr0mPD46EgiLPtP8uGGMF0DkWbRCZxuXGBF5WuRk=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

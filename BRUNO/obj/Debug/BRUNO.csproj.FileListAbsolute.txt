@@ -2191,3 +2191,6 @@ C:\Users\Usuario\Desktop\Brandon\180517 Precios Pintura\ntm\Leo\BRUNO-PERLA-RED\
 C:\Users\Usuario\Desktop\Brandon\180517 Precios Pintura\ntm\Leo\BRUNO-PERLA-RED\BRUNO\obj\Debug\BRUNO.frmClaveVendedor.resources
 C:\Users\Usuario\Desktop\Brandon\180517 Precios Pintura\ntm\Leo\BRUNO-PERLA-RED\BRUNO\obj\Debug\BRUNO.frmVentasDiariasVendedor.resources
 C:\Users\Usuario\Desktop\Brandon\180517 Precios Pintura\ntm\Leo\BRUNO-PERLA-RED\BRUNO\obj\Debug\BRUNO.frmVentasVendedorFechas.resources
+C:\Users\Usuario\Desktop\Brandon\180517 Precios Pintura\ntm\Leo\BRUNO-PERLA-RED\BRUNO\obj\Debug\BRUNO.frmAgregarCompras2.resources
+C:\Users\Usuario\Desktop\Brandon\180517 Precios Pintura\ntm\Leo\BRUNO-PERLA-RED\BRUNO\obj\Debug\BRUNO.frmCompras2.resources
+C:\Users\Usuario\Desktop\Brandon\180517 Precios Pintura\ntm\Leo\BRUNO-PERLA-RED\BRUNO\obj\Debug\BRUNO.frmVerCompra.resources

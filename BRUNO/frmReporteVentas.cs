@@ -76,7 +76,7 @@ namespace BRUNO
             if (e.KeyChar == Convert.ToChar(Keys.Enter))
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("Select * from Ventas where Folio='"+textBox1.Text+"';", conectar);
+                da = new OleDbDataAdapter("Select * from Ventas where Folio like '%"+textBox1.Text+"%';", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 dataGridView1.Columns[0].Visible = false;
