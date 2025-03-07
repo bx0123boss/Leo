@@ -396,8 +396,8 @@
             this.comboBox1.FormattingEnabled = true;
             this.comboBox1.ItemHeight = 20;
             this.comboBox1.Items.AddRange(new object[] {
-            "NO INCLUYE IVA",
-            "IVA(16)"});
+            "IVA(16)",
+            "NO INCLUYE IVA"});
             this.comboBox1.Location = new System.Drawing.Point(163, 126);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(379, 28);

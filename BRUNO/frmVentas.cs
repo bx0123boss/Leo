@@ -12,6 +12,7 @@ using System.Data.OleDb;
 using System.IO;
 using System.Drawing.Printing;
 using System.Globalization;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 namespace BRUNO
@@ -186,131 +187,11 @@ namespace BRUNO
         private void button2_Click(object sender, EventArgs e)
         {
             Venta();
-                //double existencia = 0;
-                ////bool mamo = false;
-                ////string productos = "En los siguientes productos se encuentra un error al vender las existencias: ";
-                ////for (int i = 0; i < dataGridView1.RowCount; i++)
-                ////{
-                ////    existencia = Convert.ToDouble(dataGridView1[4, i].Value.ToString()) - Convert.ToDouble(dataGridView1[0, i].Value.ToString());
-                ////    if (existencia < 0)
-                ////    {
-                ////        mamo = true;
-                ////        productos = productos + "\n" + dataGridView1[1, i].Value.ToString();
-                ////    }
-                ////}
-                ////if (mamo)
-                ////{
-                ////    MessageBox.Show(productos + "\nVerifique sus almacenes", "Alto", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                ////}
-                ////else
-                ////{
-
-                //    using (frmPago ori = new frmPago())
-                //    {
-                      
-                //        ori.txtTotal.Text = "" + String.Format("{0:0.00}",total);
-                //        if (ori.ShowDialog() == DialogResult.OK)
-                //        {
-
-                //        }
-                //    }
-                //    Ticket ticket = new Ticket();
-                //    ticket.MaxChar = 30;                    
-                //    ticket.FontSize = 9;
-                //    ticket.MaxCharDescription = 16;
-                //    ticket.AddHeaderLine("******  NOTA DE VENTA  *****");
-                //    ticket.AddHeaderLine("  M A R S A    S.A. DE C.V.");
-                //    ticket.AddHeaderLine(" LERDO No.702 COLONIA CENTRO");
-                //    ticket.AddHeaderLine("  TEZIUTLAN, PUEBLA, MEXICO");
-                //    ticket.AddHeaderLine("CP-73800 TEL.01(231)31 25426");
-                //    //jalar datos de ticket
-                //    //for (int i = 0; i < Conexion.datosTicket.Length; i++)
-                //    //{
-                //    //    ticket.AddHeaderLine(Conexion.datosTicket[i]);
-                //    //}
-
-                //    if (checkBox1.Checked)
-                //    {
-                //        ticket.AddHeaderLine(" PAGADO CON TARJETA DE CREDITO");
-                //    }
-                //    ticket.AddHeaderLine("FOLIO DE VENTA A CONTADO:");
-                //    ticket.AddHeaderLine(lblFolio.Text);
-                //    ticket.AddHeaderLine("CLIENTE: " + lblCliente.Text);
-                //    ticket.AddSubHeaderLine("FECHA Y HORA:");
-                //    ticket.AddSubHeaderLine(DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
-                //    existencia = 0;
-                //    for (int i = 0; i < dataGridView1.RowCount; i++)
-                //    {
-                //        //Obtenemos existencias del articulo
-                //        cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
-                //        OleDbDataReader reader = cmd.ExecuteReader();
-                //        if (reader.Read())
-                //        {
-                //             exis = Convert.ToDouble(Convert.ToString(reader[4].ToString()));
-                //        }
-                //        existencia = exis - Convert.ToDouble(dataGridView1[0, i].Value.ToString());
-                //        //Actualizamos existencias
-                //        cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existencia + "' Where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
-                //        cmd.ExecuteNonQuery();
-                //        cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[5, i].Value.ToString() + "','SALIDA','VENTA DE ARTICULO FOLIO: " + lblFolio.Text+"',"+exis+",'" + existencia+ "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
-                //        cmd.ExecuteNonQuery();
-                //        //Insertamos en la venta a credito
-                //        cmd = new OleDbCommand("insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
-                //        cmd.ExecuteNonQuery();
-                //        string precio = ""+Math.Round(Convert.ToDouble(dataGridView1[3, i].Value.ToString()), 2);
-                //        ticket.AddItem(dataGridView1[0, i].Value.ToString(), dataGridView1[1, i].Value.ToString(), "   $" + dataGridView1[3, i].Value.ToString());
-                //        //MessageBox.Show("Se vendera el numero:"+i+"\nCantidad: "+dataGridView1[0, i].Value.ToString()+"\nProducto: "+ dataGridView1[1, i].Value.ToString()+"\nPrecio: "+dataGridView1[2, i].Value.ToString()+"\nMonto :" + dataGridView1[3, i].Value.ToString() +"\nExistencias :"+ dataGridView1[4, i].Value.ToString()+"\nID :"+dataGridView1[5, i].Value.ToString());
-
-                //    }
-                //    total = 0;
-                //    for (int i = 0; i < dataGridView1.RowCount; i++)
-                //    {
-                //        total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-                //    }
-                //    //double total = Convert.ToDouble(lblTotal.Text);
-                //    cmd = new OleDbCommand("insert into Ventas(Monto,Fecha,Folio,Estatus) values('" + (total-descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','COBRADO');", conectar);
-                //    cmd.ExecuteNonQuery();
-
-                //    if (checkBox1.Checked)
-                //    {
-                //        cmd = new OleDbCommand("INSERT INTO Credito (concepto, Monto,FechaHora) VALUES ('Venta a contado folio " + lblFolio.Text + "'," + (total - descuento) + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
-                //        cmd.ExecuteNonQuery();
-                //    }
-                //    else
-                //    {
-                //        cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora) Values('Venta a contado folio " + lblFolio.Text + "','" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
-                //        cmd.ExecuteNonQuery();
-                //    }
-                    
-                //    ticket.AddTotal("Suma",String.Format("{0:0.00}",total)+ "");                    
-                //    ticket.AddTotal("Descuento", String.Format("{0:0.00}",descuento) + "");
-                //    ticket.AddTotal("SubTotal",String.Format("{0:0.00}",Math.Round((total-descuento)/1.16,2))+"");
-                //    ticket.AddTotal("I.V.A.", String.Format("{0:0.00}",Math.Round(((total-descuento)-(total-descuento)/1.16),2) )+ "");
-                //    ticket.AddTotal("Total", String.Format("{0:0.00}",(total - descuento)) + "");
-                //    ticket.AddFooterLine("**GRACIAS POR SU COMPRA** ");
-                //    ticket.AddFooterLine("**TICKET SIN VALOR FISCAL** ");  
-                //    foli = foli + 1;
-                //    cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioContado';", conectar);
-                //    cmd.ExecuteNonQuery();
-                //    ticket.PrintTicket(Conexion.impresora);
-                //    MessageBox.Show("Venta realizada con exito", "VENTA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                //    //obtenerYSumar();
-                //    //lblFolio.Text = "V" + String.Format("{0:0000}", suma);
-                //    this.Close();
-                //    frmVentas vent = new frmVentas();
-                //    vent.Show();
-                ////}
-            }
+        }
 
         private void frmVentas_Load(object sender, EventArgs e)
         {
-            cmd = new OleDbCommand("select Numero from Folios where Folio='FolioContado';", conectar);
-                        OleDbDataReader reader = cmd.ExecuteReader();
-                        if (reader.Read())
-                        {
-                            foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
-                        }
-            lblFolio.Text = "VR" + String.Format("{0:0000}", foli);
+            
             cmbPago.SelectedIndex = 0;
             if (Conexion.lugar == "LEO")
             {
@@ -387,6 +268,11 @@ namespace BRUNO
             }
         }
 
+        static double CalcularImpuesto(double baseValue, double percentage)
+        {
+            return baseValue * (percentage / 100.0);
+        }
+
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             if (checkBox1.Checked)
@@ -397,10 +283,20 @@ namespace BRUNO
                     {
                         iva = ori.iva;
                         double lol = total;
-                        lol = Math.Round(((lol * (iva / 100 + 1)) * 100) / 100,0);
+                        // Cálculo del impuesto
+                        double impuesto = CalcularImpuesto(lol, iva);
+
+                        // Valor total después del impuesto
+                        double valorConImpuesto = lol + impuesto;
+                        lol = Math.Round(valorConImpuesto, 0);
                         total = lol;
-                        lblTotal.Text = "$" + lol;
+                        lblTotal.Text = total.ToString("N2");
+
                         checkBox1.Checked = true;
+                        cmbPago.Items.Clear();
+                        cmbPago.Items.Add("04=TARJETA DE CREDITO");
+                        cmbPago.Items.Add("28=TARJETA DE DEBITO");
+                        cmbPago.SelectedIndex = 0;
                     }
 
                 }
@@ -408,12 +304,55 @@ namespace BRUNO
             }
             else
             {
-                lblTotal.Text = "$" + total + ".00";
+                // Lista de opciones para el ComboBox
+                string[] opcionesPago = {
+                    "01=EFECTIVO",
+                    "02=CHEQUE NOMINATIVO",
+                    "03=TRANFERENCIA ELECTRONICA DE FONDOS",
+                    "05=MONEDERO ELECTRONICO",
+                    "06=DINERO ELECTRONICO",
+                    "08=VALES DE DESPENSA",
+                    "12=DACION EN PAGO",
+                    "13=PAGO POR SUBROGACION",
+                    "14=PAGO POR CONSIGNACION",
+                    "15=CONDONACION",
+                    "17=COMPENSACION",
+                    "23=NOVACION",
+                    "24=CONFUSION",
+                    "25=REMISION DE DEUDA",
+                    "26=PRESCRIPCION O CADUCIDAD",
+                    "27=A SATISFACCION DEL ACREEDOR",
+                    "29=TARJETA DE SERVICIOS",
+                    "30=APLICACION DE ANTICIPOS",
+                    "31=INTERMEDIARIO PAGOS",
+                    "99=POR DEFINIR"
+                };
+                cmbPago.Items.Clear();
+                cmbPago.Items.AddRange(opcionesPago);
+                if (cmbPago.Items.Count > 0)
+                {
+                    cmbPago.SelectedIndex = 0;
+                }
+                total = 0;
+                for (int i = 0; i < dataGridView1.RowCount; i++)
+                {
+                    total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
+                }
+                lblTotal.Text = String.Format("{0:0.00}", total);
                 checkBox1.Checked = false;
             }
         }
         public void Venta() 
         {
+            cmd = new OleDbCommand("select Numero from Folios where Folio='FolioContado';", conectar);
+            OleDbDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
+            }
+            lblFolio.Text = "VR" + String.Format("{0:0000}", foli);
+            lblFolio.Visible = true;
+            label2.Visible = true;
             double IVA = 0;
             double efectivo = 0, cambio = 0;
             double existencia = 0;
@@ -427,8 +366,7 @@ namespace BRUNO
                         cambio = ori.cambio;
                     }
                 }
-                int width = 420;
-                int height = 540;
+            /*
                 printDocument1.PrinterSettings.DefaultPageSettings.PaperSize = new PaperSize("", width, height);
                 PrintDocument pd = new PrintDocument();
                 pd.PrintPage += new PrintPageEventHandler(this.printDocument1_PrintPage_1);
@@ -438,7 +376,7 @@ namespace BRUNO
                 printPrvDlg.Document = pd;
                 printdlg.Document = pd;
                 pd.Print(); 
-
+            */
                 Ticket ticket = new Ticket();
                 ticket.MaxChar = Conexion.MaxChar;
                 ticket.FontSize = Conexion.FontSize;
@@ -449,7 +387,7 @@ namespace BRUNO
                 }
                 else
                     ticket.FontName = Conexion.Font;
-                ticket.HeaderImage = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
+                //ticket.HeaderImage = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
                 //jalar datos de ticket
                 for (int i = 0; i < Conexion.datosTicket.Length; i++)
                 {
@@ -464,12 +402,22 @@ namespace BRUNO
                 ticket.AddSubHeaderLine("FECHA Y HORA:");
                 ticket.AddSubHeaderLine(DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
                 existencia = 0;
+            //sacar total de utilidad
+            double totalUtilidad = 0;
+            for (int i = 0; i < dataGridView1.RowCount; i++)
+            {
+                double venta = Convert.ToDouble(dataGridView1[2, i].Value.ToString()) * Convert.ToDouble(dataGridView1[0, i].Value.ToString());
+                double compra = Convert.ToDouble(dataGridView1[8, i].Value.ToString()) * Convert.ToDouble(dataGridView1[0, i].Value.ToString());
+                double utilidad = venta - compra;
+
+                totalUtilidad += utilidad; // Suma a la utilidad total
+            }
                 for (int i = 0; i < dataGridView1.RowCount; i++)
                 {
                     string unidad = "0";
                     //Obtenemos existencias del articulo
                     cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
-                    OleDbDataReader reader = cmd.ExecuteReader();
+                    reader = cmd.ExecuteReader();
                     if (reader.Read())
                     {
                         exis = Convert.ToDouble(Convert.ToString(reader[4].ToString()));
@@ -480,16 +428,7 @@ namespace BRUNO
                             unidad = "0";
                         }
                         
-                    }
-
-                    //cmd = new OleDbCommand("select * from Unidades where Id=" + unidad+ ";", conectar);
-                    //reader = cmd.ExecuteReader();
-                    //if (reader.Read())
-                    //{
-                    //    unidad = Convert.ToString(reader[2].ToString());
-                    //}
-                    //else
-                    //    unidad = "";              
+                    }      
                     existencia = exis - Convert.ToDouble(dataGridView1[0, i].Value.ToString());
                     //Actualizamos existencias
                     cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existencia + "' Where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
@@ -500,7 +439,11 @@ namespace BRUNO
                     double venta = Convert.ToDouble(dataGridView1[2, i].Value.ToString()) * Convert.ToDouble(dataGridView1[0, i].Value.ToString());
                     double compra = Convert.ToDouble(dataGridView1[8, i].Value.ToString()) * Convert.ToDouble(dataGridView1[0, i].Value.ToString());
                     double utilidad = venta - compra;
-                    cmd = new OleDbCommand("insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+utilidad+"');", conectar);
+                    // Calcula el descuento proporcional para este producto
+                    double descuentoProporcional = (utilidad / totalUtilidad) * descuento;
+                double nuevaUtilidad = utilidad - descuentoProporcional;
+                //MessageBox.Show("Utilidad" + nuevaUtilidad);
+                cmd = new OleDbCommand("insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+ nuevaUtilidad + "');", conectar);
                     cmd.ExecuteNonQuery();
                     string precio = "" + Math.Round(Convert.ToDouble(dataGridView1[3, i].Value.ToString()), 2);
                     if (dataGridView1[7, i].Value.ToString()=="IVA(16)")
@@ -511,13 +454,17 @@ namespace BRUNO
                     //MessageBox.Show("Se vendera el numero:"+i+"\nCantidad: "+dataGridView1[0, i].Value.ToString()+"\nProducto: "+ dataGridView1[1, i].Value.ToString()+"\nPrecio: "+dataGridView1[2, i].Value.ToString()+"\nMonto :" + dataGridView1[3, i].Value.ToString() +"\nExistencias :"+ dataGridView1[4, i].Value.ToString()+"\nID :"+dataGridView1[5, i].Value.ToString());
 
                 }
+            double UtilidadTotal = 0;
                 total = 0;
-                for (int i = 0; i < dataGridView1.RowCount; i++)
-                {
-                    total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-                }
+            for (int i = 0; i < dataGridView1.RowCount; i++)
+            {
+                total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
+                double venta = Convert.ToDouble(dataGridView1[2, i].Value.ToString()) * Convert.ToDouble(dataGridView1[0, i].Value.ToString());
+                double compra = Convert.ToDouble(dataGridView1[8, i].Value.ToString()) * Convert.ToDouble(dataGridView1[0, i].Value.ToString());
+                UtilidadTotal = UtilidadTotal + (venta - compra);
+            }
                 //double total = Convert.ToDouble(lblTotal.Text);
-                cmd = new OleDbCommand("insert into Ventas(Monto,Fecha,Folio,Estatus) values('" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','COBRADO');", conectar);
+                cmd = new OleDbCommand("insert into Ventas(Monto,Fecha,Folio,Estatus, Descuento, Pago) values('" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','COBRADO','"+descuento+ "','"+cmbPago.Text+"');", conectar);
                 cmd.ExecuteNonQuery();               
                 cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Venta a contado folio " + lblFolio.Text + "','" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+cmbPago.Text+"');", conectar);
                 cmd.ExecuteNonQuery();
@@ -548,15 +495,14 @@ namespace BRUNO
                 cmd.ExecuteNonQuery();
                 //ticket.PrintTicket(Conexion.impresora);
                 MessageBox.Show("Venta realizada con exito", "VENTA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                //obtenerYSumar();
-                //lblFolio.Text = "V" + String.Format("{0:0000}", suma);
-                this.Close();
                 frmVentas vent = new frmVentas();
                 vent.usuario = usuario;
                 vent.lblUsuario.Text = lblUsuario.Text;
                 vent.idUsuario = idUsuario;
                 vent.lblCajero.Text = lblCajero.Text;
                 vent.Show();
+                this.Close();
+                
                 //}            
         }
         private void frmVentas_KeyDown(object sender, KeyEventArgs e)
@@ -564,6 +510,10 @@ namespace BRUNO
             if (e.KeyData == Keys.F5)
             {
                 Venta();
+            }
+            if (e.KeyCode == Keys.F1)
+            {
+                checkBox1.Checked = !checkBox1.Checked; // Alterna el estado
             }
         }
 
@@ -579,12 +529,57 @@ namespace BRUNO
             }
         }
 
+        private void txtDescuento_Leave(object sender, EventArgs e)
+        {
+            // Verifica si el campo está vacío o no es un número
+            if (string.IsNullOrWhiteSpace(txtDescuento.Text) || !decimal.TryParse(txtDescuento.Text, out _))
+            {
+                // Muestra un mensaje de error o maneja el caso como desees
+                MessageBox.Show("Por favor, ingrese un valor numérico válido.", "Error de validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+            }
+            else
+            {
+                if (radioButton1.Checked)
+                {
+                    total = 0;
+                    for (int i = 0; i < dataGridView1.RowCount; i++)
+                    {
+                        total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
+                    }
+                    descuento = ((Convert.ToDouble(txtDescuento.Text) / 100)) * total;
+                    total = Math.Round(total - descuento, 2);
+                    MessageBox.Show("DESCUENTO REALIZADO POR LA CANTIDAD DE: $" + descuento, "DESCUENTO", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    lblTotal.Text = String.Format("{0:0.00}", total);
+                }
+                else if (radioButton2.Checked)
+                {
+                    total = 0;
+                    for (int i = 0; i < dataGridView1.RowCount; i++)
+                    {
+                        total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
+                    }
+                    descuento = Convert.ToDouble(txtDescuento.Text);
+                    total = total - descuento;
+                    MessageBox.Show("DESCUENTO REALIZADO POR LA CANTIDAD DE: $" + descuento, "DESCUENTO", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    lblTotal.Text = String.Format("{0:0.00}", total);
+                }
+            }
+        }
+
+        private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+
+        }
+
         private void printDocument1_PrintPage_1(object sender, PrintPageEventArgs e)
         {
             int posicion = 10;
             //RESIZE
-            Image logo = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
-            e.Graphics.DrawImage(logo, new PointF(1, 10));
+            Image logo = null;//= Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
+
+            //Image logo = Image.FromFile(@"C:\Jaeger Soft\logo.jpg");
+            //e.Graphics.DrawImage(logo, new PointF(1, 10));
             //LOGO
             posicion += 200;
             e.Graphics.DrawString("********  NOTA DE CONSUMO  ********", new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));

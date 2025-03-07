@@ -123,6 +123,7 @@
             this.Name = "frmVentasDiariasVendedor";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Ventas Diarias Vendedor";
+            this.Load += new System.EventHandler(this.frmVentasDiariasVendedor_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

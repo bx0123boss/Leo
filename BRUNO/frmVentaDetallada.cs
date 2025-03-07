@@ -37,6 +37,7 @@ namespace BRUNO
             dataGridView1.Columns[0].Visible = false;
             dataGridView1.Columns[1].Visible = false;
             dataGridView1.Columns[2].Visible = false;
+            dataGridView1.Columns[6].Visible = false;
             if (usuario == "Invitado")
             {
                 button1.Hide();
@@ -52,6 +53,7 @@ namespace BRUNO
                     {
                         lblCliente.Text = "PUBLICO EN GENERAL";
                     }
+                    
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -70,7 +72,7 @@ namespace BRUNO
                         existenciasTotales = Convert.ToDouble(dataGridView1[3, i].Value.ToString()) + Convert.ToDouble(Convert.ToString(reader[4].ToString()));
                         cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
                         cmd.ExecuteNonQuery();
-                        cmd = new OleDbCommand("UPDATE VentasContado set Utilidad='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
+                        cmd = new OleDbCommand("UPDATE VentasContado set MontoTotal='0', Utilidad='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
                         cmd.ExecuteNonQuery();
                         cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','ENTRADA','CANCELACION DE VENTA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales+ "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
                         cmd.ExecuteNonQuery();
@@ -80,7 +82,7 @@ namespace BRUNO
                 }
                 cmd = new OleDbCommand("update Ventas set Estatus='CANCELADO' where Folio='"+lblFolio.Text+"';",conectar);
                 cmd.ExecuteNonQuery();
-                cmd = new OleDbCommand("insert into Corte(Concepto,Monto,Pago) Values('Cancelacion de la venta a contado folio " + lblFolio.Text + "',-" + lblMonto.Text + ",'01=EFECTIVO');", conectar);
+                cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + lblFolio.Text + "',-" + lblMonto.Text + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' ,'" + lblPago.Text+"');", conectar);
                 cmd.ExecuteNonQuery();
                 MessageBox.Show("VENTA CANCELADA CON EXITO","CANCELADA!",MessageBoxButtons.OK,MessageBoxIcon.Information);
                 this.Close();
@@ -126,7 +128,23 @@ namespace BRUNO
             {
                 ticket.AddFooterLine(Conexion.pieDeTicket[i]);
             }    
-            ticket.PrintTicket(Conexion.impresora);
+            //ticket.PrintTicket(Conexion.impresora);
+        }
+
+        private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (dataGridView1.Columns[e.ColumnIndex].Name == "MontoTotal" || dataGridView1.Columns[e.ColumnIndex].Name == "Utilidad")
+            /*||
+
+         dataGridView2.Columns[e.ColumnIndex].Name == "PrecioVentaMayoreo" ||
+         dataGridView2.Columns[e.ColumnIndex].Name == "Especial")*/
+            {
+                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
+                {
+                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.FormattingApplied = true;
+                }
+            }
         }
     }
 }

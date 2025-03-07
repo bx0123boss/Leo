@@ -104,6 +104,7 @@
             this.dataGridView1.Size = new System.Drawing.Size(1041, 405);
             this.dataGridView1.TabIndex = 9;
             this.dataGridView1.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellEndEdit);
+            this.dataGridView1.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView1_CellFormatting);
             // 
             // Cant
             // 
@@ -192,6 +193,7 @@
             this.label2.Size = new System.Drawing.Size(175, 25);
             this.label2.TabIndex = 15;
             this.label2.Text = " FOLIO VENTA:";
+            this.label2.Visible = false;
             // 
             // lblFolio
             // 
@@ -204,6 +206,7 @@
             this.lblFolio.Size = new System.Drawing.Size(25, 25);
             this.lblFolio.TabIndex = 16;
             this.lblFolio.Text = "0";
+            this.lblFolio.Visible = false;
             // 
             // lblTotal
             // 
@@ -296,6 +299,7 @@
             this.txtDescuento.Size = new System.Drawing.Size(241, 20);
             this.txtDescuento.TabIndex = 20;
             this.txtDescuento.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtDescuento_KeyPress);
+            this.txtDescuento.Leave += new System.EventHandler(this.txtDescuento_Leave);
             // 
             // label3
             // 
@@ -356,7 +360,6 @@
             this.checkBox1.TabIndex = 27;
             this.checkBox1.Text = "PAGO CON TARJETA";
             this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.Visible = false;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
             // cmbPago
@@ -368,7 +371,6 @@
             "01=EFECTIVO",
             "02=CHEQUE NOMINATIVO",
             "03=TRANFERENCIA ELECTRONICA DE FONDOS",
-            "04=TARJETA DE CREDITO",
             "05=MONEDERO ELECTRONICO",
             "06=DINERO ELECTRONICO",
             "08=VALES DE DESPENSA",
@@ -382,7 +384,6 @@
             "25=REMISION DE DEUDA",
             "26=PRESCRIPCION O CADUCIDAD",
             "27=A SATISFACCION DEL ACREEDOR",
-            "28=TARJETA DE DEBITO",
             "29=TARJETA DE SERVICIOS",
             "30=APLICACION DE ANTICIPOS",
             "31=INTERMEDIARIO PAGOS",
@@ -489,7 +490,6 @@
             this.Name = "frmVentas";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Ventas";
-            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.frmVentas_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmVentas_KeyDown);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();

@@ -26,6 +26,17 @@ namespace BRUNO
         private void frmReporteVentasCredito_Load(object sender, EventArgs e)
         {
             conectar.Open();
+            ds = new DataSet();
+            da = new OleDbDataAdapter("Select * from Ventas2 where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59#;", conectar);
+            da.Fill(ds, "Id");
+            dataGridView1.DataSource = ds.Tables["Id"];
+            dataGridView1.Columns[0].Visible = false;
+            // Seleccionar el primer registro si hay filas en el DataGridView
+            if (dataGridView1.Rows.Count > 0)
+            {
+                dataGridView1.CurrentCell = dataGridView1.Rows[0].Cells[1]; // Selecciona la celda en la columna 1 (ajusta según tu caso)
+                dataGridView1.Rows[0].Selected = true; // Opcional: Resalta toda la fila
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)

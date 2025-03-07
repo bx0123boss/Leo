@@ -28,7 +28,17 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             this.panel5 = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.lblUtilidadF = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.lblVentaF = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.lblInversionF = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
             this.lblUtilidadM = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.lblVentaM = new System.Windows.Forms.Label();
@@ -38,14 +48,9 @@
             this.label4 = new System.Windows.Forms.Label();
             this.button4 = new System.Windows.Forms.Button();
             this.BtnApartados = new System.Windows.Forms.Button();
-            this.lblUtilidadF = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.lblVentaF = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.lblInversionF = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
+            this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.panel5.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
             // panel5
@@ -68,8 +73,85 @@
             this.panel5.Controls.Add(this.button4);
             this.panel5.Location = new System.Drawing.Point(12, 12);
             this.panel5.Name = "panel5";
-            this.panel5.Size = new System.Drawing.Size(405, 298);
+            this.panel5.Size = new System.Drawing.Size(596, 298);
             this.panel5.TabIndex = 51;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.Color.White;
+            this.label1.Location = new System.Drawing.Point(0, 150);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(96, 24);
+            this.label1.TabIndex = 78;
+            this.label1.Text = "Ferreteria:";
+            // 
+            // lblUtilidadF
+            // 
+            this.lblUtilidadF.AutoSize = true;
+            this.lblUtilidadF.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblUtilidadF.ForeColor = System.Drawing.Color.White;
+            this.lblUtilidadF.Location = new System.Drawing.Point(192, 246);
+            this.lblUtilidadF.Name = "lblUtilidadF";
+            this.lblUtilidadF.Size = new System.Drawing.Size(93, 24);
+            this.lblUtilidadF.TabIndex = 77;
+            this.lblUtilidadF.Text = "lblPiezas";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.ForeColor = System.Drawing.Color.White;
+            this.label2.Location = new System.Drawing.Point(64, 222);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(133, 48);
+            this.label2.TabIndex = 76;
+            this.label2.Text = "Presupuesto\r\n   de Utilidad:";
+            // 
+            // lblVentaF
+            // 
+            this.lblVentaF.AutoSize = true;
+            this.lblVentaF.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblVentaF.ForeColor = System.Drawing.Color.White;
+            this.lblVentaF.Location = new System.Drawing.Point(192, 198);
+            this.lblVentaF.Name = "lblVentaF";
+            this.lblVentaF.Size = new System.Drawing.Size(93, 24);
+            this.lblVentaF.TabIndex = 75;
+            this.lblVentaF.Text = "lblPiezas";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.ForeColor = System.Drawing.Color.White;
+            this.label6.Location = new System.Drawing.Point(45, 198);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(152, 24);
+            this.label6.TabIndex = 74;
+            this.label6.Text = "Total en Venta:";
+            // 
+            // lblInversionF
+            // 
+            this.lblInversionF.AutoSize = true;
+            this.lblInversionF.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblInversionF.ForeColor = System.Drawing.Color.White;
+            this.lblInversionF.Location = new System.Drawing.Point(192, 174);
+            this.lblInversionF.Name = "lblInversionF";
+            this.lblInversionF.Size = new System.Drawing.Size(93, 24);
+            this.lblInversionF.TabIndex = 73;
+            this.lblInversionF.Text = "lblPiezas";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label8.ForeColor = System.Drawing.Color.White;
+            this.label8.Location = new System.Drawing.Point(96, 174);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(101, 24);
+            this.label8.TabIndex = 72;
+            this.label8.Text = "Inversión:";
             // 
             // lblUtilidadM
             // 
@@ -161,7 +243,7 @@
             // BtnApartados
             // 
             this.BtnApartados.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BtnApartados.Location = new System.Drawing.Point(146, 316);
+            this.BtnApartados.Location = new System.Drawing.Point(307, 316);
             this.BtnApartados.Name = "BtnApartados";
             this.BtnApartados.Size = new System.Drawing.Size(151, 55);
             this.BtnApartados.TabIndex = 52;
@@ -169,97 +251,56 @@
             this.BtnApartados.UseVisualStyleBackColor = true;
             this.BtnApartados.Click += new System.EventHandler(this.BtnApartados_Click);
             // 
-            // lblUtilidadF
+            // dataGridView1
             // 
-            this.lblUtilidadF.AutoSize = true;
-            this.lblUtilidadF.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblUtilidadF.ForeColor = System.Drawing.Color.White;
-            this.lblUtilidadF.Location = new System.Drawing.Point(192, 246);
-            this.lblUtilidadF.Name = "lblUtilidadF";
-            this.lblUtilidadF.Size = new System.Drawing.Size(93, 24);
-            this.lblUtilidadF.TabIndex = 77;
-            this.lblUtilidadF.Text = "lblPiezas";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.ForeColor = System.Drawing.Color.White;
-            this.label2.Location = new System.Drawing.Point(64, 222);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(133, 48);
-            this.label2.TabIndex = 76;
-            this.label2.Text = "Presupuesto\r\n   de Utilidad:";
-            // 
-            // lblVentaF
-            // 
-            this.lblVentaF.AutoSize = true;
-            this.lblVentaF.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblVentaF.ForeColor = System.Drawing.Color.White;
-            this.lblVentaF.Location = new System.Drawing.Point(192, 198);
-            this.lblVentaF.Name = "lblVentaF";
-            this.lblVentaF.Size = new System.Drawing.Size(93, 24);
-            this.lblVentaF.TabIndex = 75;
-            this.lblVentaF.Text = "lblPiezas";
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.ForeColor = System.Drawing.Color.White;
-            this.label6.Location = new System.Drawing.Point(45, 198);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(152, 24);
-            this.label6.TabIndex = 74;
-            this.label6.Text = "Total en Venta:";
-            // 
-            // lblInversionF
-            // 
-            this.lblInversionF.AutoSize = true;
-            this.lblInversionF.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblInversionF.ForeColor = System.Drawing.Color.White;
-            this.lblInversionF.Location = new System.Drawing.Point(192, 174);
-            this.lblInversionF.Name = "lblInversionF";
-            this.lblInversionF.Size = new System.Drawing.Size(93, 24);
-            this.lblInversionF.TabIndex = 73;
-            this.lblInversionF.Text = "lblPiezas";
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label8.ForeColor = System.Drawing.Color.White;
-            this.label8.Location = new System.Drawing.Point(96, 174);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(101, 24);
-            this.label8.TabIndex = 72;
-            this.label8.Text = "Inversión:";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.ForeColor = System.Drawing.Color.White;
-            this.label1.Location = new System.Drawing.Point(0, 150);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(96, 24);
-            this.label1.TabIndex = 78;
-            this.label1.Text = "Ferreteria:";
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
+            this.dataGridView1.BackgroundColor = System.Drawing.Color.White;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridView1.DefaultCellStyle = dataGridViewCellStyle3;
+            this.dataGridView1.Location = new System.Drawing.Point(12, 12);
+            this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.Size = new System.Drawing.Size(741, 298);
+            this.dataGridView1.TabIndex = 53;
+            this.dataGridView1.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView1_CellFormatting);
             // 
             // frmDatos
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.ClientSize = new System.Drawing.Size(429, 383);
+            this.ClientSize = new System.Drawing.Size(767, 392);
+            this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.BtnApartados);
             this.Controls.Add(this.panel5);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "frmDatos";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "frmDatos";
+            this.Load += new System.EventHandler(this.frmDatos_Load);
             this.panel5.ResumeLayout(false);
             this.panel5.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -283,6 +324,6 @@
         public System.Windows.Forms.Label lblInversionF;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label1;
-
+        private System.Windows.Forms.DataGridView dataGridView1;
     }
 }

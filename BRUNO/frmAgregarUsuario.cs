@@ -13,6 +13,7 @@ namespace BRUNO
 {
     public partial class frmAgregarUsuario : Form
     {
+        public string idUsuario;
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
         OleDbCommand cmd;
@@ -35,17 +36,26 @@ namespace BRUNO
                         {
                             cmd = new OleDbCommand("insert into Usuarios(Usuario, Contraseña, Tipo) values('" + txtUsuario.Text + "','" + txtPass.Text + "','" + cmbTipo.Text + "');", conectar);
                             cmd.ExecuteNonQuery();
-                            MessageBox.Show("Se ha agregado el cliente con exito", "AGREGADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            MessageBox.Show("Se ha agregado el usuario con exito", "Agregar Usuario", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             frmUsuarios user = new frmUsuarios();
                             user.Show();
                             this.Close();
                         }
-                        else
+                        else if(this.Text != "Editar")
                         {
                             MessageBox.Show("Ya existe un usuario con ese nombre de usuario", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             txtUsuario.Clear();
                             txtPass.Clear();
                             textBox1.Clear();
+                        }
+                        else
+                        {
+                            cmd = new OleDbCommand("UPDATE Usuarios set Contraseña='" + txtPass.Text + "' Where Id=" + idUsuario+ " and Usuario = '"+ txtUsuario.Text+"';", conectar);
+                            cmd.ExecuteNonQuery();
+                            MessageBox.Show("Se ha editado el usuario con exito", "Editar", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            frmUsuarios user = new frmUsuarios();
+                            user.Show();
+                            this.Close();
                         }
                     }
                     else

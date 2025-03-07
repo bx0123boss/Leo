@@ -27,6 +27,10 @@ namespace BRUNO
 
         private void frmUsuarios_Load(object sender, EventArgs e)
         {
+            if (usuario != "ADMINISTRADOR")
+            {
+                button3.Visible = false;
+            }
             ds = new DataSet();
             conectar.Open();
             da = new OleDbDataAdapter("select * from Usuarios;", conectar);
@@ -69,6 +73,19 @@ namespace BRUNO
                     //do something else
                 }
             }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            frmAgregarUsuario ad = new frmAgregarUsuario();
+            ad.Text = "Editar";
+            ad.txtUsuario.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+            ad.txtUsuario.Enabled = false;
+            ad.cmbTipo.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
+            ad.cmbTipo.Enabled = false;
+            ad.idUsuario = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
+            ad.Show();
+            this.Close();
         }
     }
 }

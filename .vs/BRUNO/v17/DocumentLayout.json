@@ -1,0 +1,53 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|c:\\users\\brandon\\documents\\jaegersoft\\ntm\\leo\\bruno-perla-red\\bruno\\frmabonoapartado.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|solutionrelative:bruno\\frmabonoapartado.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|c:\\users\\brandon\\documents\\jaegersoft\\ntm\\leo\\bruno-perla-red\\bruno\\frmabonoapartado.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|solutionrelative:bruno\\frmabonoapartado.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "frmAbonoApartado.cs",
+              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmAbonoApartado.cs",
+              "RelativeDocumentMoniker": "BRUNO\\frmAbonoApartado.cs",
+              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmAbonoApartado.cs",
+              "RelativeToolTip": "BRUNO\\frmAbonoApartado.cs",
+              "ViewState": "AgIAACMAAAAAAAAAAAAWwDcAAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-07T00:00:51.612Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "frmAbonoApartado.cs [Dise\u00F1o]",
+              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmAbonoApartado.cs",
+              "RelativeDocumentMoniker": "BRUNO\\frmAbonoApartado.cs",
+              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmAbonoApartado.cs [Dise\u00F1o]",
+              "RelativeToolTip": "BRUNO\\frmAbonoApartado.cs [Dise\u00F1o]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-07T00:00:48.653Z",
+              "EditorCaption": " [Dise\u00F1o]"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

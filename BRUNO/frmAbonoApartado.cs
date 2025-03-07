@@ -53,6 +53,7 @@ namespace BRUNO
 
         private void button1_Click(object sender, EventArgs e)
         {
+            //aver
             Ticket ticket = new Ticket();
             ticket.MaxChar = 34;
             ticket.FontSize = 9;
@@ -78,7 +79,7 @@ namespace BRUNO
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("insert into AbonosApartado(Abono,idCliente,Fecha,Folio) Values('" + txtAbono.Text + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+lblFolio.Text+"');", conectar);
             cmd.ExecuteNonQuery();
-            ticket.PrintTicket(Conexion.impresora);
+            //ticket.PrintTicket(Conexion.impresora);
             MessageBox.Show("Se ha abonado con exito", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             frmApartados apart = new frmApartados();
             apart.Show();

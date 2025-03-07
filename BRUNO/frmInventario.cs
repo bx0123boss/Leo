@@ -284,6 +284,8 @@ namespace BRUNO
                 dataGridView2.Columns[10].HeaderText = "Unidad";
                 dataGridView2.Columns[9].Visible = false;
                 button13.Visible = true;
+                button14.Visible = true;
+                button15.Visible = true;
                 sinllenar = false;
             }
             else if (Conexion.lugar == "LEO")
@@ -326,6 +328,7 @@ namespace BRUNO
                 dat.lblUtilidadF.Text = "$" + (ventaF - inversionF).ToString("#,#.00", CultureInfo.InvariantCulture);
 
                 dat.Show();
+               
             }
                 //button6.Visible = false;
             
@@ -640,6 +643,20 @@ namespace BRUNO
             frmCompras2 COM = new frmCompras2();
             COM.Show();
             this.Close();
+        }
+
+        private void dataGridView2_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (dataGridView2.Columns[e.ColumnIndex].Name == "PrecioVenta" ||
+              dataGridView2.Columns[e.ColumnIndex].Name == "PrecioVentaMayoreo" ||
+              dataGridView2.Columns[e.ColumnIndex].Name == "Especial")
+            {
+                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
+                {
+                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.FormattingApplied = true;
+                }
+            }
         }
     }
 }

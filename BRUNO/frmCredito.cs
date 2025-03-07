@@ -20,9 +20,19 @@ namespace BRUNO
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar.ToString() == ".")
+            // Permite borrar caracteres con la tecla Backspace
+            if (e.KeyChar == (char)Keys.Back)
+                return;
+
+            // Permite solo números y el punto decimal
+            if (!Char.IsDigit(e.KeyChar) && e.KeyChar != '.')
             {
-                textBox1.SelectedText = ",";
+                e.Handled = true;
+            }
+
+            // Permite un solo punto decimal
+            if (e.KeyChar == '.' && textBox1.Text.Contains("."))
+            {
                 e.Handled = true;
             }
             if (e.KeyChar == Convert.ToChar(Keys.Enter))

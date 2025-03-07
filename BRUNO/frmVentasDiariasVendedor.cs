@@ -37,5 +37,15 @@ namespace BRUNO
         {
 
         }
+
+        private void frmVentasDiariasVendedor_Load(object sender, EventArgs e)
+        {
+            ds = new DataSet();
+            da = new OleDbDataAdapter("Select * from VentasCajero where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59#;", conectar);
+            da.Fill(ds, "Id");
+            dataGridView1.DataSource = ds.Tables["Id"];
+            dataGridView1.Columns[0].Visible = false;
+            dataGridView1.Columns[1].Visible = false;
+        }
     }
 }

@@ -59,11 +59,31 @@ namespace BRUNO
 
 
         //PASTELES DIAZ
-        public static string lugar = "PASTELES DIAZ";
-        public static int MaxChar = 30;
+        //public static string lugar = "PASTELES DIAZ";
+        //public static int MaxChar = 30;
+        //public static int FontSize = 9;
+        //public static int MaxCharDescription = 16;
+        //public static string[] datosTicket = new string[] { "PASTELES DÍAZ", "", "", "" };
+        //public static string[] pieDeTicket = new string[] { "No sé admiten devoluciones ni cambios", "", "**GRACIAS POR SU COMPRA**" };
+        //public static string Font = "";
+        //public static string impresora = "print";
+
+        //PESCADERIA
+        //public static string lugar = "LAGUNA DE TAMIAHUA";
+        //public static int MaxChar = 32;
+        //public static int FontSize = 9;
+        //public static int MaxCharDescription = 16;
+        //public static string[] datosTicket = new string[] { "LAGUNA DE TAMIAHUA", "", "", "" };
+        //public static string[] pieDeTicket = new string[] { "No sé admiten devoluciones ni cambios", "", "**GRACIAS POR SU COMPRA**" };
+        //public static string Font = "";
+        //public static string impresora = "print";
+
+        //CROQUETE
+        public static string lugar = "";
+        public static int MaxChar = 32;
         public static int FontSize = 9;
         public static int MaxCharDescription = 16;
-        public static string[] datosTicket = new string[] { "PASTELES DÍAZ", "", "", "" };
+        public static string[] datosTicket = new string[] { "", "", "", "" };
         public static string[] pieDeTicket = new string[] { "No sé admiten devoluciones ni cambios", "", "**GRACIAS POR SU COMPRA**" };
         public static string Font = "";
         public static string impresora = "print";

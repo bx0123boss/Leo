@@ -136,7 +136,7 @@ namespace BRUNO
                 ticket.AddFooterLine("4.-EN CAMBIOS DE PARTES NO ORIGINALES O DE MARCA NO HAY GARANTIA POR MAL USO.");
                 ticket.AddFooterLine("5.-ARMAZONES DE USO DE MALA CALIDAD, RESECO O CON FALLAS DE MONTURASON ANEJADOS A RESPONSABILIDAD DEL CLIENTE.");
                 ticket.AddFooterLine("6.-DESPUES DE 15 DIAS NO NOS HACEMOS RESPONSABLES DE NO RECOGER LAS REPARACIONES.");
-                ticket.PrintTicket(Conexion.impresora);
+                //ticket.PrintTicket(Conexion.impresora);
                 MessageBox.Show("Se ha cobrado el servicio con exito", "COBRADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ds = new DataSet();
                 da = new OleDbDataAdapter("select * from Servicios;", conectar);

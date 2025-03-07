@@ -83,7 +83,7 @@ namespace BRUNO
             ticket.AddTotal("Entradas", entrada);
             ticket.AddTotal("Salidas", salida);
             ticket.AddTotal("Total", total);
-            ticket.PrintTicket(Conexion.impresora);
+            //ticket.PrintTicket(Conexion.impresora);
         }
     }
 }

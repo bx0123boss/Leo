@@ -253,6 +253,7 @@ namespace BRUNO
             else
             {
                 frmUsuarios USER = new frmUsuarios();
+                USER.usuario = usuario;
                 USER.Show();
             } 
             

@@ -110,6 +110,7 @@ namespace BRUNO
             //    lblOroFino.Text = "" + PrecioOro;
             //}
             //cmbCategoria.SelectedIndex = 0;
+            comboBox1.SelectedIndex = 0;
         }
 
         private void button2_Click(object sender, EventArgs e)

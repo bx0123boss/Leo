@@ -323,5 +323,18 @@ namespace BRUNO
         {
 
         }
+
+        private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (dataGridView1.Columns[e.ColumnIndex].Name == "PrecioVenta" ||
+             dataGridView1.Columns[e.ColumnIndex].Name == "PrecioVentaMayoreo")
+            {
+                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
+                {
+                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.FormattingApplied = true;
+                }
+            }
+        }
     }
 }

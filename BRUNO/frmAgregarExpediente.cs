@@ -139,7 +139,7 @@ namespace BRUNO
             ticket.AddHeaderLine(dtpEstimado.Value.ToString("dd/MM/yyy"));
             ticket.AddHeaderLine("Observaciones: " + txtObservaciones.Text);
             ticket.AddItem("1", txtArmazonMod.Text,"");
-            ticket.PrintTicket(Conexion.impresora);
+            //ticket.PrintTicket(Conexion.impresora);
         }
 
         private void frmAgregarExpediente_Load(object sender, EventArgs e)
@@ -217,7 +217,7 @@ namespace BRUNO
             ticket.AddHeaderLine(dtpEstimado.Value.ToString("dd/MM/yyy"));
             ticket.AddHeaderLine("Observaciones: " + txtObservaciones.Text);
             ticket.AddItem("1", txtArmazonMod.Text, "$" + precio);
-            ticket.PrintTicket(Conexion.impresora);
+            //ticket.PrintTicket(Conexion.impresora);
         }
     }
 }

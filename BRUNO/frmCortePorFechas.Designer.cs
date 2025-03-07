@@ -150,7 +150,7 @@
             this.dataGridView1.MultiSelect = false;
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
-            this.dataGridView1.Size = new System.Drawing.Size(368, 674);
+            this.dataGridView1.Size = new System.Drawing.Size(380, 674);
             this.dataGridView1.TabIndex = 17;
             // 
             // panel1
@@ -172,7 +172,7 @@
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label6.ForeColor = System.Drawing.Color.White;
-            this.label6.Location = new System.Drawing.Point(5, 918);
+            this.label6.Location = new System.Drawing.Point(6, 469);
             this.label6.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(161, 42);
@@ -196,7 +196,7 @@
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label5.ForeColor = System.Drawing.Color.White;
-            this.label5.Location = new System.Drawing.Point(6, 469);
+            this.label5.Location = new System.Drawing.Point(6, 918);
             this.label5.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(189, 42);

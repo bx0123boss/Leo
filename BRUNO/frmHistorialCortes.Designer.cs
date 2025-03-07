@@ -45,7 +45,7 @@
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.ForeColor = System.Drawing.Color.Black;
-            this.label1.Location = new System.Drawing.Point(544, 62);
+            this.label1.Location = new System.Drawing.Point(673, 66);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(136, 24);
             this.label1.TabIndex = 14;
@@ -54,7 +54,7 @@
             // dateTimePicker1
             // 
             this.dateTimePicker1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dateTimePicker1.Location = new System.Drawing.Point(435, 89);
+            this.dateTimePicker1.Location = new System.Drawing.Point(564, 93);
             this.dateTimePicker1.Name = "dateTimePicker1";
             this.dateTimePicker1.Size = new System.Drawing.Size(335, 26);
             this.dateTimePicker1.TabIndex = 13;
@@ -97,13 +97,13 @@
             dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.dataGridView1.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
-            this.dataGridView1.Size = new System.Drawing.Size(417, 563);
+            this.dataGridView1.Size = new System.Drawing.Size(546, 563);
             this.dataGridView1.TabIndex = 12;
             // 
             // button1
             // 
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(478, 146);
+            this.button1.Location = new System.Drawing.Point(607, 150);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(260, 74);
             this.button1.TabIndex = 15;
@@ -114,7 +114,7 @@
             // button2
             // 
             this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button2.Location = new System.Drawing.Point(478, 226);
+            this.button2.Location = new System.Drawing.Point(607, 230);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(260, 74);
             this.button2.TabIndex = 16;
@@ -127,7 +127,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.ClientSize = new System.Drawing.Size(782, 581);
+            this.ClientSize = new System.Drawing.Size(911, 581);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label1);

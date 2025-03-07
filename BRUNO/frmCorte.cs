@@ -33,6 +33,42 @@ namespace BRUNO
             InitializeComponent();
         }
 
+        private void dgvCorte_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (dgvCorte.Columns[e.ColumnIndex].Name == "Monto")
+            {
+                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
+                {
+                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.FormattingApplied = true;
+                }
+            }
+        }
+
+        private void dataGridView4_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (dataGridView4.Columns[e.ColumnIndex].Name == "Monto")
+            {
+                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
+                {
+                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.FormattingApplied = true;
+                }
+            }
+        }
+
+        private void dataGridView3_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (dataGridView3.Columns[e.ColumnIndex].Name == "Monto")
+            {
+                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
+                {
+                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.FormattingApplied = true;
+                }
+            }
+        }
+
         private void frmCorte_Load(object sender, EventArgs e)
         {
             if (usuario=="Invitado")
@@ -117,6 +153,7 @@ namespace BRUNO
                 if (Convert.ToDouble(dataGridView1[1, i].Value.ToString()) > 0)
                 {
                     total += Convert.ToDouble(dataGridView1[0, i].Value.ToString());
+                    if(Convert.ToDouble(dataGridView1[1, i].Value.ToString())>0)
                     utilidad += Convert.ToDouble(dataGridView1[1, i].Value.ToString());
                 }
 
@@ -138,18 +175,19 @@ namespace BRUNO
             {
                     gastos += Convert.ToDouble(dataGridView2[2, i].Value.ToString());                
             }
-            lblBruta.Text = "$" + (utilidad - gastos);
-            lblGastos.Text = "$"+ gastos.ToString(); ;
+            lblCorte.Text =  $"{mas:C}";
+            lblECaja.Text = $"{mas + menos:C}";
+            lblBruta.Text = $"{utilidad - gastos:C}";
+            lblGastos.Text = $"{gastos:C}";
             inversion = total - utilidad;
-            lblInversion.Text = "$"+ inversion;
-            lblUtilidad.Text = "$"+utilidad;
-            lblEntrada.Text = "$" + (mas + tarjeta + trans);
-            lblSalida.Text = "$" + (menos * -1);
-            lblCorte.Text = "$" + mas;
+            lblInversion.Text = $"{inversion:C}";
+            lblUtilidad.Text = $"{utilidad:C}";
+            lblEntrada.Text = $"{mas + tarjeta + trans:C}";
+            lblSalida.Text = $"{menos * -1:C}";
             lblCredito.Text = "$" + Math.Round(tarjeta * .95,2);
             lbl5por.Text = "$" + Math.Round(tarjeta * .05);
-            lblTrans.Text = "$" + trans;
-            lblTotal.Text = "$" + (tarjeta + mas + menos + trans);
+            lblTrans.Text = $"{trans:C}";
+            lblTotal.Text = $"{tarjeta + mas + menos + trans:C}";
             
         }
         private void button1_Click(object sender, EventArgs e)
@@ -177,7 +215,7 @@ namespace BRUNO
             }
             else
                 ticket.FontName = Conexion.Font;
-            ticket.HeaderImage = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
+            //ticket.HeaderImage = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
             ticket.AddHeaderLine("*****  CORTE DE CAJA  ****");
             for (int i = 0; i < Conexion.datosTicket.Length; i++)
             {
@@ -190,7 +228,7 @@ namespace BRUNO
             for (int i = 0; i < dgvCorte.RowCount; i++)
             {                
                 //MessageBox.Show("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvCorte[1, i].Value.ToString() + "','" + dgvCorte[2, i].Value.ToString() + "','" + dgvCorte[3, i].Value.ToString() + "','" + folio + "','PAGO CONTADO');");
-                cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvCorte[1, i].Value.ToString() + "','" + dgvCorte[2, i].Value.ToString() + "','" + folio + "','PAGO CONTADO');", conectar);                
+                cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvCorte[1, i].Value.ToString() + "','" + dgvCorte[2, i].Value.ToString() + "','" + folio + "','" + dgvCorte[4, i].Value.ToString() + "');", conectar);                
                 cmd.ExecuteNonQuery();
                 if (Conexion.lugar == "LEO")
                 {
@@ -201,10 +239,15 @@ namespace BRUNO
             }
             for (int i = 0; i < dataGridView3.RowCount; i++)
             {
-                cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dataGridView3[1, i].Value.ToString() + "','" + dataGridView3[2, i].Value.ToString() + "','" + folio + "','PAGO TARJETA CREDITO');", conectar);
+                cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dataGridView3[1, i].Value.ToString() + "','" + dataGridView3[2, i].Value.ToString() + "','" + folio + "','" + dataGridView3[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
-                cmd = new OleDbCommand("INSERT INTO histocortes(Id,Monto,Fecha,Mas,Menos,Tarjeta,utilidad,inversion) VALUES ('" + folio + "','" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+mas+"','"+menos+"','"+tarjeta+"','"+utilidad+"','"+inversion+"');", conectar);
+            for (int i = 0; i < dataGridView4.RowCount; i++)
+            {
+                cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dataGridView4[1, i].Value.ToString() + "','" + dataGridView4[2, i].Value.ToString() + "','" + folio + "','" + dataGridView4[4, i].Value.ToString() + "');", conectar);
+                cmd.ExecuteNonQuery();
+            }
+            cmd = new OleDbCommand("INSERT INTO histocortes(Id,Monto,Fecha,Mas,Menos,Tarjeta,utilidad,inversion) VALUES ('" + folio + "','" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+mas+"','"+menos+"','"+tarjeta+"','"+utilidad+"','"+inversion+"');", conectar);
                 cmd.ExecuteNonQuery();
             
             cmd = new OleDbCommand("UPDATE Folios set Numero=" + folio + " where Folio='Corte';", conectar);
@@ -222,7 +265,7 @@ namespace BRUNO
             ticket.AddTotal("Entradas", lblEntrada.Text);
             ticket.AddTotal("Salidas",lblSalida.Text);
             ticket.AddTotal("Total", lblTotal.Text);
-            ticket.PrintTicket(Conexion.impresora);
+            //ticket.PrintTicket(Conexion.impresora);
             MessageBox.Show("CORTE REALIZADO CON EXITO","EXITO",MessageBoxButtons.OK,MessageBoxIcon.Information);
             this.Close();
         }
@@ -254,7 +297,7 @@ namespace BRUNO
             ticket.AddTotal("Entradas", lblEntrada.Text);
             ticket.AddTotal("Salidas", lblSalida.Text);
             ticket.AddTotal("Total", lblTotal.Text);
-            ticket.PrintTicket(Conexion.impresora);
+            //ticket.PrintTicket(Conexion.impresora);
             MessageBox.Show("CORTE REALIZADO CON EXITO", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();
         }

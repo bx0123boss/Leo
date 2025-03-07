@@ -27,10 +27,14 @@ namespace BRUNO
         {
             //ds = new DataSet();
             conectar.Open();
-            //da = new OleDbDataAdapter("select * from histocortes;", conectar);
-            //da.Fill(ds, "Id");
-            //dataGridView1.DataSource = ds.Tables["Id"];
-            //dataGridView1.Columns[0].Visible = false;
+            ds = new DataSet();
+            da = new OleDbDataAdapter("Select * from histocortes where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59#;", conectar);
+            da.Fill(ds, "Id");
+            dataGridView1.DataSource = ds.Tables["Id"];
+            dataGridView1.Columns[0].Visible = false;
+            dataGridView1.Columns[3].Visible = false;
+            dataGridView1.Columns[4].Visible = false;
+            dataGridView1.Columns[5].Visible = false;
         }
 
         private void dateTimePicker1_ValueChanged(object sender, EventArgs e)

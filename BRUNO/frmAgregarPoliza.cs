@@ -213,9 +213,21 @@ namespace BRUNO
 
         private void txtCosto_Leave(object sender, EventArgs e)
         {
-            double costo = Convert.ToDouble(txtCosto.Text);
-            double iva = costo * 0.16;
-            txtVenta.Text = Math.Round(iva, 2).ToString();
+            if (txtCosto.Text != null && txtCosto.Text!="")
+            {
+
+                double costo = Convert.ToDouble(txtCosto.Text);
+                double iva = costo * 0.16;
+                txtVenta.Text = Math.Round(iva, 2).ToString();
+            }
+            else
+            {
+                txtCosto.Text = "0";
+                double costo = Convert.ToDouble(txtCosto.Text);
+                double iva = costo * 0.16;
+                txtVenta.Text = Math.Round(iva, 2).ToString();
+            }
+            
         }
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
@@ -238,11 +250,13 @@ namespace BRUNO
 
         private void txtCosto_KeyPress(object sender, KeyPressEventArgs e)
         {
-            CultureInfo cc = System.Threading.Thread.CurrentThread.CurrentCulture;
-            if (char.IsNumber(e.KeyChar) || e.KeyChar.ToString() == cc.NumberFormat.NumberDecimalSeparator || Convert.ToInt32(e.KeyChar) == 8)
-                e.Handled = false;
-            else
-                e.Handled = true;
+           
+                CultureInfo cc = System.Threading.Thread.CurrentThread.CurrentCulture;
+                if (char.IsNumber(e.KeyChar) || e.KeyChar.ToString() == cc.NumberFormat.NumberDecimalSeparator || Convert.ToInt32(e.KeyChar) == 8)
+                    e.Handled = false;
+                else
+                    e.Handled = true;
+            
         }
 
         private void txtVenta_KeyPress(object sender, KeyPressEventArgs e)
@@ -252,6 +266,11 @@ namespace BRUNO
                 e.Handled = false;
             else
                 e.Handled = true;
+        }
+
+        private void txtCosto_TextChanged(object sender, EventArgs e)
+        {
+
         }
 
         private void txtMenudeo_KeyPress(object sender, KeyPressEventArgs e)
