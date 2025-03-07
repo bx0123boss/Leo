@@ -1,0 +1,78 @@
+# Ignorar archivos binarios y de salida
+[Bb]in/
+[Oo]bj/
+
+# Ignorar archivos de usuario
+*.user
+*.suo
+*.userprefs
+
+# Ignorar archivos de configuración de Visual Studio
+.vs/
+*.csproj.user
+*.csproj.local
+
+# Ignorar archivos de NuGet
+[Nn]u[Gg]et/
+*.nupkg
+packages/
+
+# Ignorar archivos de ReSharper
+_ReSharper.*
+*.ReSharper.*
+
+# Ignorar archivos de Team Foundation Server
+*.tss
+
+# Ignorar archivos de logs y bases de datos
+*.log
+*.sqlite
+
+# Ignorar archivos de configuración de Rider
+.idea/
+
+# Ignorar archivos de MacOS
+.DS_Store
+
+# Ignorar archivos de pruebas
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Ignorar archivos de resharper
+_ReSharper.*
+*.ReSharper
+
+# Ignorar archivos de sonar
+.sonar/
+
+# Ignorar archivos de dotnet
+.dotnet/
+
+# Ignorar archivos de Azure Functions
+func/
+
+# Ignorar archivos de Docker
+docker-compose.*
+.dockerignore
+**/.docker/**
+**/docker-compose.*
+**/docker-compose.*
+
+# Ignorar archivos de Node.js
+node_modules/
+
+# Ignorar archivos de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorar archivos de Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+**/obj/Debug/
+**/obj/Release/

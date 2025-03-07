@@ -13,6 +13,7 @@ using System.IO;
 using System.Drawing.Printing;
 using System.Globalization;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 
 
 namespace BRUNO
@@ -34,9 +35,59 @@ namespace BRUNO
         public frmVentas()
         {
             InitializeComponent();
+            this.MinimumSize = new Size(1066, 418);
             conectar.Open();
         }
+        public void ReiniciarForm()
+        {
+             total = 0;
+             iva = 0;
+             origen = "";
+             exis = 0.0;
+             idCliente = "0";
+             descuento = 0;
+             foli = 0;
+             direccion = "";
+            txtDescuento.Text = "";
+            cmbPago.SelectedItem = null;
+            lblFolio.Text = "0";
+            lblFolio.Visible = false;
+            label2.Visible = false;
+            dataGridView1.Rows.Clear();
+            lblTotal.Text = $"{RecalcularTotal:C}";
+            lblCliente.Text = "PUBLICO EN GENERAL";
+            checkBox1.Checked = false;
+            
+            radioButton1.Checked = false;
+            radioButton2.Checked = false;
+            txtDescuento.Text = "";
 
+        }
+        private double RecalcularTotal
+        {
+            get
+            {
+                total = 0;
+                for (int i = 0; i < dataGridView1.RowCount; i++)
+                {
+                    total += Convert.ToDouble(dataGridView1.Rows[i].Cells["Monto"].Value);
+                }
+                return total - descuento;
+            }
+        }
+        private void frmVentas_Load(object sender, EventArgs e)
+        {
+
+            cmbPago.SelectedIndex = 0;
+            if (Conexion.lugar == "LEO")
+            {
+                dataGridView1.Columns[2].ReadOnly = false;
+            }
+            else if (Conexion.lugar == "SANJUAN" && usuario == "Admin")
+            {
+                dataGridView1.Columns[2].ReadOnly = false;
+            }
+        }
         private void button3_Click(object sender, EventArgs e)
         {
             
@@ -48,14 +99,10 @@ namespace BRUNO
 
                 }
             }
-            total = 0;
-            for (int i = 0; i < dataGridView1.RowCount; i++)
-            {
-                total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-            }
-            lblTotal.Text = String.Format("{0:0.00}", total);
-            
-            
+           
+            lblTotal.Text = $"{RecalcularTotal:C}";
+
+
         }
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
@@ -72,14 +119,10 @@ namespace BRUNO
                     int valor = int.Parse(cmd.ExecuteScalar().ToString());
                     if (valor == 1)
                     {
-                        total = Convert.ToDouble(lblTotal.Text);
                         cmd = new OleDbCommand("select * from Inventario where Id='" + textBox1.Text + "';", conectar);
                         OleDbDataReader reader = cmd.ExecuteReader();
                         if (reader.Read())
                         {
-                            //int existen = Convert.ToInt32(Convert.ToString(reader[4].ToString()));
-                            //if (existen > 0)
-                            //{
                             using (frmPrecio buscar = new frmPrecio())
                             {
                                 if (buscar.ShowDialog() == DialogResult.OK)
@@ -96,14 +139,9 @@ namespace BRUNO
                                     }
                                 }
                             }
-                            //}
-                            //else
-                            //{
-                            //    MessageBox.Show("El producto no cuenta con existencias, verifique el almacen", "Alto", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            //}
+                          
                         }
-                        total += Convert.ToDouble(Convert.ToString(reader[3].ToString()));
-                        lblTotal.Text = String.Format("{0:0.00}", total);
+                        lblTotal.Text = $"{RecalcularTotal:C}";
                         textBox1.Text = "";
                     }
                     else
@@ -118,12 +156,8 @@ namespace BRUNO
 
                             }
                         }
-                        total = 0;
-                        for (int i = 0; i < dataGridView1.RowCount; i++)
-                        {
-                            total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-                        }
-                        lblTotal.Text = String.Format("{0:0.00}", total);
+
+                        lblTotal.Text = $"{RecalcularTotal:C}";
                         textBox1.Text = "";
                         //}
                         //}
@@ -136,13 +170,9 @@ namespace BRUNO
         {
             try
             {
-                total = 0;
+               
                 dataGridView1.Rows.RemoveAt(dataGridView1.CurrentRow.Index);
-                for (int i = 0; i < dataGridView1.RowCount; i++)
-                {
-                    total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-                }
-                lblTotal.Text = String.Format("{0:0.00}", total);
+                lblTotal.Text = $"{RecalcularTotal:C}";
                 textBox1.Text = "";
             }
             catch (Exception Ex)
@@ -152,18 +182,13 @@ namespace BRUNO
 
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            total = 0;
             try
             {
                 double cantidad = Convert.ToDouble(dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString());
                 double precio = Convert.ToDouble(dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString());
                 double monto = cantidad * precio;
                 dataGridView1.Rows[e.RowIndex].Cells[3].Value = String.Format("{0:0.00}", monto);
-                for (int i = 0; i < dataGridView1.RowCount; i++)
-                {
-                    total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-                }
-                lblTotal.Text = String.Format("{0:0.00}", total);
+                lblTotal.Text = $"{RecalcularTotal:C}";
                 textBox1.Focus();
             }
             catch 
@@ -174,12 +199,7 @@ namespace BRUNO
                 double precio = Convert.ToDouble(dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString());
                 double monto = cantidad * precio;
                 dataGridView1.Rows[e.RowIndex].Cells[3].Value = String.Format("{0:0.00}", monto);
-                total = 0;
-                for (int i = 0; i < dataGridView1.RowCount; i++)
-                {
-                    total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-                }
-                lblTotal.Text = String.Format("{0:0.00}", total);
+                lblTotal.Text = $"{RecalcularTotal:C}";
                 textBox1.Focus();
             }
         }
@@ -189,19 +209,7 @@ namespace BRUNO
             Venta();
         }
 
-        private void frmVentas_Load(object sender, EventArgs e)
-        {
-            
-            cmbPago.SelectedIndex = 0;
-            if (Conexion.lugar == "LEO")
-            {
-                dataGridView1.Columns[2].ReadOnly = false;
-            }
-            else if (Conexion.lugar == "SANJUAN" && usuario=="Admin")
-            {
-                dataGridView1.Columns[2].ReadOnly = false;
-            }
-        }
+       
        
 
         private void radioButton2_CheckedChanged(object sender, EventArgs e)
@@ -226,27 +234,18 @@ namespace BRUNO
             {
                 if (radioButton1.Checked)
                 {
-                    total = 0;
-                    for (int i = 0; i < dataGridView1.RowCount; i++)
-                    {
-                        total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-                    }
+                   
                     descuento = ((Convert.ToDouble(txtDescuento.Text) / 100)) * total;
-                    total =Math.Round(total - descuento,2);
                     MessageBox.Show("DESCUENTO REALIZADO POR LA CANTIDAD DE: $"+descuento,"DESCUENTO",MessageBoxButtons.OK,MessageBoxIcon.Information);
-                    lblTotal.Text = String.Format("{0:0.00}", total);
+                    lblTotal.Text = $"{RecalcularTotal:C}";
                 }
                 else if (radioButton2.Checked)
                 {
-                    total = 0;
-                    for (int i = 0; i < dataGridView1.RowCount; i++)
-                    {
-                        total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-                    }
+                   
                     descuento=Convert.ToDouble(txtDescuento.Text);
                     total = total - descuento ;
                     MessageBox.Show("DESCUENTO REALIZADO POR LA CANTIDAD DE: $" + descuento, "DESCUENTO", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    lblTotal.Text = String.Format("{0:0.00}", total);
+                    lblTotal.Text = $"{RecalcularTotal:C}";
                 }
             }
 
@@ -283,20 +282,21 @@ namespace BRUNO
                     {
                         iva = ori.iva;
                         double lol = total;
-                        // Cálculo del impuesto
                         double impuesto = CalcularImpuesto(lol, iva);
-
-                        // Valor total después del impuesto
                         double valorConImpuesto = lol + impuesto;
                         lol = Math.Round(valorConImpuesto, 0);
                         total = lol;
-                        lblTotal.Text = total.ToString("N2");
+                        lblTotal.Text = $"{total:C}";
 
                         checkBox1.Checked = true;
                         cmbPago.Items.Clear();
                         cmbPago.Items.Add("04=TARJETA DE CREDITO");
                         cmbPago.Items.Add("28=TARJETA DE DEBITO");
                         cmbPago.SelectedIndex = 0;
+                    }
+                    else
+                    {
+                        checkBox1.Checked = false;
                     }
 
                 }
@@ -333,12 +333,7 @@ namespace BRUNO
                 {
                     cmbPago.SelectedIndex = 0;
                 }
-                total = 0;
-                for (int i = 0; i < dataGridView1.RowCount; i++)
-                {
-                    total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-                }
-                lblTotal.Text = String.Format("{0:0.00}", total);
+                lblTotal.Text = $"{RecalcularTotal:C}";
                 checkBox1.Checked = false;
             }
         }
@@ -359,7 +354,7 @@ namespace BRUNO
                 using (frmPago ori = new frmPago())
                 {
 
-                    ori.txtTotal.Text = "" + String.Format("{0:0.00}", total);
+                    ori.txtTotal.Text = "" + String.Format("{0:0.00}", (total-descuento));
                     if (ori.ShowDialog() == DialogResult.OK)
                     {
                         efectivo = ori.efectivo;
@@ -463,7 +458,6 @@ namespace BRUNO
                 double compra = Convert.ToDouble(dataGridView1[8, i].Value.ToString()) * Convert.ToDouble(dataGridView1[0, i].Value.ToString());
                 UtilidadTotal = UtilidadTotal + (venta - compra);
             }
-                //double total = Convert.ToDouble(lblTotal.Text);
                 cmd = new OleDbCommand("insert into Ventas(Monto,Fecha,Folio,Estatus, Descuento, Pago) values('" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','COBRADO','"+descuento+ "','"+cmbPago.Text+"');", conectar);
                 cmd.ExecuteNonQuery();               
                 cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Venta a contado folio " + lblFolio.Text + "','" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+cmbPago.Text+"');", conectar);
@@ -495,14 +489,14 @@ namespace BRUNO
                 cmd.ExecuteNonQuery();
                 //ticket.PrintTicket(Conexion.impresora);
                 MessageBox.Show("Venta realizada con exito", "VENTA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                frmVentas vent = new frmVentas();
-                vent.usuario = usuario;
-                vent.lblUsuario.Text = lblUsuario.Text;
-                vent.idUsuario = idUsuario;
-                vent.lblCajero.Text = lblCajero.Text;
-                vent.Show();
-                this.Close();
-                
+            //frmVentas vent = new frmVentas();
+            //vent.usuario = usuario;
+            //vent.lblUsuario.Text = lblUsuario.Text;
+            //vent.idUsuario = idUsuario;
+            //vent.lblCajero.Text = lblCajero.Text;
+            //vent.Show();
+            //this.Close();
+            ReiniciarForm();
                 //}            
         }
         private void frmVentas_KeyDown(object sender, KeyEventArgs e)
@@ -548,9 +542,8 @@ namespace BRUNO
                         total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
                     }
                     descuento = ((Convert.ToDouble(txtDescuento.Text) / 100)) * total;
-                    total = Math.Round(total - descuento, 2);
                     MessageBox.Show("DESCUENTO REALIZADO POR LA CANTIDAD DE: $" + descuento, "DESCUENTO", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    lblTotal.Text = String.Format("{0:0.00}", total);
+                    lblTotal.Text = $"{RecalcularTotal:C}";
                 }
                 else if (radioButton2.Checked)
                 {
@@ -560,9 +553,8 @@ namespace BRUNO
                         total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
                     }
                     descuento = Convert.ToDouble(txtDescuento.Text);
-                    total = total - descuento;
                     MessageBox.Show("DESCUENTO REALIZADO POR LA CANTIDAD DE: $" + descuento, "DESCUENTO", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    lblTotal.Text = String.Format("{0:0.00}", total);
+                    lblTotal.Text = $"{RecalcularTotal:C}";
                 }
             }
         }
@@ -618,8 +610,7 @@ namespace BRUNO
                 posicion += 20;
                 //ticket.AddItem(item, producto, uni + "|" + String.Format(CultureInfo.InvariantCulture, "{0:0,0.00}", precio));
             }
-            double to = Convert.ToDouble(lblTotal.Text);
-            string toty = String.Format(CultureInfo.InvariantCulture, "{0:0,0.00}", to);
+            string toty = String.Format(CultureInfo.InvariantCulture, "{0:0,0.00}", total);
             e.Graphics.DrawLine(new Pen(Color.Black), 210, posicion + 10, 420, posicion + 10);
             posicion += 15;
             e.Graphics.DrawString("TOTAL: $" + toty, new Font("Arial", 10, FontStyle.Bold), Brushes.Black, new Point(280, posicion), sf);

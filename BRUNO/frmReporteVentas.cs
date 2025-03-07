@@ -21,6 +21,7 @@ namespace BRUNO
         public frmReporteVentas()
         {
             InitializeComponent();
+            this.MinimumSize = new Size(1011, 629);
         }
 
         private void frmReporteVentas_Load(object sender, EventArgs e)

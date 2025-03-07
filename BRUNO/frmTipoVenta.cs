@@ -42,7 +42,7 @@ namespace BRUNO
                 vent.lblUsuario.Text = NombreUsuario;
                 vent.idUsuario = idUsuario;
                 vent.lblCajero.Text = NombreUsuario;
-                vent.Show();
+                vent.ShowDialog();
                 this.Close();
             }
         }

@@ -53,7 +53,6 @@ namespace BRUNO
 
         private void button1_Click(object sender, EventArgs e)
         {
-            //aver
             Ticket ticket = new Ticket();
             ticket.MaxChar = 34;
             ticket.FontSize = 9;
