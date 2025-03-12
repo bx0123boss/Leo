@@ -21,6 +21,7 @@ namespace BRUNO
         OleDbCommand cmd;
         double existenciasTotales = 0;
         public String usuario = "";
+        public decimal monto;
 
         public frmVentaDetallada()
         {
@@ -82,7 +83,7 @@ namespace BRUNO
                 }
                 cmd = new OleDbCommand("update Ventas set Estatus='CANCELADO' where Folio='"+lblFolio.Text+"';",conectar);
                 cmd.ExecuteNonQuery();
-                cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + lblFolio.Text + "',-" + lblMonto.Text + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' ,'" + lblPago.Text+"');", conectar);
+                cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + lblFolio.Text + "',-" + monto + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' ,'" + lblPago.Text+"');", conectar);
                 cmd.ExecuteNonQuery();
                 MessageBox.Show("VENTA CANCELADA CON EXITO","CANCELADA!",MessageBoxButtons.OK,MessageBoxIcon.Information);
                 this.Close();

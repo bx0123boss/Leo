@@ -276,30 +276,11 @@ namespace BRUNO
         {
             if (checkBox1.Checked)
             {
-                using (frmCredito ori = new frmCredito())
-                {
-                    if (ori.ShowDialog() == DialogResult.OK)
-                    {
-                        iva = ori.iva;
-                        double lol = total;
-                        double impuesto = CalcularImpuesto(lol, iva);
-                        double valorConImpuesto = lol + impuesto;
-                        lol = Math.Round(valorConImpuesto, 0);
-                        total = lol;
-                        lblTotal.Text = $"{total:C}";
-
                         checkBox1.Checked = true;
                         cmbPago.Items.Clear();
                         cmbPago.Items.Add("04=TARJETA DE CREDITO");
                         cmbPago.Items.Add("28=TARJETA DE DEBITO");
                         cmbPago.SelectedIndex = 0;
-                    }
-                    else
-                    {
-                        checkBox1.Checked = false;
-                    }
-
-                }
 
             }
             else
@@ -333,8 +314,6 @@ namespace BRUNO
                 {
                     cmbPago.SelectedIndex = 0;
                 }
-                lblTotal.Text = $"{RecalcularTotal:C}";
-                checkBox1.Checked = false;
             }
         }
         public void Venta() 

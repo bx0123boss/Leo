@@ -72,6 +72,7 @@ namespace BRUNO
                 }
                 decimal montoTotal = Convert.ToDecimal(dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString());
                 detalles.lblMonto.Text = $"{montoTotal:C}";
+                detalles.monto = montoTotal;
                 detalles.usuario = usuario;
                 detalles.Show();
                 this.Close();

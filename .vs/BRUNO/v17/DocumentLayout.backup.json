@@ -1,18 +1,40 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\Admin\\Documents\\GitHub\\Leo\\",
+  "WorkspaceRootPath": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|c:\\users\\admin\\documents\\github\\leo\\bruno\\frmventas.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\bruno\\frmcorte.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|solutionrelative:bruno\\frmcorte.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\bruno\\frmcorte.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|solutionrelative:bruno\\frmcorte.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|c:\\users\\brandon\\documents\\jaegersoft\\ntm\\leo\\bruno-perla-red\\bruno\\frmventas.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|solutionrelative:bruno\\frmventas.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|c:\\users\\admin\\documents\\github\\leo\\bruno\\frmventas.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|c:\\users\\brandon\\documents\\jaegersoft\\ntm\\leo\\bruno-perla-red\\bruno\\frmventas.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|solutionrelative:bruno\\frmventas.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|c:\\users\\admin\\documents\\github\\leo\\bruno\\frmtipoventa.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|solutionrelative:bruno\\frmtipoventa.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{00000000-0000-0000-0000-000000000000}|\u003CSolution\u003E|BRUNO||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\bruno\\frmventadetallada.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|solutionrelative:bruno\\frmventadetallada.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\bruno\\frmreporteventas.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|solutionrelative:bruno\\frmreporteventas.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\bruno\\frmreporteventas.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|solutionrelative:bruno\\frmreporteventas.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|c:\\users\\brandon\\documents\\jaegersoft\\ntm\\leo\\bruno-perla-red\\bruno\\||{B270807C-D8C6-49EB-8EBE-8E8D566637A1}|cc4014f5-b18d-439c-9352-f99d984cca85"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,48 +44,103 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 7,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "frmTipoVenta.cs",
-              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\Leo\\BRUNO\\frmTipoVenta.cs",
-              "RelativeDocumentMoniker": "BRUNO\\frmTipoVenta.cs",
-              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\Leo\\BRUNO\\frmTipoVenta.cs",
-              "RelativeToolTip": "BRUNO\\frmTipoVenta.cs",
-              "ViewState": "AgIAABgAAAAAAAAAAAAowAAAAAAAAAAAAAAAAA==",
+              "Title": "frmVentas.cs",
+              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmVentas.cs",
+              "RelativeDocumentMoniker": "BRUNO\\frmVentas.cs",
+              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmVentas.cs",
+              "RelativeToolTip": "BRUNO\\frmVentas.cs",
+              "ViewState": "AgIAABgBAAAAAAAAAAAjwDsBAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-07T15:00:31.855Z",
+              "WhenOpened": "2025-03-12T15:12:39.337Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "frmVentas.cs",
-              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\Leo\\BRUNO\\frmVentas.cs",
+              "DocumentIndex": 3,
+              "Title": "frmVentas.cs [Dise\u00F1o]",
+              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmVentas.cs",
               "RelativeDocumentMoniker": "BRUNO\\frmVentas.cs",
-              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\Leo\\BRUNO\\frmVentas.cs",
-              "RelativeToolTip": "BRUNO\\frmVentas.cs",
-              "ViewState": "AgIAAE0BAAAAAAAAAAAUwF0BAAAiAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmVentas.cs [Dise\u00F1o]",
+              "RelativeToolTip": "BRUNO\\frmVentas.cs [Dise\u00F1o]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-07T14:52:26.809Z",
+              "WhenOpened": "2025-03-12T15:12:37.512Z",
+              "EditorCaption": " [Dise\u00F1o]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "frmVentaDetallada.cs",
+              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmVentaDetallada.cs",
+              "RelativeDocumentMoniker": "BRUNO\\frmVentaDetallada.cs",
+              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmVentaDetallada.cs",
+              "RelativeToolTip": "BRUNO\\frmVentaDetallada.cs",
+              "ViewState": "AgIAADgAAAAAAAAAAAAlwFUAAACqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-12T02:22:46.959Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "frmReporteVentas.cs",
+              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmReporteVentas.cs",
+              "RelativeDocumentMoniker": "BRUNO\\frmReporteVentas.cs",
+              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmReporteVentas.cs",
+              "RelativeToolTip": "BRUNO\\frmReporteVentas.cs",
+              "ViewState": "AgIAACoAAAAAAAAAAAAWwDcAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-12T02:23:52.623Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "frmReporteVentas.cs [Dise\u00F1o]",
+              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmReporteVentas.cs",
+              "RelativeDocumentMoniker": "BRUNO\\frmReporteVentas.cs",
+              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmReporteVentas.cs [Dise\u00F1o]",
+              "RelativeToolTip": "BRUNO\\frmReporteVentas.cs [Dise\u00F1o]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-12T02:23:51.688Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "BRUNO",
+              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\BRUNO.csproj",
+              "RelativeDocumentMoniker": "BRUNO\\BRUNO.csproj",
+              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\BRUNO.csproj",
+              "RelativeToolTip": "BRUNO\\BRUNO.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-03-11T23:12:50.241Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "frmVentas.cs [Dise\u00F1o]",
-              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\Leo\\BRUNO\\frmVentas.cs",
-              "RelativeDocumentMoniker": "BRUNO\\frmVentas.cs",
-              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\Leo\\BRUNO\\frmVentas.cs [Dise\u00F1o]",
-              "RelativeToolTip": "BRUNO\\frmVentas.cs [Dise\u00F1o]",
+              "Title": "frmCorte.cs",
+              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmCorte.cs",
+              "RelativeDocumentMoniker": "BRUNO\\frmCorte.cs",
+              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmCorte.cs*",
+              "RelativeToolTip": "BRUNO\\frmCorte.cs*",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-07T14:45:49.576Z",
+              "WhenOpened": "2025-03-11T23:08:41.643Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "frmCorte.cs [Dise\u00F1o]",
+              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmCorte.cs",
+              "RelativeDocumentMoniker": "BRUNO\\frmCorte.cs",
+              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmCorte.cs [Dise\u00F1o]*",
+              "RelativeToolTip": "BRUNO\\frmCorte.cs [Dise\u00F1o]*",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-11T22:53:44.299Z",
               "EditorCaption": " [Dise\u00F1o]"
             }
           ]

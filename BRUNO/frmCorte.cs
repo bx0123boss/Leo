@@ -1,14 +1,9 @@
 ﻿using LibPrintTicket;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.OleDb;
 using System.Drawing;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BRUNO
@@ -31,6 +26,7 @@ namespace BRUNO
         public frmCorte()
         {
             InitializeComponent();
+            this.MinimumSize = new Size(969, 772);
         }
 
         private void dgvCorte_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
@@ -184,8 +180,8 @@ namespace BRUNO
             lblUtilidad.Text = $"{utilidad:C}";
             lblEntrada.Text = $"{mas + tarjeta + trans:C}";
             lblSalida.Text = $"{menos * -1:C}";
-            lblCredito.Text = "$" + Math.Round(tarjeta * .95,2);
-            lbl5por.Text = "$" + Math.Round(tarjeta * .05);
+            lblCredito.Text = $"{tarjeta * 0.973:F2}"; // Muestra 2 decimales
+            lbl5por.Text = $"{tarjeta * 0.027:F2}";   // Muestra 2 decimales
             lblTrans.Text = $"{trans:C}";
             lblTotal.Text = $"{tarjeta + mas + menos + trans:C}";
             
