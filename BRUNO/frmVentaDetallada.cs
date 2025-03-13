@@ -43,18 +43,21 @@ namespace BRUNO
             {
                 button1.Hide();
             }
-            cmd = new OleDbCommand("select * from Clientes where Id=" + dataGridView1[6, 0].Value.ToString() + ";", conectar);
-                    OleDbDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
-                    {
-                        lblCliente.Text = Convert.ToString(reader[1].ToString());
-                        lblDireccion.Text = Convert.ToString(reader[3].ToString());
-                    }
-                    else
-                    {
-                        lblCliente.Text = "PUBLICO EN GENERAL";
-                    }
-                    
+            if (dataGridView1.Rows.Count > 0)
+            {
+                cmd = new OleDbCommand("select * from Clientes where Id=" + dataGridView1[6, 0].Value.ToString() + ";", conectar);
+                OleDbDataReader reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    lblCliente.Text = Convert.ToString(reader[1].ToString());
+                    lblDireccion.Text = Convert.ToString(reader[3].ToString());
+                }
+                else
+                {
+                    lblCliente.Text = "PUBLICO EN GENERAL";
+                }
+
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)

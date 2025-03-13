@@ -49,7 +49,6 @@ namespace BRUNO
              foli = 0;
              direccion = "";
             txtDescuento.Text = "";
-            cmbPago.SelectedItem = null;
             lblFolio.Text = "0";
             lblFolio.Visible = false;
             label2.Visible = false;
@@ -57,7 +56,34 @@ namespace BRUNO
             lblTotal.Text = $"{RecalcularTotal:C}";
             lblCliente.Text = "PUBLICO EN GENERAL";
             checkBox1.Checked = false;
-            
+            string[] opcionesPago = {
+                    "01=EFECTIVO",
+                    "02=CHEQUE NOMINATIVO",
+                    "03=TRANFERENCIA ELECTRONICA DE FONDOS",
+                    "05=MONEDERO ELECTRONICO",
+                    "06=DINERO ELECTRONICO",
+                    "08=VALES DE DESPENSA",
+                    "12=DACION EN PAGO",
+                    "13=PAGO POR SUBROGACION",
+                    "14=PAGO POR CONSIGNACION",
+                    "15=CONDONACION",
+                    "17=COMPENSACION",
+                    "23=NOVACION",
+                    "24=CONFUSION",
+                    "25=REMISION DE DEUDA",
+                    "26=PRESCRIPCION O CADUCIDAD",
+                    "27=A SATISFACCION DEL ACREEDOR",
+                    "29=TARJETA DE SERVICIOS",
+                    "30=APLICACION DE ANTICIPOS",
+                    "31=INTERMEDIARIO PAGOS",
+                    "99=POR DEFINIR"
+                };
+            cmbPago.Items.Clear();
+            cmbPago.Items.AddRange(opcionesPago);
+            if (cmbPago.Items.Count > 0)
+            {
+                cmbPago.SelectedIndex = 0;
+            }
             radioButton1.Checked = false;
             radioButton2.Checked = false;
             txtDescuento.Text = "";
@@ -318,6 +344,11 @@ namespace BRUNO
         }
         public void Venta() 
         {
+            if(total == 0)
+            {
+                MessageBox.Show("No se puede realizar una venta sin productos", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             cmd = new OleDbCommand("select Numero from Folios where Folio='FolioContado';", conectar);
             OleDbDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
