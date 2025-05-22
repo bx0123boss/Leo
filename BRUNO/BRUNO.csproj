@@ -13,7 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <TargetFrameworkProfile />
-    <PublishUrl>C:\Users\Brandon\Desktop\Punto\</PublishUrl>
+    <PublishUrl>C:\Users\Admin\Desktop\Punto\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -23,7 +23,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>186</ApplicationRevision>
+    <ApplicationRevision>199</ApplicationRevision>
     <ApplicationVersion>1.0.4.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -254,6 +254,12 @@
     </Compile>
     <Compile Include="frmCaptura.Designer.cs">
       <DependentUpon>frmCaptura.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmCapturaInicial.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmCapturaInicial.Designer.cs">
+      <DependentUpon>frmCapturaInicial.cs</DependentUpon>
     </Compile>
     <Compile Include="frmCategorias.cs">
       <SubType>Form</SubType>
@@ -780,6 +786,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmCaptura.resx">
       <DependentUpon>frmCaptura.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmCapturaInicial.resx">
+      <DependentUpon>frmCapturaInicial.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmCategorias.resx">
       <DependentUpon>frmCategorias.cs</DependentUpon>

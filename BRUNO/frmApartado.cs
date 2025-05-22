@@ -411,7 +411,7 @@ namespace BRUNO
                         foli = foli + 1;
                         cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioApartado';", conectar);
                         cmd.ExecuteNonQuery();
-                        //ticket.PrintTicket(Conexion.impresora);
+                        ticket.PrintTicket(Conexion.impresora);
                         MessageBox.Show("Apartado realizada con exito", "APARTADO REALIZADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         frmApartado credito = new frmApartado();
                         credito.Show();

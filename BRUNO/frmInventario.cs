@@ -27,7 +27,7 @@ namespace BRUNO
         public frmInventario()
         {
             InitializeComponent();
-            
+            this.MinimumSize = new Size(1346,805);
         }
 
         private void BtnApartados_Click(object sender, EventArgs e)

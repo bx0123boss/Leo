@@ -8,12 +8,12 @@ namespace BRUNO
 {
     class Conexion
     {
-        public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Jaeger Soft\Jaeger.accdb; Jet OLEDB:Database Password=75941232";
+        //public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Jaeger Soft\Jaeger.accdb; Jet OLEDB:Database Password=75941232";
+        public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.1.1\Jaeger Soft\Jaeger.accdb; Jet OLEDB:Database Password=75941232";
         //public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Respaldo\Joyeria.accdb";
         //public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb";
         //public static string lugar = "LOCAL";
-        //public static string lugar = "PERLA";
-        //public static string lugar = "PERLAred";
+
         //public static string lugar = "PLAZA";
         //public static string lugar = "CAPTURA";
         //==================================   
@@ -79,12 +79,12 @@ namespace BRUNO
         //public static string impresora = "print";
 
         //CROQUETE
-        public static string lugar = "";
+        public static string lugar = "PINTURAS";
         public static int MaxChar = 32;
         public static int FontSize = 9;
         public static int MaxCharDescription = 16;
-        public static string[] datosTicket = new string[] { "", "", "", "" };
-        public static string[] pieDeTicket = new string[] { "No sé admiten devoluciones ni cambios", "", "**GRACIAS POR SU COMPRA**" };
+        public static string[] datosTicket = new string[] { "TERESA REYES HERNANDEZ", "Av. Cuauhtémoc No. 501 Col. Centro", "Tels. 231 31 2 0176 y 231 31 223 33" ," Whatsapp 222 586 60 60", "Teziutlán, Pue. C.P. 73800", "R.F.C. REHT4908096N1"};
+        public static string[] pieDeTicket = new string[] { "ESTO NO ES UN COMPROBANTE FISCAL", "", "    **GRACIAS POR SU COMPRA**" };
         public static string Font = "";
         public static string impresora = "print";
     }

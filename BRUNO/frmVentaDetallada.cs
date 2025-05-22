@@ -132,7 +132,7 @@ namespace BRUNO
             {
                 ticket.AddFooterLine(Conexion.pieDeTicket[i]);
             }    
-            //ticket.PrintTicket(Conexion.impresora);
+            ticket.PrintTicket(Conexion.impresora);
         }
 
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)

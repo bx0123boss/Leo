@@ -65,6 +65,18 @@ namespace BRUNO
             }
         }
 
+        private void dgvFolios_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (dgvFolios.Columns[e.ColumnIndex].Name == "Monto" || dgvFolios.Columns[e.ColumnIndex].Name == "Descuento" || dgvFolios.Columns[e.ColumnIndex].Name == "Monto sin IVA" || dgvFolios.Columns[e.ColumnIndex].Name == "IVA")
+            {
+                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
+                {
+                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.FormattingApplied = true;
+                }
+            }
+        }
+
         private void frmCorte_Load(object sender, EventArgs e)
         {
             if (usuario=="Invitado")
@@ -108,6 +120,8 @@ namespace BRUNO
             da.Fill(ds, "Id");
             dataGridView4.DataSource = ds.Tables["Id"];
             dataGridView4.Columns[0].Visible = false;
+
+           
 
             for (int i = 0; i < dgvCorte.RowCount; i++)
             {
@@ -159,13 +173,37 @@ namespace BRUNO
             da.Fill(ds, "Id");
             dataGridView2.DataSource = ds.Tables["Id"];
 
-
+            // 1. Llenar el DataGridView como lo tenías
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Abonos Where Fecha>=#" + subcadena + " 00:00:00# and Fecha <=#" + subcadena + " 23:59:59#;", conectar);
+            da = new OleDbDataAdapter("Select Id,Folio,    Monto / (1 + (16 / 100)) AS [Monto sin IVA], Monto - (Monto / (1 + (16 / 100))) AS [IVA], Monto,Descuento, Fecha, Estatus, Pago from Ventas where Estatus ='COBRADO' AND Fecha>=#" + subcadena + " 00:00:00# and Fecha <=#" + subcadena + " 23:59:59#;", conectar);
             da.Fill(ds, "Id");
-            dataGridView5.DataSource = ds.Tables["Id"];
-            dataGridView5.Columns[0].Visible = false;
-            dataGridView5.Columns[2].Visible = false;
+            dgvFolios.DataSource = ds.Tables["Id"];
+
+            // 2. Ocultar la columna que no quieres mostrar (si es necesario)
+            dgvFolios.Columns[0].Visible = false;
+
+            // 3. Agregar la columna CheckBox (si no está en el DataSource)
+            DataGridViewCheckBoxColumn checkColumn = new DataGridViewCheckBoxColumn();
+            checkColumn.Name = "Seleccionar";
+            checkColumn.HeaderText = "Seleccionar";
+            checkColumn.Width = 80;
+            checkColumn.ReadOnly = false;  // Solo esta columna será editable
+            dgvFolios.Columns.Insert(0, checkColumn);
+
+            // 4. Marcar todos los CheckBoxes como true inicialmente
+            foreach (DataGridViewRow row in dgvFolios.Rows)
+            {
+                row.Cells["Seleccionar"].Value = true;
+            }
+
+            // 5. Hacer que TODAS las demás columnas sean de solo lectura
+            foreach (DataGridViewColumn column in dgvFolios.Columns)
+            {
+                if (column.Name != "Seleccionar") // Excluir solo el CheckBox
+                {
+                    column.ReadOnly = true;
+                }
+            }
 
             for (int i = 0; i < dataGridView2.RowCount; i++)
             {
@@ -183,14 +221,48 @@ namespace BRUNO
             lblCredito.Text = $"{tarjeta * 0.973:F2}"; // Muestra 2 decimales
             lbl5por.Text = $"{tarjeta * 0.027:F2}";   // Muestra 2 decimales
             lblTrans.Text = $"{trans:C}";
-            lblTotal.Text = $"{tarjeta + mas + menos + trans:C}";
-            
+            // Usar decimal para cálculos financieros
+            decimal monto = Convert.ToDecimal(tarjeta + mas + menos + trans);
+            decimal tasaIVA = 0.16m; // 16% en formato decimal
+            // Calcular monto sin IVA e IVA
+            decimal montoSinIVA = monto / (1 + tasaIVA);
+            decimal iva = monto - montoSinIVA;
+            lblNoIva.Text = $"{montoSinIVA:C2}"; 
+            lblIVA.Text = $"{iva:C2}"; 
+            lblTotal.Text = $"{monto:C2}";
+
         }
         private void button1_Click(object sender, EventArgs e)
         {
+            #region folios nuevos
+            int foli = 0;
+            cmd = new OleDbCommand("select Numero from Folios where Folio='FolioVenta';", conectar);
+            OleDbDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
+            }
+            foreach (DataGridViewRow row in dgvFolios.Rows)
+            {
+                // Verificar si el CheckBox está marcado (y que no sea la fila de encabezado)
+                if (row.Cells["Seleccionar"].Value != null && Convert.ToBoolean(row.Cells["Seleccionar"].Value))
+                {
+                    // Obtener datos de la fila actual (ejemplo con una columna llamada "Folio")
+                    string folio = row.Cells["Folio"].Value.ToString();
+                   
+                    //insertar datos
+                    MessageBox.Show($"Fila seleccionada: {folio}");
+
+                    foli++;
+                }
+            }
+            cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioVenta';", conectar);
+            cmd.ExecuteNonQuery();
+            #endregion 
+
             string fecha = "";
             cmd = new OleDbCommand("select * from Fech where Id=1;", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
+            reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 int caja = Convert.ToInt32(Convert.ToString(reader[1].ToString()));
@@ -261,7 +333,7 @@ namespace BRUNO
             ticket.AddTotal("Entradas", lblEntrada.Text);
             ticket.AddTotal("Salidas",lblSalida.Text);
             ticket.AddTotal("Total", lblTotal.Text);
-            //ticket.PrintTicket(Conexion.impresora);
+            ticket.PrintTicket(Conexion.impresora);
             MessageBox.Show("CORTE REALIZADO CON EXITO","EXITO",MessageBoxButtons.OK,MessageBoxIcon.Information);
             this.Close();
         }
@@ -293,7 +365,7 @@ namespace BRUNO
             ticket.AddTotal("Entradas", lblEntrada.Text);
             ticket.AddTotal("Salidas", lblSalida.Text);
             ticket.AddTotal("Total", lblTotal.Text);
-            //ticket.PrintTicket(Conexion.impresora);
+            ticket.PrintTicket(Conexion.impresora);
             MessageBox.Show("CORTE REALIZADO CON EXITO", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();
         }

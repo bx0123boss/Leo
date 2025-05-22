@@ -210,7 +210,7 @@ namespace BRUNO
                         foli = foli + 1;
                         cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioCredito';", conectar);
                         cmd.ExecuteNonQuery();
-                        //ticket.PrintTicket(Conexion.impresora);
+                        ticket.PrintTicket(Conexion.impresora);
                         MessageBox.Show("Venta realizada con exito", "VENTA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         frmVentasCredito credito = new frmVentasCredito();
                         credito.Show();

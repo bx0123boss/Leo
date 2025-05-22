@@ -71,14 +71,14 @@ namespace BRUNO
             ticket.AddItem("", "ADEUDO", "$" + txtAdeudo.Text);
             ticket.AddItem("", "ABONO", "$" + txtAbono.Text);
             ticket.AddItem("", "RESTANTE", "$" + txtRestante.Text);
-            //ticket.PrintTicket("print");
+            ticket.PrintTicket("print");
             cmd = new OleDbCommand("UPDATE Apartados set Restante='" + txtRestante.Text + "', Abono='"+abonado+"' where Id=" + lblID.Text + ";", conectar);
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono a cuenta de Apartado con Folio:  " + lblFolio.Text + "','" + txtAbono.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+cmbPago.Text+"');", conectar);
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("insert into AbonosApartado(Abono,idCliente,Fecha,Folio) Values('" + txtAbono.Text + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+lblFolio.Text+"');", conectar);
             cmd.ExecuteNonQuery();
-            //ticket.PrintTicket(Conexion.impresora);
+            ticket.PrintTicket(Conexion.impresora);
             MessageBox.Show("Se ha abonado con exito", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             frmApartados apart = new frmApartados();
             apart.Show();

@@ -14,7 +14,7 @@ namespace BRUNO
     {
         public double cambio { get; set; }
         public double efectivo { get; set; }
-
+        public double total {  get; set; }
         public frmPago()
         {
             InitializeComponent();
@@ -34,9 +34,19 @@ namespace BRUNO
                 {
                     MessageBox.Show("Ingresa una cantidad valida", "ALTO", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                
+                else if ((Convert.ToDouble(textBox2.Text) - total) < 0)
+                {
+                    textBox2.Clear();
+                    MessageBox.Show("Ingresa una cantidad valida", "ALTO", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                
                 else
                 {
-                    textBox3.Text = String.Format("{0:0.00}", (Convert.ToDouble(textBox2.Text) - Convert.ToDouble(txtTotal.Text)));
+                    efectivo = Convert.ToDouble(textBox2.Text);
+                    cambio = Convert.ToDouble(textBox2.Text) - total;
+                    textBox3.Text = $"{(Convert.ToDouble(textBox2.Text) - total):C}";
+                    textBox2.Text = $"{Convert.ToDouble(textBox2.Text):C}";
                     textBox3.Focus();
                 }
             }
@@ -46,8 +56,6 @@ namespace BRUNO
         {
             if (e.KeyChar == Convert.ToChar(Keys.Enter))
             {
-                efectivo = Convert.ToDouble(textBox2.Text);
-                cambio = Convert.ToDouble(textBox3.Text);
                 this.DialogResult = System.Windows.Forms.DialogResult.OK;
             }
         }

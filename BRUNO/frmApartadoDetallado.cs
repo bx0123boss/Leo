@@ -122,7 +122,7 @@ namespace BRUNO
             {
                 ticket.AddFooterLine(Conexion.pieDeTicket[i]);
             }    
-            //ticket.PrintTicket(Conexion.impresora);
+            ticket.PrintTicket(Conexion.impresora);
         }
     }
 }
