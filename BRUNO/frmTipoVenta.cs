@@ -38,6 +38,8 @@ namespace BRUNO
             else
             {
                 frmVentas vent = new frmVentas();
+                vent.MinimizeBox = false;  // Elimina el botón de minimizar
+                vent.ControlBox = true;
                 vent.usuario = usuario;
                 vent.lblUsuario.Text = NombreUsuario;
                 vent.idUsuario = idUsuario;

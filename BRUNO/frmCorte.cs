@@ -1,9 +1,11 @@
 ﻿using LibPrintTicket;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
 using System.Drawing;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace BRUNO
@@ -82,17 +84,6 @@ namespace BRUNO
             if (usuario=="Invitado")
             {
                 //button2.Hide();
-                label9.Hide();
-                lblInversion.Hide();
-                label14.Hide();
-                lblUtilidad.Hide();
-                label10.Hide();
-                lblGastos.Hide();
-                label11.Hide();
-                lblBruta.Hide();
-            }
-            if (Conexion.lugar == "LEO")
-            {
                 label9.Hide();
                 lblInversion.Hide();
                 label14.Hide();
@@ -218,8 +209,9 @@ namespace BRUNO
             lblUtilidad.Text = $"{utilidad:C}";
             lblEntrada.Text = $"{mas + tarjeta + trans:C}";
             lblSalida.Text = $"{menos * -1:C}";
-            lblCredito.Text = $"{tarjeta * 0.973:F2}"; // Muestra 2 decimales
-            lbl5por.Text = $"{tarjeta * 0.027:F2}";   // Muestra 2 decimales
+            lblCredito.Text = $"{tarjeta:F2}";
+            //lblCredito.Text = $"{tarjeta * 0.973:F2}"; 
+            //lbl5por.Text = $"{tarjeta * 0.027:F2}";   // Muestra 2 decimales
             lblTrans.Text = $"{trans:C}";
             // Usar decimal para cálculos financieros
             decimal monto = Convert.ToDecimal(tarjeta + mas + menos + trans);
@@ -236,6 +228,8 @@ namespace BRUNO
         {
             #region folios nuevos
             int foli = 0;
+            
+            List<Producto> productos = new List<Producto>();
             cmd = new OleDbCommand("select Numero from Folios where Folio='FolioVenta';", conectar);
             OleDbDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
@@ -249,9 +243,15 @@ namespace BRUNO
                 {
                     // Obtener datos de la fila actual (ejemplo con una columna llamada "Folio")
                     string folio = row.Cells["Folio"].Value.ToString();
-                   
+                    productos.Add(new Producto
+                    {
+                        Cantidad = 0,
+                        Nombre = row.Cells["Folio"].Value.ToString(),
+                        PrecioUnitario = Convert.ToDouble(row.Cells["Monto sin IVA"].Value.ToString()),
+                        Total = Convert.ToDouble(row.Cells["Monto"].Value.ToString()),
+                    });
                     //insertar datos
-                    MessageBox.Show($"Fila seleccionada: {folio}");
+                    //MessageBox.Show($"Fila seleccionada: {folio}");
 
                     foli++;
                 }
@@ -270,42 +270,16 @@ namespace BRUNO
             }
             button1.Visible = false;
             folio++;
-            Ticket ticket = new Ticket();
-            if (Conexion.lugar == "LEO")
-                ticket.MaxChar = 50;
-            else
-                ticket.MaxChar = Conexion.MaxChar;
-            ticket.FontSize = Conexion.FontSize;
-            ticket.MaxCharDescription = Conexion.MaxCharDescription;
-            if (Conexion.Font == "")
-            {
-
-            }
-            else
-                ticket.FontName = Conexion.Font;
-            //ticket.HeaderImage = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
-            ticket.AddHeaderLine("*****  CORTE DE CAJA  ****");
-            for (int i = 0; i < Conexion.datosTicket.Length; i++)
-            {
-                ticket.AddHeaderLine(Conexion.datosTicket[i]);
-            }
-            ticket.AddSubHeaderLine("     Apertura de caja:");
-            ticket.AddSubHeaderLine(fecha);
-            ticket.AddSubHeaderLine("        Corte de caja:");
-            ticket.AddSubHeaderLine(DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+            string[] encabezados = new string[] { "**********  CORTE DE CAJA  ********", "             Apertura de caja:", fecha, "               Corte de caja:", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() };
             for (int i = 0; i < dgvCorte.RowCount; i++)
             {                
                 //MessageBox.Show("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvCorte[1, i].Value.ToString() + "','" + dgvCorte[2, i].Value.ToString() + "','" + dgvCorte[3, i].Value.ToString() + "','" + folio + "','PAGO CONTADO');");
                 cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvCorte[1, i].Value.ToString() + "','" + dgvCorte[2, i].Value.ToString() + "','" + folio + "','" + dgvCorte[4, i].Value.ToString() + "');", conectar);                
                 cmd.ExecuteNonQuery();
-                if (Conexion.lugar == "LEO")
-                {
-                    
-                }
-                else
-                    ticket.AddItem("1", dgvCorte[1, i].Value.ToString(), "   $" + dgvCorte[2, i].Value.ToString());
+                
+
             }
-            for (int i = 0; i < dataGridView3.RowCount; i++)
+                for (int i = 0; i < dataGridView3.RowCount; i++)
             {
                 cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dataGridView3[1, i].Value.ToString() + "','" + dataGridView3[2, i].Value.ToString() + "','" + folio + "','" + dataGridView3[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
@@ -328,12 +302,27 @@ namespace BRUNO
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("delete from Credito where 1;", conectar);
             cmd.ExecuteNonQuery();
-            ticket.AddTotal("Efectivo", lblCorte.Text);
-            ticket.AddTotal("Tarjetas", lblCredito.Text);
-            ticket.AddTotal("Entradas", lblEntrada.Text);
-            ticket.AddTotal("Salidas",lblSalida.Text);
-            ticket.AddTotal("Total", lblTotal.Text);
-            ticket.PrintTicket(Conexion.impresora);
+            // Elimina todo excepto números, punto y signo negativo (si aplica)
+            string GetNumericValue(string input)
+            {
+                return Regex.Replace(input, @"[^\d.-]", "");
+            }
+
+            Dictionary<string, double> totales = new Dictionary<string, double>();
+            totales.Add("Efectivo", Convert.ToDouble(GetNumericValue(lblCorte.Text)));
+            totales.Add("Tarjetas", Convert.ToDouble(GetNumericValue(lblCredito.Text)));
+            totales.Add("Transferencias", Convert.ToDouble(GetNumericValue(lblTrans.Text)));
+            totales.Add("Sin IVA", Convert.ToDouble(GetNumericValue(lblNoIva.Text)));
+            totales.Add("IVA", Convert.ToDouble(GetNumericValue(lblIVA.Text)));
+            /*
+            totales.Add("Entradas", Convert.ToDouble(GetNumericValue(lblEntrada.Text)));
+            totales.Add("Salidas", Convert.ToDouble(GetNumericValue(lblSalida.Text)));
+            */
+            totales.Add("Total", Convert.ToDouble(GetNumericValue(lblTotal.Text)));
+            string[] pieDePagina = new string[] { "" };
+            TicketPrinter ticketPrinter = new TicketPrinter(encabezados, Conexion.pieDeTicket, Conexion.logoPath, productos, "", "", "", total, true, totales);
+
+            ticketPrinter.ImprimirTicket();
             MessageBox.Show("CORTE REALIZADO CON EXITO","EXITO",MessageBoxButtons.OK,MessageBoxIcon.Information);
             this.Close();
         }

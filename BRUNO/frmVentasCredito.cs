@@ -337,11 +337,9 @@ namespace BRUNO
                         using (frmBuscarProductos buscar = new frmBuscarProductos())
                         {
                             buscar.textBox1.Text = textBox1.Text;
-                            if (buscar.ShowDialog() == DialogResult.OK)
-                            {
+                            //if (buscar.ShowDialog() == DialogResult.OK)
                                 dataGridView1.Rows.Add("1", buscar.producto, buscar.precio, buscar.monto, buscar.existencia, buscar.ID, origen, buscar.IVA, buscar.compra);
-
-                            }
+                            
                         }
                         total = 0;
                         for (int i = 0; i < dataGridView1.RowCount; i++)

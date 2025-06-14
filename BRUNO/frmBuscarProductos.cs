@@ -52,11 +52,12 @@ namespace BRUNO
                 {
                     using (frmPrecio buscar = new frmPrecio())
                     {
-
+                        /*
                         if (buscar.ShowDialog() == DialogResult.OK)
                         {
+                             //SIN TIPO DE PRECIO
                             if (buscar.tipo == "GEN")
-                            {
+                            {*/
                                 double preci = Convert.ToDouble(dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString());
                                 producto = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
                                 precio = String.Format("{0:0.00}", preci);
@@ -67,7 +68,7 @@ namespace BRUNO
                                 compra = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
                                 this.DialogResult = System.Windows.Forms.DialogResult.OK;
                             }
-
+                        /*
                             else if (buscar.tipo == "MAY")
                             {
                                 double preci = Convert.ToDouble(dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString());
@@ -81,7 +82,7 @@ namespace BRUNO
                                 this.DialogResult = System.Windows.Forms.DialogResult.OK;
                             }
                         }
-                    }
+                    }*/
                 }
             }
             else
@@ -241,55 +242,46 @@ namespace BRUNO
                 }
                 else
                 {
-                    using (frmPrecio buscar = new frmPrecio())
-                    {
-                        if (buscar.ShowDialog() == DialogResult.OK)
-                        {
-                            if (buscar.tipo == "GEN")
+                        using (frmPrecio buscar = new frmPrecio())
+                        {/*
+                            if (buscar.ShowDialog() == DialogResult.OK)
                             {
-                    try
-                    {
-                        double preci = Convert.ToDouble(dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString());
-                        producto = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-                        precio = String.Format("{0:0.00}", preci);
-                        monto = String.Format("{0:0.00}", preci);
-                        existencia = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
-                        ID = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-                        IVA = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
-                        compra = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
-                        this.DialogResult = System.Windows.Forms.DialogResult.OK;
-                    }
-                    catch (Exception ex)
-                    {
+                               
+                                if (buscar.tipo == "GEN")
+                                {*/
+                                    try
+                                    {
+                                        double preci = Convert.ToDouble(dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString());
+                                        producto = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+                                        precio = String.Format("{0:0.00}", preci);
+                                        monto = String.Format("{0:0.00}", preci);
+                                        existencia = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
+                                        ID = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
+                                        IVA = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
+                                        compra = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
+                                        this.DialogResult = System.Windows.Forms.DialogResult.OK;
+                                    }
+                                    catch (Exception ex)
+                                    {
 
-                    }
-                            }
-                            else if (buscar.tipo == "MAY")
-                            {
-                                double preci = Convert.ToDouble(dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString());
-                                producto = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-                                precio = String.Format("{0:0.00}", preci);
-                                monto = String.Format("{0:0.00}", preci);
-                                existencia = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
-                                ID = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-                                IVA = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
-                                compra = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
-                                this.DialogResult = System.Windows.Forms.DialogResult.OK;
-                            }
-                            //else
-                            //{
-                            //    double preci = Convert.ToDouble(dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString());
-                            //    producto = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-                            //    precio = String.Format("{0:0.00}", preci);
-                            //    monto = String.Format("{0:0.00}", preci);
-                            //    existencia = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
-                            //    ID = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-                            //    IVA = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
-                            //    this.DialogResult = System.Windows.Forms.DialogResult.OK;
-                            //}
+                                    }
+                              /*  }
+                                else if (buscar.tipo == "MAY")
+                                {
+                                    double preci = Convert.ToDouble(dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString());
+                                    producto = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+                                    precio = String.Format("{0:0.00}", preci);
+                                    monto = String.Format("{0:0.00}", preci);
+                                    existencia = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
+                                    ID = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
+                                    IVA = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
+                                    compra = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
+                                    this.DialogResult = System.Windows.Forms.DialogResult.OK;
+                                }
+                               
+                            }*/
                         }
                     }
-                }
                 }
                 else
                 {

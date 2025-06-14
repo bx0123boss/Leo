@@ -43,14 +43,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="JaegerSoft BreackPoint.exe" size="24168960">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="JaegerSoft BreackPoint.exe" size="24837632">
       <assemblyIdentity name="JaegerSoft BreackPoint" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>vuwUgob6tpvucrvfb/4GUyVgJqayTLkelnSNP2Pfi8g=</dsig:DigestValue>
+        <dsig:DigestValue>2+YeKfnEc1RKIRHQ0+/xMMNq40v3PCiI85NZ+1HlxB4=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

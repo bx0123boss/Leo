@@ -13,7 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <TargetFrameworkProfile />
-    <PublishUrl>C:\Users\Admin\Desktop\Punto\</PublishUrl>
+    <PublishUrl>C:\Users\Brandon\Desktop\Punto\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -701,7 +701,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Ticketsito.cs" />
+    <Compile Include="TicketPrinter.cs" />
     <EmbeddedResource Include="frmAbonoApartado.resx">
       <DependentUpon>frmAbonoApartado.cs</DependentUpon>
     </EmbeddedResource>

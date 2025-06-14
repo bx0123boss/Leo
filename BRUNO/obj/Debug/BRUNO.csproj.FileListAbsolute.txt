@@ -2540,3 +2540,4 @@ C:\Users\Admin\Documents\GitHub\Leo\BRUNO\obj\Debug\BRUNO.csproj.Up2Date
 C:\Users\Admin\Documents\GitHub\Leo\BRUNO\obj\Debug\JaegerSoft BreackPoint.exe
 C:\Users\Admin\Documents\GitHub\Leo\BRUNO\obj\Debug\JaegerSoft BreackPoint.pdb
 C:\Users\Admin\Documents\GitHub\Leo\BRUNO\obj\Debug\BRUNO.frmCapturaInicial.resources
+C:\Users\Brandon\Documents\Jaegersoft\ntm\Leo\BRUNO-PERLA-RED\BRUNO\obj\Debug\BRUNO.frmCapturaInicial.resources

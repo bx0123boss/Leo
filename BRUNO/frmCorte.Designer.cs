@@ -697,6 +697,7 @@
             this.lbl5por.Size = new System.Drawing.Size(100, 33);
             this.lbl5por.TabIndex = 47;
             this.lbl5por.Text = "Corte:";
+            this.lbl5por.Visible = false;
             // 
             // label16
             // 
@@ -709,6 +710,7 @@
             this.label16.Size = new System.Drawing.Size(164, 25);
             this.label16.TabIndex = 46;
             this.label16.Text = "2.7% Comisión:";
+            this.label16.Visible = false;
             // 
             // lblECaja
             // 

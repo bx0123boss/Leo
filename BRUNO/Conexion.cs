@@ -83,8 +83,14 @@ namespace BRUNO
         public static int MaxChar = 32;
         public static int FontSize = 9;
         public static int MaxCharDescription = 16;
-        public static string[] datosTicket = new string[] { "TERESA REYES HERNANDEZ", "Av. Cuauhtémoc No. 501 Col. Centro", "Tels. 231 31 2 0176 y 231 31 223 33" ," Whatsapp 222 586 60 60", "Teziutlán, Pue. C.P. 73800", "R.F.C. REHT4908096N1"};
-        public static string[] pieDeTicket = new string[] { "ESTO NO ES UN COMPROBANTE FISCAL", "", "    **GRACIAS POR SU COMPRA**" };
+        public static string[] datosTicket = new string[] { "        TERESA REYES HERNANDEZ",
+                                                    "  Av. Cuauhtémoc No. 501 Col. Centro",
+                                                    "   Tels. 231 31 2 0176 y 231 31 223 33",
+                                                    "             Whatsapp 222 586 60 60",
+                                                    "           Teziutlán, Pue. C.P. 73800",
+                                                    "             R.F.C. REHT4908096N1"};
+        public static string[] pieDeTicket = new string[] { "ESTO NO ES UN COMPROBANTE FISCAL", "      **GRACIAS POR SU COMPRA**" };
+        public static string logoPath = @"C:\Jaeger Soft\logo.jpg";
         public static string Font = "";
         public static string impresora = "print";
     }

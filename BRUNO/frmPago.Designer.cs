@@ -34,6 +34,7 @@
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.txtTotal = new System.Windows.Forms.TextBox();
+            this.button1 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label3
@@ -63,9 +64,9 @@
             this.label2.ForeColor = System.Drawing.Color.White;
             this.label2.Location = new System.Drawing.Point(-1, 50);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(164, 31);
+            this.label2.Size = new System.Drawing.Size(168, 31);
             this.label2.TabIndex = 10;
-            this.label2.Text = "RECIBIDO:";
+            this.label2.Text = "EFECTIVO:";
             // 
             // textBox2
             // 
@@ -96,12 +97,26 @@
             this.txtTotal.Size = new System.Drawing.Size(195, 38);
             this.txtTotal.TabIndex = 7;
             // 
+            // button1
+            // 
+            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button1.ForeColor = System.Drawing.Color.Black;
+            this.button1.Location = new System.Drawing.Point(49, 145);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(235, 52);
+            this.button1.TabIndex = 18;
+            this.button1.Text = "Seguir Cobrando";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // frmPago
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(331, 146);
+            this.ClientSize = new System.Drawing.Size(331, 209);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.textBox3);
             this.Controls.Add(this.label2);
@@ -125,5 +140,6 @@
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Label label1;
         public System.Windows.Forms.TextBox txtTotal;
+        private System.Windows.Forms.Button button1;
     }
 }

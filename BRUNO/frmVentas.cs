@@ -36,10 +36,11 @@ namespace BRUNO
         {
             InitializeComponent();
             this.MinimumSize = new Size(1066, 418);
-            conectar.Open();
+           
         }
         public void ReiniciarForm()
         {
+            conectar.Close();
             total = 0;
             iva = 0;
             origen = "";
@@ -87,7 +88,7 @@ namespace BRUNO
             radioButton1.Checked = false;
             radioButton2.Checked = false;
             txtDescuento.Text = "";
-
+            conectar.Open();
         }
         private double RecalcularTotal
         {
@@ -103,7 +104,7 @@ namespace BRUNO
         }
         private void frmVentas_Load(object sender, EventArgs e)
         {
-
+            conectar.Open();
             cmbPago.SelectedIndex = 0;
             if (Conexion.lugar == "LEO")
             {
@@ -121,7 +122,7 @@ namespace BRUNO
             {
                 if (buscar.ShowDialog() == DialogResult.OK)
                 {
-                    dataGridView1.Rows.Add("1", buscar.producto, buscar.precio, buscar.monto, buscar.existencia, buscar.ID, origen, buscar.IVA, buscar.compra);
+                    dataGridView1.Rows.Add("1", buscar.producto, buscar.precio, buscar.monto, buscar.existencia, buscar.ID, origen, buscar.IVA, buscar.compra,"X");
 
                 }
             }
@@ -151,19 +152,23 @@ namespace BRUNO
                         {
                             using (frmPrecio buscar = new frmPrecio())
                             {
+                                //se omite origen de precio
+                                /*
                                 if (buscar.ShowDialog() == DialogResult.OK)
                                 {
+                                    
                                     if (buscar.tipo == "GEN")
-                                    {
+                                    {*/
                                         double preci = Convert.ToDouble(reader[3].ToString());
-                                        dataGridView1.Rows.Add("1", Convert.ToString(reader[1].ToString()), String.Format("{0:0.00}", preci), String.Format("{0:0.00}", preci), Convert.ToString(reader[4].ToString()), Convert.ToString(reader[0].ToString()), origen, Convert.ToString(reader[8].ToString()), Convert.ToString(reader[7].ToString()), "");
-                                    }
+                                        dataGridView1.Rows.Add("1", Convert.ToString(reader[1].ToString()), String.Format("{0:0.00}", preci), String.Format("{0:0.00}", preci), Convert.ToString(reader[4].ToString()), Convert.ToString(reader[0].ToString()), origen, Convert.ToString(reader[8].ToString()), Convert.ToString(reader[7].ToString()), "","X");
+                                   /*}
                                     else
                                     {
                                         double preci = Convert.ToDouble(reader[2].ToString());
-                                        dataGridView1.Rows.Add("1", Convert.ToString(reader[1].ToString()), String.Format("{0:0.00}", preci), String.Format("{0:0.00}", preci), Convert.ToString(reader[4].ToString()), Convert.ToString(reader[0].ToString()), origen, Convert.ToString(reader[8].ToString()), Convert.ToString(reader[7].ToString()), "");
+                                        dataGridView1.Rows.Add("1", Convert.ToString(reader[1].ToString()), String.Format("{0:0.00}", preci), String.Format("{0:0.00}", preci), Convert.ToString(reader[4].ToString()), Convert.ToString(reader[0].ToString()), origen, Convert.ToString(reader[8].ToString()), Convert.ToString(reader[7].ToString()), "","X");
                                     }
-                                }
+                                 }*/
+
                             }
 
                         }
@@ -178,7 +183,7 @@ namespace BRUNO
                             buscar.textBox1.Text = textBox1.Text;
                             if (buscar.ShowDialog() == DialogResult.OK)
                             {
-                                dataGridView1.Rows.Add("1", buscar.producto, buscar.precio, buscar.monto, buscar.existencia, buscar.ID, origen, buscar.IVA, buscar.compra, "");
+                                dataGridView1.Rows.Add("1", buscar.producto, buscar.precio, buscar.monto, buscar.existencia, buscar.ID, origen, buscar.IVA, buscar.compra, "","X");
 
                             }
                         }
@@ -194,16 +199,41 @@ namespace BRUNO
 
         private void button1_Click(object sender, EventArgs e)
         {
+            EliminarProductos();
+        }
+
+        private void EliminarProductos()
+        {
+            if (dataGridView1.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Por favor, seleccione al menos una fila para eliminar.", "Alto!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             try
             {
+                // Eliminar filas del origen de datos (depende de tu implementación)
+                foreach (DataGridViewRow row in dataGridView1.SelectedRows)
+                {
+                    // Aquí debes implementar la lógica para eliminar del origen de datos
+                    // Por ejemplo, si está vinculado a un DataTable:
+                    if (row.DataBoundItem != null)
+                    {
+                        // Lógica para eliminar del origen de datos
+                        // Ejemplo para DataTable:
+                        ((DataRowView)row.DataBoundItem).Row.Delete();
+                    }
 
-                dataGridView1.Rows.RemoveAt(dataGridView1.CurrentRow.Index);
+                    // Eliminar del DataGridView
+                    dataGridView1.Rows.Remove(row);
+                }
                 lblTotal.Text = $"{RecalcularTotal:C}";
                 textBox1.Text = "";
             }
-            catch (Exception Ex)
+            catch (Exception ex)
             {
+                MessageBox.Show($"Error al eliminar filas: {ex.Message}");
             }
+            //dataGridView1.Rows.RemoveAt(dataGridView1.CurrentRow.Index);
         }
 
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
@@ -361,6 +391,8 @@ namespace BRUNO
             double IVA = 0;
             double efectivo = 0, cambio = 0;
             double existencia = 0;
+            double totalUtilidad = 0;
+            List<Producto> productos = new List<Producto>();
             using (frmPago ori = new frmPago())
             {
 
@@ -371,46 +403,10 @@ namespace BRUNO
                     efectivo = ori.efectivo;
                     cambio = ori.cambio;
                 }
+                else
+                    return;
             }
-            int width = 420;
-            int height = 540;
-            printDocument1.PrinterSettings.DefaultPageSettings.PaperSize = new PaperSize("", width, height);
-            PrintDocument pd = new PrintDocument();
-            pd.PrintPage += new PrintPageEventHandler(this.printDocument1_PrintPage_1);
-            PrintDialog printdlg = new PrintDialog();
-            PrintPreviewDialog printPrvDlg = new PrintPreviewDialog();
-            // preview the assigned document or you can create a different previewButton for it
-            printPrvDlg.Document = pd;
-            printdlg.Document = pd;
-            pd.Print();
-
-            Ticket ticket = new Ticket();
-            ticket.MaxChar = Conexion.MaxChar;
-            ticket.FontSize = Conexion.FontSize;
-            ticket.MaxCharDescription = Conexion.MaxCharDescription;
-            if (Conexion.Font == "")
-            {
-
-            }
-            else
-                ticket.FontName = Conexion.Font;
-            //ticket.HeaderImage = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
-            //jalar datos de ticket
-            for (int i = 0; i < Conexion.datosTicket.Length; i++)
-            {
-                ticket.AddHeaderLine(Conexion.datosTicket[i]);
-            }
-            ticket.AddHeaderLine("METODO DE PAGO:");
-            ticket.AddHeaderLine(cmbPago.Text);
-            ticket.AddHeaderLine("FOLIO DE VENTA A CONTADO:");
-            ticket.AddHeaderLine(lblFolio.Text);
-            ticket.AddHeaderLine("CLIENTE: " + lblCliente.Text);
-            ticket.AddHeaderLine("DIRECCION: " + direccion);
-            ticket.AddSubHeaderLine("FECHA Y HORA:");
-            ticket.AddSubHeaderLine(DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
-            existencia = 0;
-            //sacar total de utilidad
-            double totalUtilidad = 0;
+           
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
                 double venta = Convert.ToDouble(dataGridView1[2, i].Value.ToString()) * Convert.ToDouble(dataGridView1[0, i].Value.ToString());
@@ -421,6 +417,13 @@ namespace BRUNO
             }
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
+                productos.Add(new Producto
+                {
+                    Nombre = dataGridView1[1, i].Value.ToString(),
+                    Cantidad = Convert.ToDouble(dataGridView1[0, i].Value.ToString()),
+                    PrecioUnitario = Convert.ToDouble(dataGridView1[2, i].Value.ToString()),
+                    Total = Convert.ToDouble(dataGridView1[3, i].Value.ToString()),
+                });
                 string unidad = "0";
                 //Obtenemos existencias del articulo
                 cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
@@ -457,7 +460,9 @@ namespace BRUNO
                 {
                     IVA += Convert.ToDouble(precio) - (Convert.ToDouble(precio) / 1.16);
                 }
-                ticket.AddItem(dataGridView1[0, i].Value.ToString() + " " + unidad, "      " + dataGridView1[1, i].Value.ToString(), "   $" + dataGridView1[3, i].Value.ToString());
+
+                //agregar item al ticket (productos)
+                //ticket.AddItem(dataGridView1[0, i].Value.ToString() + " " + unidad, "      " + dataGridView1[1, i].Value.ToString(), "   $" + dataGridView1[3, i].Value.ToString());
                 //MessageBox.Show("Se vendera el numero:"+i+"\nCantidad: "+dataGridView1[0, i].Value.ToString()+"\nProducto: "+ dataGridView1[1, i].Value.ToString()+"\nPrecio: "+dataGridView1[2, i].Value.ToString()+"\nMonto :" + dataGridView1[3, i].Value.ToString() +"\nExistencias :"+ dataGridView1[4, i].Value.ToString()+"\nID :"+dataGridView1[5, i].Value.ToString());
 
             }
@@ -470,6 +475,16 @@ namespace BRUNO
                 double compra = Convert.ToDouble(dataGridView1[8, i].Value.ToString()) * Convert.ToDouble(dataGridView1[0, i].Value.ToString());
                 UtilidadTotal = UtilidadTotal + (venta - compra);
             }
+            //Area para imprimir ticket
+            Dictionary<string, double> totales = new Dictionary<string, double>();
+            totales.Add("Subtotal", total/1.16);
+            totales.Add("IVA", (total / 1.16) * 0.16);
+            totales.Add("Total", total);
+            totales.Add("Recibido", efectivo);
+            totales.Add("Cambio", cambio);
+            TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", total, false, totales);
+
+            ticketPrinter.ImprimirTicket();
             cmd = new OleDbCommand("insert into Ventas(Monto,Fecha,Folio,Estatus, Descuento, Pago) values('" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','COBRADO','" + descuento + "','" + cmbPago.Text + "');", conectar);
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Venta a contado folio " + lblFolio.Text + "','" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + cmbPago.Text + "');", conectar);
@@ -477,39 +492,14 @@ namespace BRUNO
             cmd = new OleDbCommand("insert into VentasCajero(IdUsuario,Usuario,FolioVenta,Total,Fecha,Cajero) values('" + idUsuario + "','" + lblUsuario.Text + "','" + lblFolio.Text + "','" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblCajero.Text + "');", conectar);
             cmd.ExecuteNonQuery();
 
-            ticket.AddTotal("Suma", "$" + String.Format("{0:0.00}", total) + "");
-            ticket.AddTotal("Descuento", "$" + String.Format("{0:0.00}", descuento) + "");
-            ticket.AddTotal("SubTotal", "$" + String.Format("{0:0.00}", Math.Round(total - descuento - IVA, 2)) + "");
-            ticket.AddTotal("I.V.A.", "$" + String.Format("{0:0.00}", Math.Round(IVA, 2)) + "");
-            ticket.AddTotal("Total", "$" + String.Format("{0:0.00}", (total - descuento)) + "");
-            if (cmbPago.Text == "04=TARJETA DE CREDITO" || cmbPago.Text == "28=TARJETA DE DEBITO")
-            {
-            }
-            else
-            {
-                ticket.AddTotal("Efectivo", "$" + String.Format("{0:0.00}", efectivo));
-                ticket.AddTotal("Cambio", "$" + String.Format("{0:0.00}", cambio));
-            }
-            //jalar pie de ticket
-            for (int i = 0; i < Conexion.pieDeTicket.Length; i++)
-            {
-                ticket.AddFooterLine(Conexion.pieDeTicket[i]);
-            }
-
             foli = foli + 1;
             cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioContado';", conectar);
             cmd.ExecuteNonQuery();
-            //ticket.PrintTicket(Conexion.impresora);
-            MessageBox.Show("Venta realizada con exito", "VENTA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            //frmVentas vent = new frmVentas();
-            //vent.usuario = usuario;
-            //vent.lblUsuario.Text = lblUsuario.Text;
-            //vent.idUsuario = idUsuario;
-            //vent.lblCajero.Text = lblCajero.Text;
-            //vent.Show();
-            //this.Close();
+            MessageBox.Show(this,"Venta realizada con exito", "VENTA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
             ReiniciarForm();
-            //}            
+
+
         }
 
         private void frmVentas_KeyDown(object sender, KeyEventArgs e)
@@ -521,6 +511,10 @@ namespace BRUNO
             if (e.KeyCode == Keys.F1)
             {
                 checkBox1.Checked = !checkBox1.Checked; // Alterna el estado
+            }
+            if (e.KeyCode == Keys.Delete)
+            {
+                EliminarProductos();
             }
         }
         // Función para dividir texto en múltiples líneas
@@ -623,6 +617,16 @@ namespace BRUNO
 
         }
 
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+            if (e.ColumnIndex == dataGridView1.Columns["btnEliminar"].Index && e.RowIndex >= 0)
+            {
+                dataGridView1.Rows.RemoveAt(e.RowIndex);
+                lblTotal.Text = $"{RecalcularTotal:C}";
+            }
+        }
+
         private void printDocument1_PrintPage_1(object sender, PrintPageEventArgs e)
         {
             int posicion = 10;
@@ -642,7 +646,7 @@ namespace BRUNO
             e.Graphics.DrawString("FOLIO DE VENTA: " + lblFolio.Text, new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
             posicion += 20;
             e.Graphics.DrawString("FECHA: " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString(), new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
-            posicion += 50;
+            posicion += 35;
             //Titulo Columna
             e.Graphics.DrawString("Cant   Producto        P.Unit  Importe", new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
             posicion += 20;
@@ -692,7 +696,7 @@ namespace BRUNO
             e.Graphics.DrawLine(new Pen(Color.Black), 210, posicion + 10, 420, posicion + 10);
             posicion += 15;
             e.Graphics.DrawString("TOTAL: $" + toty, new Font("Arial", 10, FontStyle.Bold), Brushes.Black, new Point(280, posicion), sf);
-            posicion += 50;
+            posicion += 35;
 
             for (int i = 0; i < Conexion.pieDeTicket.Length; i++)
             {
