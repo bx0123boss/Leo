@@ -86,7 +86,7 @@
             this.lblTrans = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
             this.lbl5por = new System.Windows.Forms.Label();
-            this.label16 = new System.Windows.Forms.Label();
+            this.lblComision = new System.Windows.Forms.Label();
             this.lblECaja = new System.Windows.Forms.Label();
             this.label17 = new System.Windows.Forms.Label();
             this.lblNoIva = new System.Windows.Forms.Label();
@@ -692,25 +692,23 @@
             this.lbl5por.BackColor = System.Drawing.Color.Transparent;
             this.lbl5por.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lbl5por.ForeColor = System.Drawing.Color.White;
-            this.lbl5por.Location = new System.Drawing.Point(177, 178);
+            this.lbl5por.Location = new System.Drawing.Point(204, 178);
             this.lbl5por.Name = "lbl5por";
             this.lbl5por.Size = new System.Drawing.Size(100, 33);
             this.lbl5por.TabIndex = 47;
             this.lbl5por.Text = "Corte:";
-            this.lbl5por.Visible = false;
             // 
-            // label16
+            // lblComision
             // 
-            this.label16.AutoSize = true;
-            this.label16.BackColor = System.Drawing.Color.Transparent;
-            this.label16.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Bold);
-            this.label16.ForeColor = System.Drawing.Color.White;
-            this.label16.Location = new System.Drawing.Point(17, 185);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(164, 25);
-            this.label16.TabIndex = 46;
-            this.label16.Text = "2.7% Comisión:";
-            this.label16.Visible = false;
+            this.lblComision.AutoSize = true;
+            this.lblComision.BackColor = System.Drawing.Color.Transparent;
+            this.lblComision.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Bold);
+            this.lblComision.ForeColor = System.Drawing.Color.White;
+            this.lblComision.Location = new System.Drawing.Point(17, 185);
+            this.lblComision.Name = "lblComision";
+            this.lblComision.Size = new System.Drawing.Size(164, 25);
+            this.lblComision.TabIndex = 46;
+            this.lblComision.Text = "2.7% Comisión:";
             // 
             // lblECaja
             // 
@@ -797,7 +795,7 @@
             this.Controls.Add(this.lblECaja);
             this.Controls.Add(this.label17);
             this.Controls.Add(this.lbl5por);
-            this.Controls.Add(this.label16);
+            this.Controls.Add(this.lblComision);
             this.Controls.Add(this.lblTrans);
             this.Controls.Add(this.label13);
             this.Controls.Add(this.label9);
@@ -876,7 +874,7 @@
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.DataGridView dataGridView5;
         private System.Windows.Forms.Label lbl5por;
-        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.Label lblComision;
         private System.Windows.Forms.Label lblECaja;
         private System.Windows.Forms.Label label17;
         private System.Windows.Forms.Label label15;

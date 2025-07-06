@@ -23,7 +23,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>199</ApplicationRevision>
+    <ApplicationRevision>206</ApplicationRevision>
     <ApplicationVersion>1.0.4.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -609,6 +609,12 @@
     <Compile Include="frmSuspendidos.Designer.cs">
       <DependentUpon>frmSuspendidos.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmTarjeta.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmTarjeta.Designer.cs">
+      <DependentUpon>frmTarjeta.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmTipoCambio.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -964,6 +970,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmSuspendidos.resx">
       <DependentUpon>frmSuspendidos.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmTarjeta.resx">
+      <DependentUpon>frmTarjeta.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmTipoCambio.resx">
       <DependentUpon>frmTipoCambio.cs</DependentUpon>

@@ -24,6 +24,7 @@ namespace BRUNO
         OleDbCommand cmd;
         double total = 0, utilidad = 0, inversion = 0, gastos=0;
         int folio;
+        private decimal porcentaje;
 
         public frmCorte()
         {
@@ -100,6 +101,14 @@ namespace BRUNO
             dgvCorte.DataSource = ds.Tables["Id"];
             dgvCorte.Columns[0].Visible = false;
 
+            cmd = new OleDbCommand("select Porcentaje from Tarjeta where Id=1;", conectar);
+            OleDbDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                porcentaje = Convert.ToDecimal(reader[0].ToString());
+            }
+            lblComision.Text = $"{porcentaje:F2}% Comisión:";
+
             ds = new DataSet();
             da = new OleDbDataAdapter("select * from Corte where Pago='04=TARJETA DE CREDITO' or Pago='28=TARJETA DE DEBITO';", conectar);
             da.Fill(ds, "Id");
@@ -135,7 +144,7 @@ namespace BRUNO
                 trans += Convert.ToSingle(dataGridView4[2, i].Value.ToString(), CultureInfo.CreateSpecificCulture("es-ES"));
             }
             cmd = new OleDbCommand("select Numero from Folios where Folio='Corte';", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
+            reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 folio = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
@@ -210,8 +219,10 @@ namespace BRUNO
             lblEntrada.Text = $"{mas + tarjeta + trans:C}";
             lblSalida.Text = $"{menos * -1:C}";
             lblCredito.Text = $"{tarjeta:F2}";
-            //lblCredito.Text = $"{tarjeta * 0.973:F2}"; 
-            //lbl5por.Text = $"{tarjeta * 0.027:F2}";   // Muestra 2 decimales
+            decimal factorPorcentaje = porcentaje / 100m; // Convertir a factor (0.027)
+            decimal factorRestante = 1m - factorPorcentaje; // Factor restante (0.973)
+            lblCredito.Text = $"{(decimal)tarjeta * factorRestante:F2}";
+            lbl5por.Text = $"{(decimal)tarjeta * factorPorcentaje:F2}";
             lblTrans.Text = $"{trans:C}";
             // Usar decimal para cálculos financieros
             decimal monto = Convert.ToDecimal(tarjeta + mas + menos + trans);

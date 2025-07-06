@@ -54,7 +54,7 @@ public class TicketPrinter
             {
                 Image logo = Image.FromFile(_logoPath);
                 e.Graphics.DrawImage(logo, new PointF(1, posicion));
-                posicion += 180;
+                posicion += 150;
             }
             e.Graphics.DrawString("   ********  NOTA DE VENTA  ********", new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
             posicion += 20;

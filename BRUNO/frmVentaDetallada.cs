@@ -7,6 +7,7 @@ using System.Data.OleDb;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -105,34 +106,31 @@ namespace BRUNO
 
         private void button2_Click(object sender, EventArgs e)
         {
-            Ticket ticket = new Ticket();
-            ticket.MaxChar = 32;
-            ticket.FontSize = 9;
-            ticket.MaxCharDescription = 16;
-            ticket.HeaderImage = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
-            ticket.AddHeaderLine("******  NOTA DE VENTA  *****"); 
-            for (int i = 0; i < Conexion.datosTicket.Length; i++)
-            {
-                ticket.AddHeaderLine(Conexion.datosTicket[i]);
-            }
-            ticket.AddHeaderLine("FOLIO DE VENTA: " + lblFolio.Text);
-            
-            ticket.AddHeaderLine("CLIENTE: " + lblCliente.Text);
-            ticket.AddHeaderLine("DIRECCION: " + lblDireccion.Text);
-            ticket.AddSubHeaderLine("FECHA Y HORA:");
-
-            ticket.AddSubHeaderLine(DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+            List<Producto> productos = new List<Producto>();
+           
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
-                ticket.AddItem(dataGridView1[3, i].Value.ToString(), dataGridView1[4, i].Value.ToString(), "$" +dataGridView1[5, i].Value.ToString());
+                productos.Add(new Producto
+                {
+                    Nombre = dataGridView1[4, i].Value.ToString(),
+                    Cantidad = Convert.ToDouble(dataGridView1[3, i].Value.ToString()),
+                    PrecioUnitario = Convert.ToDouble(dataGridView1[5, i].Value.ToString()) / Convert.ToDouble(dataGridView1[3, i].Value.ToString()),
+                    Total = Convert.ToDouble(dataGridView1[5, i].Value.ToString()),
+                });
             }
-            ticket.AddTotal("Total", "$" + lblMonto.Text);
-            //jalar pie de ticket
-            for (int i = 0; i < Conexion.pieDeTicket.Length; i++)
+            // Elimina todo excepto números, punto y signo negativo (si aplica)
+            string GetNumericValue(string input)
             {
-                ticket.AddFooterLine(Conexion.pieDeTicket[i]);
-            }    
-            ticket.PrintTicket(Conexion.impresora);
+                return Regex.Replace(input, @"[^\d.-]", "");
+            }
+            double total = Convert.ToDouble(GetNumericValue(lblMonto.Text));
+            Dictionary<string, double> totales = new Dictionary<string, double>();
+            totales.Add("Subtotal", total / 1.16);
+            totales.Add("IVA", (total / 1.16) * 0.16);
+            totales.Add("Total", total);
+            TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", 0, false, totales);
+
+            ticketPrinter.ImprimirTicket();
         }
 
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)

@@ -122,7 +122,7 @@ namespace BRUNO
             {
                 if (buscar.ShowDialog() == DialogResult.OK)
                 {
-                    dataGridView1.Rows.Add("1", buscar.producto, buscar.precio, buscar.monto, buscar.existencia, buscar.ID, origen, buscar.IVA, buscar.compra,"X");
+                    dataGridView1.Rows.Add("1", buscar.producto, buscar.precio, buscar.monto, buscar.existencia, buscar.ID, origen, buscar.IVA, buscar.compra,"","X");
 
                 }
             }
@@ -495,9 +495,10 @@ namespace BRUNO
             foli = foli + 1;
             cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioContado';", conectar);
             cmd.ExecuteNonQuery();
+            ReiniciarForm();
             MessageBox.Show(this,"Venta realizada con exito", "VENTA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            ReiniciarForm();
+          
 
 
         }
@@ -612,10 +613,6 @@ namespace BRUNO
             }
         }
 
-        private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
-        {
-
-        }
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -627,85 +624,5 @@ namespace BRUNO
             }
         }
 
-        private void printDocument1_PrintPage_1(object sender, PrintPageEventArgs e)
-        {
-            int posicion = 10;
-            //RESIZE
-
-            Image logo = Image.FromFile(@"C:\Jaeger Soft\logo.jpg");
-            e.Graphics.DrawImage(logo, new PointF(1, 10));
-            //LOGO
-            posicion += 200;
-            e.Graphics.DrawString("********  NOTA DE VENTA  ********", new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
-            posicion += 20;
-            for (int i = 0; i < Conexion.datosTicket.Length; i++)
-            {
-                e.Graphics.DrawString(Conexion.datosTicket[i], new Font("Arial", 10, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
-                posicion += 20;
-            }
-            e.Graphics.DrawString("FOLIO DE VENTA: " + lblFolio.Text, new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
-            posicion += 20;
-            e.Graphics.DrawString("FECHA: " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString(), new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
-            posicion += 35;
-            //Titulo Columna
-            e.Graphics.DrawString("Cant   Producto        P.Unit  Importe", new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
-            posicion += 20;
-            e.Graphics.DrawLine(new Pen(Color.Black), 1, posicion, 420, posicion);
-            posicion += 10;
-            //Lista de Productos
-            StringFormat sf = new StringFormat();
-            Font productFont = new Font("Arial", 8, FontStyle.Regular);
-            float maxWidth = 150; // Ancho máximo para la columna de 
-            sf.Alignment = StringAlignment.Far;
-            for (int i = 0; i < dataGridView1.RowCount; i++)
-            {
-
-                double precio = Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-                string producto = dataGridView1[1, i].Value.ToString();
-                double cant = Convert.ToDouble(dataGridView1[0, i].Value.ToString());
-                string item = cant.ToString("0.00", CultureInfo.InvariantCulture);
-                string pre = precio.ToString("00.00", CultureInfo.InvariantCulture);
-                double precioUni = Convert.ToDouble(dataGridView1[2, i].Value.ToString());
-                string uni = precioUni.ToString("00.00", CultureInfo.InvariantCulture);
-                List<string> lineasProducto = DivideTexto(e.Graphics, producto, productFont, maxWidth);
-
-                // Imprimir cantidad en primera línea
-                e.Graphics.DrawString(item, productFont, Brushes.Black, new Point(1, posicion));
-
-                // Imprimir cada línea del producto
-                for (int j = 0; j < lineasProducto.Count; j++)
-                {
-                    if (j > 0) // Para líneas adicionales, no repetir cantidad
-                    {
-                        e.Graphics.DrawString("", productFont, Brushes.Black, new Point(1, posicion));
-                    }
-
-                    e.Graphics.DrawString(lineasProducto[j], productFont, Brushes.Black, new Point(40, posicion));
-
-                    // Solo mostrar precio y unidad en la última línea
-                    if (j == lineasProducto.Count - 1)
-                    {
-                        e.Graphics.DrawString(uni, productFont, Brushes.Black, new Point(210, posicion), sf);
-                        e.Graphics.DrawString(String.Format(CultureInfo.InvariantCulture, "{0:0,0.00}", precio), productFont, Brushes.Black, new Point(280, posicion), sf);
-                    }
-
-                    posicion += (j == lineasProducto.Count - 1) ? 20 : 15; // Más espacio después de la última línea
-                }
-            }
-            string toty = String.Format(CultureInfo.InvariantCulture, "{0:0,0.00}", total);
-            e.Graphics.DrawLine(new Pen(Color.Black), 210, posicion + 10, 420, posicion + 10);
-            posicion += 15;
-            e.Graphics.DrawString("TOTAL: $" + toty, new Font("Arial", 10, FontStyle.Bold), Brushes.Black, new Point(280, posicion), sf);
-            posicion += 35;
-
-            for (int i = 0; i < Conexion.pieDeTicket.Length; i++)
-            {
-                e.Graphics.DrawString(Conexion.pieDeTicket[i], new Font("Arial", 10, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
-                posicion += 20;
-            }
-            posicion += 20;
-            e.Graphics.DrawLine(new Pen(Color.Black), 1, posicion, 2, posicion);
-
-        }
     }
 }
