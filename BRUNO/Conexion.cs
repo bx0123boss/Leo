@@ -8,8 +8,8 @@ namespace BRUNO
 {
     class Conexion
     {
-        //public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Jaeger Soft\Jaeger.accdb; Jet OLEDB:Database Password=75941232";
-        public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.1.1\Jaeger Soft\Jaeger.accdb; Jet OLEDB:Database Password=75941232";
+        public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Jaeger Soft\Jaeger.accdb; Jet OLEDB:Database Password=75941232";
+        //public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.1.1\Jaeger Soft\Jaeger.accdb; Jet OLEDB:Database Password=75941232";
         //public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Respaldo\Joyeria.accdb";
         //public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb";
         //public static string lugar = "LOCAL";

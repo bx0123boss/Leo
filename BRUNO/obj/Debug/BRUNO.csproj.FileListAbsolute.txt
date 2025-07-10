@@ -2542,3 +2542,5 @@ C:\Users\Admin\Documents\GitHub\Leo\BRUNO\obj\Debug\JaegerSoft BreackPoint.pdb
 C:\Users\Admin\Documents\GitHub\Leo\BRUNO\obj\Debug\BRUNO.frmCapturaInicial.resources
 C:\Users\Brandon\Documents\Jaegersoft\ntm\Leo\BRUNO-PERLA-RED\BRUNO\obj\Debug\BRUNO.frmCapturaInicial.resources
 C:\Users\Brandon\Documents\Jaegersoft\ntm\Leo\BRUNO-PERLA-RED\BRUNO\obj\Debug\BRUNO.frmTarjeta.resources
+C:\Users\Brandon\Documents\Jaegersoft\ntm\Leo\BRUNO-PERLA-RED\BRUNO\bin\Debug\TicketJaegersoft.dll
+C:\Users\Brandon\Documents\Jaegersoft\ntm\Leo\BRUNO-PERLA-RED\BRUNO\bin\Debug\TicketJaegersoft.pdb

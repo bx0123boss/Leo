@@ -707,7 +707,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TicketPrinter.cs" />
     <EmbeddedResource Include="frmAbonoApartado.resx">
       <DependentUpon>frmAbonoApartado.cs</DependentUpon>
     </EmbeddedResource>
@@ -1104,6 +1103,12 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TicketJaegersoft\TicketJaegersoft.csproj">
+      <Project>{63123f8b-76de-48b1-a0bb-5261a4ff4892}</Project>
+      <Name>TicketJaegersoft</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -199,5 +199,20 @@ namespace BRUNO
                 }
             }
         }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+            List<Producto> productos = new List<Producto>
+            {
+                new Producto { Nombre = "Arroz con leche y salsa ", Cantidad = 1, PrecioUnitario = 10.50, Total = 12.18, Comentario="Con todo" },
+                new Producto { Nombre = "Pollo horneado", Cantidad = 2, PrecioUnitario = 10.50, Total = 12.18, Comentario="Sin todo" },
+                new Producto { Nombre = "Pizza de peperoni", Cantidad = 3, PrecioUnitario = 10.50, Total = 12.18, Comentario="Con todo y con todo" },
+                new Producto { Nombre = "Peperoni de pizza", Cantidad = 2, PrecioUnitario = 10.50, Total = 12.18, Comentario="Con todo y sin nada" },
+            };
+            string mesa = "MESA 3";
+            string mesero = "Brandon";
+            TicketPrinter ticketPrinter = new TicketPrinter(productos, mesa, mesero);
+            ticketPrinter.ImprimirComanda();
+        }
     }
 }

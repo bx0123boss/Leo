@@ -3,14 +3,20 @@
   "WorkspaceRootPath": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{00000000-0000-0000-0000-000000000000}|\u003CSolution\u003E|BRUNO||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+      "AbsoluteMoniker": "D:0:0:{63123F8B-76DE-48B1-A0BB-5261A4FF4892}|TicketJaegersoft\\TicketJaegersoft.csproj|c:\\users\\brandon\\documents\\jaegersoft\\ntm\\leo\\bruno-perla-red\\ticketjaegersoft\\ticketprinter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{63123F8B-76DE-48B1-A0BB-5261A4FF4892}|TicketJaegersoft\\TicketJaegersoft.csproj|solutionrelative:ticketjaegersoft\\ticketprinter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|c:\\users\\brandon\\documents\\jaegersoft\\ntm\\leo\\bruno-perla-red\\bruno\\conexion.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|solutionrelative:bruno\\conexion.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|c:\\users\\brandon\\documents\\jaegersoft\\ntm\\leo\\bruno-perla-red\\bruno\\||{B270807C-D8C6-49EB-8EBE-8E8D566637A1}|cc4014f5-b18d-439c-9352-f99d984cca85"
+      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|c:\\users\\brandon\\documents\\jaegersoft\\ntm\\leo\\bruno-perla-red\\bruno\\frmlogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|solutionrelative:bruno\\frmlogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|c:\\users\\brandon\\documents\\jaegersoft\\ntm\\leo\\bruno-perla-red\\bruno\\frmlogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{2245F717-F86F-455B-9099-8F2AEE91AB28}|BRUNO\\BRUNO.csproj|solutionrelative:bruno\\frmlogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     }
   ],
   "DocumentGroupContainers": [
@@ -20,8 +26,21 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "TicketPrinter.cs",
+              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\TicketJaegersoft\\TicketPrinter.cs",
+              "RelativeDocumentMoniker": "TicketJaegersoft\\TicketPrinter.cs",
+              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\TicketJaegersoft\\TicketPrinter.cs",
+              "RelativeToolTip": "TicketJaegersoft\\TicketPrinter.cs",
+              "ViewState": "AgIAADsAAAAAAAAAAAAIwFEAAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-10T01:35:16.71Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 1,
@@ -30,22 +49,35 @@
               "RelativeDocumentMoniker": "BRUNO\\Conexion.cs",
               "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\Conexion.cs",
               "RelativeToolTip": "BRUNO\\Conexion.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAABcAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAKAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-02T15:10:09.247Z",
+              "WhenOpened": "2025-07-10T01:33:11.389Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "BRUNO",
-              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\BRUNO.csproj",
-              "RelativeDocumentMoniker": "BRUNO\\BRUNO.csproj",
-              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\BRUNO.csproj",
-              "RelativeToolTip": "BRUNO\\BRUNO.csproj",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-06-20T20:50:47.058Z",
+              "DocumentIndex": 2,
+              "Title": "frmLogin.cs",
+              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmLogin.cs",
+              "RelativeDocumentMoniker": "BRUNO\\frmLogin.cs",
+              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmLogin.cs",
+              "RelativeToolTip": "BRUNO\\frmLogin.cs",
+              "ViewState": "AgIAALcAAAAAAAAAAAAIwNYAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-10T01:30:40.771Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "frmLogin.cs [Dise\u00F1o]",
+              "DocumentMoniker": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmLogin.cs",
+              "RelativeDocumentMoniker": "BRUNO\\frmLogin.cs",
+              "ToolTip": "C:\\Users\\Brandon\\Documents\\Jaegersoft\\ntm\\Leo\\BRUNO-PERLA-RED\\BRUNO\\frmLogin.cs [Dise\u00F1o]",
+              "RelativeToolTip": "BRUNO\\frmLogin.cs [Dise\u00F1o]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-10T01:30:38.553Z",
+              "EditorCaption": " [Dise\u00F1o]"
             }
           ]
         }
