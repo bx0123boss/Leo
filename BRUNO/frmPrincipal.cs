@@ -263,5 +263,28 @@ namespace BRUNO
         {
             System.Diagnostics.Process.Start("firefox.exe", "https://www.cfdi.com.mx/login/"); 
         }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            
+                  bool abierto = false;
+            foreach (Form frm in Application.OpenForms)
+            {
+                if (frm.GetType() == typeof(frmConfiguracionTicket))
+                {
+                    MessageBox.Show("Ya existe un modulo de usuarios abierto", "Alto!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    abierto = true;
+                }
+            }
+            if (abierto)
+            {
+
+            }
+            else
+            {
+                frmConfiguracionTicket USER = new frmConfiguracionTicket();
+                USER.Show();
+            }
+        }
     }
 }

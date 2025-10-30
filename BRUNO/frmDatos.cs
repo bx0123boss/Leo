@@ -8,19 +8,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static BRUNO.frmInventario;
 
 namespace BRUNO
 {
     public partial class frmDatos : Form
     {
-        private DataSet ds;
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Restaurante.accdb");
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
-        OleDbCommand cmd;
-        public frmDatos()
+        private List<ResumenCategoria> datosResumen;
+        public frmDatos(List<ResumenCategoria> datos)
         {
             InitializeComponent();
+            this.datosResumen = datos;
         }
 
         private void BtnApartados_Click(object sender, EventArgs e)
@@ -30,24 +28,28 @@ namespace BRUNO
 
         private void frmDatos_Load(object sender, EventArgs e)
         {
-            ds = new DataSet();
-            conectar.Open();
-            da = new OleDbDataAdapter("SELECT SUM(Existencia) AS Cantidad, SUM(Existencia * Especial) AS PrecioCompra,  SUM(Existencia * PrecioVenta) AS PrecioVenta,  SUM(Existencia * (PrecioVenta - Especial)) AS Utilidad, Categoria FROM Inventario  GROUP BY Categoria ORDER BY Categoria ;", conectar);
-            da.Fill(ds, "Id");
-            dataGridView1.DataSource = ds.Tables["Id"];
+            dataGridViewResumen.DataSource = datosResumen;
+            FormatearGrid();
         }
-
-        private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        private void FormatearGrid()
         {
-            if (dataGridView1.Columns[e.ColumnIndex].Name == "PrecioCompra" ||
-               dataGridView1.Columns[e.ColumnIndex].Name == "PrecioVenta" ||
-               dataGridView1.Columns[e.ColumnIndex].Name == "Utilidad")
+            try
             {
-                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
-                {
-                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
-                    e.FormattingApplied = true;
-                }
+                // 'c' es para formato de Moneda (Currency)
+                dataGridViewResumen.Columns["TotalInversion"].DefaultCellStyle.Format = "c";
+                dataGridViewResumen.Columns["TotalVenta"].DefaultCellStyle.Format = "c";
+                dataGridViewResumen.Columns["Utilidad"].DefaultCellStyle.Format = "c";
+
+                // 'n0' es para número sin decimales
+                dataGridViewResumen.Columns["TotalExistencia"].DefaultCellStyle.Format = "n0";
+
+                // Ajustar columnas al espacio disponible
+                dataGridViewResumen.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            }
+            catch (Exception ex)
+            {
+                // Manejo simple por si una columna no existe
+                Console.WriteLine("Error al formatear grid: " + ex.Message);
             }
         }
     }

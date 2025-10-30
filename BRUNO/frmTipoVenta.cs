@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmTipoVenta : Form
+    public partial class frmTipoVenta : frmBase
     {
         public string usuario = "";
         public string idUsuario = "";
@@ -72,6 +72,12 @@ namespace BRUNO
                 this.Close();
             }
 
+        }
+
+        private void frmTipoVenta_Load(object sender, EventArgs e)
+        {
+            EstilizarBotonPrimario(this.button1);
+            EstilizarBotonAdvertencia(this.button2);
         }
     }
 }

@@ -11,7 +11,7 @@ using System.Data.OleDb;
 
 namespace BRUNO
 {
-    public partial class frmReporteVentas : Form
+    public partial class frmReporteVentas : frmBase
     {
         private DataSet ds;
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
@@ -26,6 +26,9 @@ namespace BRUNO
 
         private void frmReporteVentas_Load(object sender, EventArgs e)
         {
+            EstilizarDataGridView(this.dataGridView1);
+            EstilizarTextBox(textBox1);
+            EstilizarBotonPrimario(this.button1);
             conectar.Open();
             ds = new DataSet();
             da = new OleDbDataAdapter("Select * from Ventas where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59# ORDER BY Fecha DESC;", conectar);

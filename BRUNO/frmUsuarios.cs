@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmUsuarios : Form
+    public partial class frmUsuarios : frmBase
     {
         private DataSet ds;
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
@@ -27,6 +27,13 @@ namespace BRUNO
 
         private void frmUsuarios_Load(object sender, EventArgs e)
         {
+            EstilizarDataGridView(this.dataGridView1);
+
+            EstilizarBotonPrimario(this.button1);    // Botón "Agregar"
+            EstilizarBotonPeligro(this.button2);     // Botón "Eliminar"
+            EstilizarBotonAdvertencia(this.button3); // Botón "Editar Contraseña"
+
+
             if (usuario != "ADMINISTRADOR")
             {
                 button3.Visible = false;

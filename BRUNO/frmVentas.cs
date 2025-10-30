@@ -1,24 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using LibPrintTicket;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Data.OleDb;
-using System.IO;
-using System.Drawing.Printing;
-using System.Globalization;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
-
 
 namespace BRUNO
 {
-    public partial class frmVentas : Form
+    public partial class frmVentas : frmBase
     {
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
@@ -37,6 +26,29 @@ namespace BRUNO
             InitializeComponent();
             this.MinimumSize = new Size(1066, 418);
            
+        }
+        private void frmVentas_Load(object sender, EventArgs e)
+        {
+            EstilizarDataGridView(this.dataGridView1);
+
+            EstilizarBotonPrimario(this.button2);
+            EstilizarBotonPrimario(this.button4);
+            EstilizarBotonAdvertencia(this.button3);
+            EstilizarBotonPeligro(this.button1);
+            EstilizarComboBox(this.cmbPago);
+            EstilizarTextBox(this.txtDescuento);
+            EstilizarTextBox(this.textBox1);
+            EstilizarCheckBox(this.checkBox1);
+            conectar.Open();
+            cmbPago.SelectedIndex = 0;
+            if (Conexion.lugar == "LEO")
+            {
+                dataGridView1.Columns[2].ReadOnly = false;
+            }
+            else if (Conexion.lugar == "SANJUAN" && usuario == "Admin")
+            {
+                dataGridView1.Columns[2].ReadOnly = false;
+            }
         }
         public void ReiniciarForm()
         {
@@ -88,6 +100,7 @@ namespace BRUNO
             radioButton1.Checked = false;
             radioButton2.Checked = false;
             txtDescuento.Text = "";
+            AjustarAnchoDropDown(this.cmbPago);
             conectar.Open();
         }
         private double RecalcularTotal
@@ -102,19 +115,7 @@ namespace BRUNO
                 return total - descuento;
             }
         }
-        private void frmVentas_Load(object sender, EventArgs e)
-        {
-            conectar.Open();
-            cmbPago.SelectedIndex = 0;
-            if (Conexion.lugar == "LEO")
-            {
-                dataGridView1.Columns[2].ReadOnly = false;
-            }
-            else if (Conexion.lugar == "SANJUAN" && usuario == "Admin")
-            {
-                dataGridView1.Columns[2].ReadOnly = false;
-            }
-        }
+       
         private void button3_Click(object sender, EventArgs e)
         {
 
@@ -370,6 +371,7 @@ namespace BRUNO
                 {
                     cmbPago.SelectedIndex = 0;
                 }
+                AjustarAnchoDropDown(cmbPago);
             }
         }
         public void Venta()
@@ -379,20 +381,7 @@ namespace BRUNO
                 MessageBox.Show("No se puede realizar una venta sin productos", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            cmd = new OleDbCommand("select Numero from Folios where Folio='FolioContado';", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
-            }
-            lblFolio.Text = "VR" + String.Format("{0:0000}", foli);
-            lblFolio.Visible = true;
-            label2.Visible = true;
-            double IVA = 0;
             double efectivo = 0, cambio = 0;
-            double existencia = 0;
-            double totalUtilidad = 0;
-            List<Producto> productos = new List<Producto>();
             using (frmPago ori = new frmPago())
             {
 
@@ -406,7 +395,19 @@ namespace BRUNO
                 else
                     return;
             }
-           
+            cmd = new OleDbCommand("select Numero from Folios where Folio='FolioContado';", conectar);
+            OleDbDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
+            }
+            lblFolio.Text = "VR" + String.Format("{0:0000}", foli);
+            lblFolio.Visible = true;
+            label2.Visible = true;
+            double IVA = 0;
+            double existencia = 0;
+            double totalUtilidad = 0;
+            List<Producto> productos = new List<Producto>();
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
                 double venta = Convert.ToDouble(dataGridView1[2, i].Value.ToString()) * Convert.ToDouble(dataGridView1[0, i].Value.ToString());
@@ -477,14 +478,17 @@ namespace BRUNO
             }
             //Area para imprimir ticket
             Dictionary<string, double> totales = new Dictionary<string, double>();
-            totales.Add("Subtotal", total/1.16);
-            totales.Add("IVA", (total / 1.16) * 0.16);
+            if (Conexion.ConIva)
+            {
+                totales.Add("Subtotal", total / 1.16);
+                totales.Add("IVA", (total / 1.16) * 0.16);
+            }
             totales.Add("Total", total);
             totales.Add("Recibido", efectivo);
             totales.Add("Cambio", cambio);
-            TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", total, false, totales);
+            TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", total, false, totales, cmbPago.Text);
 
-            ticketPrinter.ImprimirTicket();
+           
             cmd = new OleDbCommand("insert into Ventas(Monto,Fecha,Folio,Estatus, Descuento, Pago) values('" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','COBRADO','" + descuento + "','" + cmbPago.Text + "');", conectar);
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Venta a contado folio " + lblFolio.Text + "','" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + cmbPago.Text + "');", conectar);
@@ -495,6 +499,7 @@ namespace BRUNO
             foli = foli + 1;
             cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioContado';", conectar);
             cmd.ExecuteNonQuery();
+            ticketPrinter.ImprimirTicket();
             ReiniciarForm();
             MessageBox.Show(this,"Venta realizada con exito", "VENTA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
 

@@ -11,7 +11,7 @@ using System.Data.OleDb;
 
 namespace BRUNO
 {
-    public partial class frmBuscarProductos : Form
+    public partial class frmBuscarProductos : frmBase
     {
         bool selec = false;
         private DataSet ds;
@@ -31,7 +31,40 @@ namespace BRUNO
         {
             InitializeComponent();
         }
+        private void frmBuscarProductos_Load(object sender, EventArgs e)
+        {
+            EstilizarDataGridView(this.dataGridView1);
+            EstilizarBotonPrimario(this.button1);
+            EstilizarTextBox(this.textBox1);
+            EstilizarTextBox(this.textBox2);
 
+
+          this.KeyPreview = true;
+            conectar.Open();
+            if (textBox1.Text != "")
+            {
+                if (textBox1.Text == "")
+                {
+                    ds = new DataSet();
+                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario;", conectar);
+                    da.Fill(ds, "Id");
+                    dataGridView1.DataSource = ds.Tables["Id"];
+                    dataGridView1.Columns[5].Visible = false;
+                    dataGridView1.Columns[6].Visible = false;
+                }
+                else
+                {
+                    ds = new DataSet();
+                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
+                    da.Fill(ds, "Id");
+                    dataGridView1.DataSource = ds.Tables["Id"];
+                    dataGridView1.Columns[5].Visible = false;
+                    dataGridView1.Columns[6].Visible = false;
+                }
+
+            }
+            textBox2.Focus();
+        }
         private void button1_Click(object sender, EventArgs e)
         {
             if (selec)
@@ -91,40 +124,7 @@ namespace BRUNO
             }
         }
 
-        private void frmBuscarProductos_Load(object sender, EventArgs e)
-        {
-            //ds = new DataSet();
-            this.KeyPreview = true;
-            conectar.Open();
-            if(textBox1.Text!="")
-            {
-                if (textBox1.Text == "")
-                {
-                    ds = new DataSet();
-                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario;", conectar);
-                    da.Fill(ds, "Id");
-                    dataGridView1.DataSource = ds.Tables["Id"];
-                    dataGridView1.Columns[5].Visible = false;
-                    dataGridView1.Columns[6].Visible = false;
-                }
-                else
-                {
-                    ds = new DataSet();
-                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
-                    da.Fill(ds, "Id");
-                    dataGridView1.DataSource = ds.Tables["Id"];
-                    dataGridView1.Columns[5].Visible = false;
-                    dataGridView1.Columns[6].Visible = false;
-                }
-               
-            }
-            textBox2.Focus();
-            //da = new OleDbDataAdapter("select Id,Nombre,PrecioCompra,PrecioVenta,Existencia from Inventario where Existencia > 0;", conectar);
-            //da.Fill(ds, "Id");
-            //dataGridView1.DataSource = ds.Tables["Id"];
-            //dataGridView1.Columns[0].Visible = false;
-            //dataGridView1.Columns[2].Visible = false;
-        }
+       
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {

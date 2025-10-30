@@ -2544,3 +2544,5 @@ C:\Users\Brandon\Documents\Jaegersoft\ntm\Leo\BRUNO-PERLA-RED\BRUNO\obj\Debug\BR
 C:\Users\Brandon\Documents\Jaegersoft\ntm\Leo\BRUNO-PERLA-RED\BRUNO\obj\Debug\BRUNO.frmTarjeta.resources
 C:\Users\Brandon\Documents\Jaegersoft\ntm\Leo\BRUNO-PERLA-RED\BRUNO\bin\Debug\TicketJaegersoft.dll
 C:\Users\Brandon\Documents\Jaegersoft\ntm\Leo\BRUNO-PERLA-RED\BRUNO\bin\Debug\TicketJaegersoft.pdb
+C:\Users\Brandon\Documents\Jaegersoft\ntm\Leo\BRUNO-PERLA-RED\BRUNO\obj\Debug\JaegerSoft BreackPoint.exe.config
+C:\Users\Brandon\Documents\Jaegersoft\ntm\Leo\BRUNO-PERLA-RED\BRUNO\obj\Debug\BRUNO.frmConfiguracionTicket.resources

@@ -17,7 +17,8 @@ public class TicketPrinter
     private double _total;
     private Dictionary<string, double> _totales = new Dictionary<string, double>();
     private bool _corte;
-    public TicketPrinter(string[] encabezados, string[] pieDePagina, string logoPath, List<Producto> productos, string folio, string mesa, string mesero, double total, bool corte, Dictionary<string, double> totales)
+    private string formaPago;
+    public TicketPrinter(string[] encabezados, string[] pieDePagina, string logoPath, List<Producto> productos, string folio, string mesa, string mesero, double total, bool corte, Dictionary<string, double> totales, string formaPago = null)
     {
         _encabezados = encabezados;
         _pieDePagina = pieDePagina;
@@ -31,6 +32,9 @@ public class TicketPrinter
         _total = total;
         _corte = corte;
         _totales = totales;
+        this.formaPago = formaPago;
+        if (formaPago != null)
+            this.formaPago = formaPago;
 
     }
     public TicketPrinter(List<Producto> productos,  string mesa, string mesero)
@@ -140,29 +144,74 @@ public class TicketPrinter
     private void ImprimirPagina(object sender, PrintPageEventArgs e)
     {
         int posicion = 10;
+        float ticketWidth = 280;
         if (!_corte)
         {
+
             // Dibujar el logo
             if (System.IO.File.Exists(_logoPath))
             {
-                Image logo = Image.FromFile(_logoPath);
-                e.Graphics.DrawImage(logo, new PointF(1, posicion));
-                posicion += 150;
+                // Dibujar el logo
+                if (System.IO.File.Exists(_logoPath))
+                {
+                    Image logo = Image.FromFile(_logoPath);
+
+                    int origWidth = logo.Width;
+                    int origHeight = logo.Height;
+                    int targetWidth = origWidth;
+                    int targetHeight = origHeight;
+
+                    // 2. Re-escalar SI Y SOLO SI la imagen es más ancha que el ticket
+                    if (origWidth > ticketWidth)
+                    {
+                        // Calcular el ratio para mantener la proporción
+                        double ratio = (double)ticketWidth / origWidth;
+                        targetWidth = (int)ticketWidth; // El nuevo ancho será el máximo del ticket
+                        targetHeight = (int)(origHeight * ratio); // El nuevo alto se ajusta por el ratio
+                    }
+
+                    // 3. Calcular la posición X para centrarla
+                    // (Ancho total del ticket - Ancho de la imagen) / 2
+                    int xPos = (int)((ticketWidth - targetWidth) / 2);
+
+                    // 4. Dibujar la imagen usando un Rectángulo (posición X, posición Y, ancho, alto)
+                    e.Graphics.DrawImage(logo, new Rectangle(xPos, posicion, targetWidth, targetHeight));
+
+                    // 5. Actualizar la 'posicion' Y basado en la altura REAL de la imagen dibujada
+                    // Se suma un pequeño margen de 10px
+                    posicion += targetHeight + 10;
+
+                    // Se elimina la línea original que sumaba 150 fijos:
+                    // posicion += 150; 
+                }
             }
             e.Graphics.DrawString("   ********  NOTA DE VENTA  ********", new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
             posicion += 20;
         }
-        // Dibujar los encabezados
+        //encabezado de 80mm
+        StringFormat centerFormat = new StringFormat();
+        centerFormat.Alignment = StringAlignment.Center;
+
+        // Dibujar encabezados centrados
         foreach (var encabezado in _encabezados)
         {
-            e.Graphics.DrawString(encabezado, new Font("Arial", 10, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
+            e.Graphics.DrawString(encabezado, new Font("Arial", 10, FontStyle.Bold),
+                                  Brushes.Black,
+                                  new RectangleF(0, posicion, ticketWidth, 20),
+                                  centerFormat);
             posicion += 18;
         }
+
         if (!_corte)
         {
             // Dibujar la información del ticket
             e.Graphics.DrawString("FOLIO DE VENTA: " + _folio, new Font("Arial", 10, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
             posicion += 18;
+            if (formaPago != null)
+            {
+                e.Graphics.DrawString("MÉTODO DE PAGO: " + formaPago, new Font("Arial", 10, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
+                posicion += 18;
+            }
             if (_mesa != null)
             {
                 e.Graphics.DrawString("MESA: " + _mesa, new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));

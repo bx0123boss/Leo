@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmHistorialCortes : Form
+    public partial class frmHistorialCortes : frmBase
     {
         private DataSet ds;
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
@@ -25,6 +25,9 @@ namespace BRUNO
 
         private void frmHistorialCortes_Load(object sender, EventArgs e)
         {
+            EstilizarDataGridView(this.dataGridView1);
+            EstilizarBotonPrimario(this.button1);
+            EstilizarBotonPrimario(this.button2);
             //ds = new DataSet();
             conectar.Open();
             ds = new DataSet();

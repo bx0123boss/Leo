@@ -13,7 +13,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmVentaDetallada : Form
+    public partial class frmVentaDetallada : frmBase
     {
         private DataSet ds;
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
@@ -31,6 +31,9 @@ namespace BRUNO
 
         private void frmVentaDetallada_Load(object sender, EventArgs e)
         {
+            EstilizarDataGridView(this.dataGridView1);
+            EstilizarBotonPeligro(this.button1);
+            EstilizarBotonPrimario(this.button2);
             ds = new DataSet();
             conectar.Open();
             da = new OleDbDataAdapter("select * from VentasContado where FolioVenta='" + lblFolio.Text + "';", conectar);
@@ -128,7 +131,7 @@ namespace BRUNO
             totales.Add("Subtotal", total / 1.16);
             totales.Add("IVA", (total / 1.16) * 0.16);
             totales.Add("Total", total);
-            TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", 0, false, totales);
+            TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", 0, false, totales, lblPago.Text);
 
             ticketPrinter.ImprimirTicket();
         }

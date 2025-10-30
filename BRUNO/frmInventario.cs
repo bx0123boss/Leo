@@ -13,7 +13,7 @@ using Microsoft.Office.Interop.Excel;
 
 namespace BRUNO
 {
-    public partial class frmInventario : Form
+    public partial class frmInventario : frmBase
     {
 
         private DataSet ds;
@@ -24,6 +24,34 @@ namespace BRUNO
         OleDbDataAdapter da;
         public String usuario = "Admin";
         bool sinllenar = true;
+
+
+        private List<ProductoInventario> listaCompletaInventario;
+        private int tamanoPagina = 30; // ¿Cuántos registros por página?
+        private int paginaActual = 1;
+        private int totalPaginas = 0;
+        public class ProductoInventario
+        {
+            public string Id { get; set; }
+            public string Nombre { get; set; }
+            public decimal PrecioVentaMayoreo { get; set; }
+            public decimal PrecioVenta { get; set; }
+            public decimal Existencia { get; set; }
+            public decimal Limite { get; set; } 
+            public string Categoria { get; set; }
+            public decimal Especial {  get; set; }
+            public string IVA { get; set; }
+            public string Unidad { get; set; }
+            public string Uni { get; set; }
+        }
+        public class ResumenCategoria
+        {
+            public string Categoria { get; set; }
+            public decimal TotalExistencia { get; set; }
+            public decimal TotalInversion { get; set; }
+            public decimal TotalVenta { get; set; }
+            public decimal Utilidad { get; set; }
+        }
         public frmInventario()
         {
             InitializeComponent();
@@ -39,6 +67,26 @@ namespace BRUNO
 
         private void frmInventario_Load(object sender, EventArgs e)
         {
+            EstilizarDataGridView(this.dataGridView2);
+            EstilizarTextBox(this.textBox1);
+            EstilizarTextBox(this.textBox2);
+
+            EstilizarBotonPrimario(this.button6);
+            EstilizarBotonPrimario(this.button8);
+            EstilizarBotonPrimario(this.button7);
+            EstilizarBotonPrimario(this.button13);
+            EstilizarBotonPrimario(this.button10);
+            EstilizarBotonPrimario(this.button4);
+            EstilizarBotonPrimario(this.button11);
+            EstilizarBotonPrimario(this.btnPrimero);
+            EstilizarBotonPrimario(this.btnAnterior);
+            EstilizarBotonPrimario(this.btnSiguiente);
+            EstilizarBotonPrimario(this.btnUltimo);
+            EstilizarBotonPrimario(this.BtnApartados);    // Botón "Agregar"
+            EstilizarBotonPeligro(this.button1);
+            EstilizarBotonPeligro(this.button12);  // Botón "Eliminar"
+            EstilizarBotonAdvertencia(this.button2);
+            EstilizarBotonAdvertencia(this.button18);// Botón "Editar Contraseña"
             //ds = new DataSet();
             conectar.Open();
             System.Data.DataTable dt = new System.Data.DataTable();
@@ -48,24 +96,158 @@ namespace BRUNO
             comboBox2.DisplayMember = "Nombre";
             comboBox2.ValueMember = "Id";
             comboBox2.DataSource = dt;
-           
-                if (usuario != "Admin")
-                {
-                    panel6.Hide();
-                    ds = new DataSet();
-                    da = new OleDbDataAdapter("select * from Inventario order by Nombre;", conectar);
-                    da.Fill(ds, "Id");
-                    dataGridView2.DataSource = ds.Tables["Id"];
-                    dataGridView2.Columns[7].HeaderText = "Precio Compra";
-                    dataGridView2.Columns[10].HeaderText = "Unidad";
-                    dataGridView2.Columns[9].Visible = false;
-                }
-                if (Conexion.lugar=="LEO")
-                {
-                    button9.Visible = true;
-                }
+            DataSet ds = new DataSet();
+            da = new OleDbDataAdapter("select * from Inventario order by Nombre;", conectar);
+            da.Fill(ds, "Inventario"); // Usamos "Inventario" como nombre de tabla
 
+            // 2. Convertir el DataSet (DataTable) a una List<ProductoInventario>
+            listaCompletaInventario = new List<ProductoInventario>();
+
+            // Verificamos que la tabla se haya cargado
+            if (ds.Tables.Count > 0 && ds.Tables["Inventario"].Rows.Count > 0)
+            {
+                // Iteramos por cada fila (DataRow) en la tabla
+                foreach (DataRow row in ds.Tables["Inventario"].Rows)
+                {
+                    ProductoInventario prod = new ProductoInventario();
+
+                    prod.Id = row["Id"] == DBNull.Value ? "" : row["Id"].ToString();
+                    prod.Nombre = row["Nombre"] == DBNull.Value ? "" : row["Nombre"].ToString();
+                    prod.PrecioVentaMayoreo = row["PrecioVentaMayoreo"] == DBNull.Value ? 0m : Convert.ToDecimal(row["PrecioVentaMayoreo"]);
+                    prod.PrecioVenta = row["PrecioVenta"] == DBNull.Value ? 0m : Convert.ToDecimal(row["PrecioVenta"]);
+                    prod.Existencia = row["Existencia"] == DBNull.Value ? 0m : Convert.ToDecimal(row["Existencia"]);
+                    prod.Limite = row["Limite"] == DBNull.Value ? 0m : Convert.ToDecimal(row["Limite"]);
+                    prod.Categoria = row["Categoria"] == DBNull.Value ? "" : row["Categoria"].ToString();
+                    prod.Especial = row["Especial"] == DBNull.Value ? 0m : Convert.ToDecimal(row["Especial"]);
+                    prod.IVA = row["IVA"] == DBNull.Value ? "" : row["IVA"].ToString();
+                    prod.Unidad = row["Unidad"] == DBNull.Value ? "" : row["Unidad"].ToString();
+                    prod.Uni = row["Uni"] == DBNull.Value ? "" : row["Uni"].ToString();
+
+                    listaCompletaInventario.Add(prod);
+                }
+            }
+            totalPaginas = (int)Math.Ceiling((double)listaCompletaInventario.Count / tamanoPagina);
+
+            // 4. Cargar la primera página
+            CargarPagina();
         }
+        #region PAGINACION
+        private void CargarPagina()
+        {
+            // (Validación de paginaActual - sin cambios)
+            if (paginaActual < 1) paginaActual = 1;
+            if (paginaActual > totalPaginas && totalPaginas > 0) paginaActual = totalPaginas;
+
+            // Usar LINQ (Skip y Take) sobre TU lista de inventario
+            var datosPaginados = listaCompletaInventario
+                .Skip((paginaActual - 1) * tamanoPagina)
+                .Take(tamanoPagina)
+                .ToList();
+
+            // Asignar al DataGridView (sin cambios)
+            dataGridView2.DataSource = datosPaginados;
+
+            // Actualizar controles (sin cambios)
+            ActualizarControlesPaginacion();
+        }
+        private void ActualizarControlesPaginacion()
+        {
+            // Actualizar etiqueta
+            lblEstado.Text = $"Página {paginaActual} de {totalPaginas}";
+
+            // Habilitar o deshabilitar botones según la página actual
+            btnPrimero.Enabled = (paginaActual > 1);
+            btnAnterior.Enabled = (paginaActual > 1);
+
+            btnSiguiente.Enabled = (paginaActual < totalPaginas);
+            btnUltimo.Enabled = (paginaActual < totalPaginas);
+        }
+        private void btnPrimero_Click(object sender, EventArgs e)
+        {
+            if (paginaActual > 1)
+            {
+                paginaActual = 1;
+                CargarDatosPaginados();
+            }
+        }
+
+        private void btnAnterior_Click(object sender, EventArgs e)
+        {
+            if (paginaActual > 1)
+            {
+                paginaActual--;
+                CargarDatosPaginados();
+            }
+        }
+
+        private void btnSiguiente_Click(object sender, EventArgs e)
+        {
+            if (paginaActual < totalPaginas)
+            {
+                paginaActual++;
+                CargarDatosPaginados();
+            }
+        }
+
+        private void btnUltimo_Click(object sender, EventArgs e)
+        {
+            if (paginaActual < totalPaginas)
+            {
+                paginaActual = totalPaginas;
+                CargarDatosPaginados();
+            }
+        }
+        private void CargarDatosPaginados()
+        {
+            // Asegúrate de que 'listaCompleta' tenga datos
+            if (listaCompletaInventario == null || listaCompletaInventario.Count == 0)
+            {
+                dataGridView2.DataSource = null;
+                ActualizarControlesNavegacion();
+                return;
+            }
+
+            // Calcular el total de páginas
+            // Usamos Math.Ceiling para redondear hacia arriba (ej. 105 items / 10 por pag = 10.5 -> 11 páginas)
+            totalPaginas = (int)Math.Ceiling((double)listaCompletaInventario.Count / tamanoPagina);
+
+            // Asegurarse de que la página actual esté dentro de los límites
+            if (paginaActual > totalPaginas)
+            {
+                paginaActual = totalPaginas;
+            }
+            if (paginaActual < 1)
+            {
+                paginaActual = 1;
+            }
+
+            // Usar LINQ (Skip y Take) para obtener solo los registros de la página actual
+            // Skip: Omite los registros de las páginas anteriores
+            // Take: Toma el número de registros para la página actual
+            var datosPaginados = listaCompletaInventario
+                .Skip((paginaActual - 1) * tamanoPagina)
+                .Take(tamanoPagina)
+                .ToList();
+
+            // Asignar los datos paginados al DataGridView
+            dataGridView2.DataSource = datosPaginados;
+            
+            // Actualizar los botones y la etiqueta
+            ActualizarControlesNavegacion();
+        }
+        private void ActualizarControlesNavegacion()
+        {
+            // Actualizar la etiqueta de estado
+            lblEstado.Text = $"Página {paginaActual} de {totalPaginas}";
+
+            // Habilitar/Deshabilitar botones
+            btnPrimero.Enabled = (paginaActual > 1);
+            btnAnterior.Enabled = (paginaActual > 1);
+
+            btnSiguiente.Enabled = (paginaActual < totalPaginas);
+            btnUltimo.Enabled = (paginaActual < totalPaginas);
+        }
+        #endregion
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -125,31 +307,73 @@ namespace BRUNO
 
         private void button1_Click(object sender, EventArgs e)
         {
+            // 1. Verificar que haya una fila seleccionada
+            if (dataGridView2.CurrentRow == null)
+            {
+                MessageBox.Show("Por favor, seleccione un producto para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 2. Obtener el producto seleccionado de forma segura
+            // Usamos DataBoundItem para obtener el objeto 'ProductoInventario' completo
+            ProductoInventario productoSeleccionado = (ProductoInventario)dataGridView2.CurrentRow.DataBoundItem;
+            string idParaEliminar = productoSeleccionado.Id;
+
             try
             {
+                // 3. Confirmación
+                DialogResult dialogResult = MessageBox.Show("¿Estas seguro de eliminar el producto?", "Alto!", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
-                DialogResult dialogResult = MessageBox.Show("¿Estas seguro de eliminar el producto?", "Alto!", MessageBoxButtons.YesNo);
                 if (dialogResult == DialogResult.Yes)
                 {
-                    cmd = new OleDbCommand("insert into InventarioSusp(Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Limite,Categoria,Especial,IVA,Unidad,Uni) values('" + dataGridView2[0, dataGridView2.CurrentRow.Index].Value.ToString() + "','" + dataGridView2[1, dataGridView2.CurrentRow.Index].Value.ToString() + "','" + dataGridView2[2, dataGridView2.CurrentRow.Index].Value.ToString() + "','" + dataGridView2[3, dataGridView2.CurrentRow.Index].Value.ToString() + "','" + dataGridView2[4, dataGridView2.CurrentRow.Index].Value.ToString() + "','" + dataGridView2[5, dataGridView2.CurrentRow.Index].Value.ToString() + "','" + dataGridView2[6, dataGridView2.CurrentRow.Index].Value.ToString() + "','" + dataGridView2[7, dataGridView2.CurrentRow.Index].Value.ToString() + "','" + dataGridView2[8, dataGridView2.CurrentRow.Index].Value.ToString() + "','" + dataGridView2[9, dataGridView2.CurrentRow.Index].Value.ToString() + "','" + dataGridView2[10, dataGridView2.CurrentRow.Index].Value.ToString() + "');", conectar);
-                    cmd.ExecuteNonQuery();
-                    cmd = new OleDbCommand("delete from Inventario where Id='" + dataGridView2[0, dataGridView2.CurrentRow.Index].Value.ToString() + "';", conectar);
-                    cmd.ExecuteNonQuery();
+                    string sqlInsert = @"INSERT INTO InventarioSusp 
+                (Id, Nombre, PrecioVentaMayoreo, PrecioVenta, Existencia, Limite, Categoria, Especial, IVA, Unidad, Uni) 
+                VALUES 
+                (@Id, @Nombre, @PrecioVentaMayoreo, @PrecioVenta, @Existencia, @Limite, @Categoria, @Especial, @IVA, @Unidad, @Uni)";
+
+                    using (OleDbCommand cmdInsert = new OleDbCommand(sqlInsert, conectar))
+                    {
+                        // Asignamos los valores desde el objeto que ya tenemos
+                        cmdInsert.Parameters.AddWithValue("@Id", productoSeleccionado.Id);
+                        cmdInsert.Parameters.AddWithValue("@Nombre", productoSeleccionado.Nombre);
+                        cmdInsert.Parameters.AddWithValue("@PrecioVentaMayoreo", productoSeleccionado.PrecioVentaMayoreo);
+                        cmdInsert.Parameters.AddWithValue("@PrecioVenta", productoSeleccionado.PrecioVenta);
+                        cmdInsert.Parameters.AddWithValue("@Existencia", productoSeleccionado.Existencia);
+                        cmdInsert.Parameters.AddWithValue("@Limite", productoSeleccionado.Limite);
+                        cmdInsert.Parameters.AddWithValue("@Categoria", productoSeleccionado.Categoria);
+                        cmdInsert.Parameters.AddWithValue("@Especial", productoSeleccionado.Especial);
+                        cmdInsert.Parameters.AddWithValue("@IVA", productoSeleccionado.IVA);
+                        cmdInsert.Parameters.AddWithValue("@Unidad", productoSeleccionado.Unidad);
+                        cmdInsert.Parameters.AddWithValue("@Uni", productoSeleccionado.Uni);
+
+                        cmdInsert.ExecuteNonQuery();
+                    }
+
+                    // 4b. Eliminar de la tabla principal (Inventario)
+                    string sqlDelete = "DELETE FROM Inventario WHERE Id = @Id";
+                    using (OleDbCommand cmdDelete = new OleDbCommand(sqlDelete, conectar))
+                    {
+                        cmdDelete.Parameters.AddWithValue("@Id", idParaEliminar);
+                        cmdDelete.ExecuteNonQuery();
+                    }
+
                     MessageBox.Show("PRODUCTO ELIMINADO CON EXITO", "ELIMINADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    ds = new DataSet();
-                    da = new OleDbDataAdapter("select * from Inventario order by Nombre;", conectar);
-                    da.Fill(ds, "Id");
-                    dataGridView2.DataSource = ds.Tables["Id"];
-                    dataGridView2.Columns[7].HeaderText = "Precio Compra";
-                    dataGridView2.Columns[10].HeaderText = "Unidad";
-                    dataGridView2.Columns[9].Visible = false;
+
+                    var itemAEliminar = listaCompletaInventario.FirstOrDefault(p => p.Id == idParaEliminar);
+                    if (itemAEliminar != null)
+                    {
+                        listaCompletaInventario.Remove(itemAEliminar);
+                    }
+
+                    paginaActual = 1;
+                    CargarDatosPaginados();
                 }
             }
             catch (Exception ex)
             {
-
+                MessageBox.Show("Error al eliminar el producto: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            
+
         }
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
@@ -272,66 +496,47 @@ namespace BRUNO
             this.Close();
         }
 
+
         private void button6_Click(object sender, EventArgs e)
         {
-            if (sinllenar)
+            // 1. Asegurarnos de que la lista principal de productos esté cargada
+            if (listaCompletaInventario == null || listaCompletaInventario.Count == 0)
             {
-                ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Inventario order by Nombre;", conectar);
-                da.Fill(ds, "Id");
-                dataGridView2.DataSource = ds.Tables["Id"];
-                dataGridView2.Columns[7].HeaderText = "Precio Compra";
-                dataGridView2.Columns[10].HeaderText = "Unidad";
-                dataGridView2.Columns[9].Visible = false;
-                button13.Visible = true;
-                button14.Visible = true;
-                button15.Visible = true;
-                sinllenar = false;
+                MessageBox.Show("No hay datos de inventario para procesar.", "Aviso",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
             }
-            else if (Conexion.lugar == "LEO")
-            {
 
-            }
-            else 
-            {
-                double piezasM = 0;
-                double ventaM = 0;
-                double inversionM = 0;
-
-                double piezasF = 0;
-                double ventaF = 0;
-                double inversionF = 0;
-
-                for (int i = 0; i < dataGridView2.RowCount; i++)
+            // 2. La magia de LINQ: Agrupar por Categoría y Sumar
+            // (Recuerda que listaCompletaInventario es tu List<ProductoInventario>)
+            var resumen = listaCompletaInventario
+                .GroupBy(p => p.Categoria) // Agrupamos todos los productos por su 'Categoria'
+                .Select(grupo => new ResumenCategoria // Para cada grupo, creamos un objeto de resumen
                 {
-                    if (dataGridView2[6, i].Value.ToString() == "Materiales")
-                    {
-                        piezasM = Convert.ToDouble(dataGridView2[4, i].Value.ToString());
-                        ventaM += piezasM * Convert.ToDouble(dataGridView2[3, i].Value.ToString());
-                        inversionM += piezasM * Convert.ToDouble(dataGridView2[7, i].Value.ToString());
-                    }
-                    else if (dataGridView2[6, i].Value.ToString() == "Ferreteria")
-                    {
-                        piezasF= Convert.ToDouble(dataGridView2[4, i].Value.ToString());
-                        ventaF += piezasF * Convert.ToDouble(dataGridView2[3, i].Value.ToString());
-                        inversionF += piezasF * Convert.ToDouble(dataGridView2[7, i].Value.ToString());
-                    }
-                    
-                }
-                frmDatos dat = new frmDatos();
-                dat.lblInversionM.Text = "$" + inversionM.ToString("#,#.00", CultureInfo.InvariantCulture);
-                dat.lblVentaM.Text = "$" + ventaM.ToString("#,#.00", CultureInfo.InvariantCulture);
-                dat.lblUtilidadM.Text = "$" + (ventaM - inversionM).ToString("#,#.00", CultureInfo.InvariantCulture);
+                    Categoria = grupo.Key, // El nombre de la categoría (ej. "Ferreteria")
 
-                dat.lblInversionF.Text = "$" + inversionF.ToString("#,#.00", CultureInfo.InvariantCulture);
-                dat.lblVentaF.Text = "$" + ventaF.ToString("#,#.00", CultureInfo.InvariantCulture);
-                dat.lblUtilidadF.Text = "$" + (ventaF - inversionF).ToString("#,#.00", CultureInfo.InvariantCulture);
+                    // Sumamos la existencia de todos los productos en este grupo
+                    TotalExistencia = grupo.Sum(p => p.Existencia),
 
-                dat.Show();
-               
-            }
-                //button6.Visible = false;
-            
+                    // (Basado en tu código: Venta = Existencia * PrecioVenta)
+                    TotalVenta = grupo.Sum(p => p.Existencia * p.PrecioVenta),
+
+                    // (Basado en tu código: Inversión = Existencia * Col[7])
+                    // En tu clase, la col[7] es 'Especial'. Usaremos esa propiedad.
+                    TotalInversion = grupo.Sum(p => p.Existencia * p.Especial),
+
+                    // Calculamos la utilidad directamente
+                    Utilidad = grupo.Sum(p => (p.Existencia * p.PrecioVenta) - (p.Existencia * p.Especial))
+                })
+                .OrderBy(r => r.Categoria) // Opcional: ordenar alfabéticamente por categoría
+                .ToList(); // Convertimos el resultado a una Lista
+
+            // 3. Crear y mostrar el nuevo formulario, pasándole los datos
+            frmDatos formularioResumen = new frmDatos(resumen);
+            formularioResumen.Show(); // O .ShowDialog() si quieres que la ventana sea modal
+
+            //button6.Visible = false;
+
             //else if (usuario == "Admin")
             //{
             //    for (int i = 0; i < dataGridView2.RowCount; i++)
@@ -663,6 +868,56 @@ namespace BRUNO
         {
             frmTarjeta formularioSecundario = new frmTarjeta();
             formularioSecundario.ShowDialog();
+        }
+
+        private void frmInventario_Shown(object sender, EventArgs e)
+        {
+            ActualizarTamanoPagina();
+            if (tamanoPagina <= 0)
+            {
+                tamanoPagina = 20; // Un valor seguro por si acaso
+            }
+            if (listaCompletaInventario.Count > 0 && tamanoPagina > 0)
+            {
+                totalPaginas = (int)Math.Ceiling((double)listaCompletaInventario.Count / tamanoPagina);
+            }
+            else
+            {
+                totalPaginas = 1;
+            }
+
+            // 4. Recargar la vista
+            // CargarPagina() ya se encarga de validar si 'paginaActual' 
+            // se salió de los límites (ej. si achicas la ventana y el total de páginas aumenta)
+            CargarPagina();
+        }
+        private void ActualizarTamanoPagina()
+        {
+            // 1. Obtener el alto de UNA fila. 
+            // RowTemplate.Height ya sabe el alto correcto basado en tu fuente de 12px y el padding.
+            int altoFila = dataGridView2.RowTemplate.Height;
+
+            // Evitar división por cero si el grid está oculto o la plantilla no tiene alto
+            if (altoFila <= 0) { return; }
+
+            // 2. Obtener el alto DISPONIBLE para las filas
+            // Usamos ClientSize.Height para obtener el alto interno (sin bordes)
+            int altoDisponible = dataGridView2.ClientSize.Height;
+
+            // 3. Restar el alto de la cabecera (Column Headers) si está visible
+            if (dataGridView2.ColumnHeadersVisible)
+            {
+                altoDisponible = altoDisponible - dataGridView2.ColumnHeadersHeight;
+            }
+
+            // 4. Calcular el nuevo tamaño de página
+            int nuevoTamano = altoDisponible / altoFila;
+
+            // 5. Actualizar la variable global (solo si es un valor válido)
+            if (nuevoTamano > 0)
+            {
+                tamanoPagina = nuevoTamano;
+            }
         }
     }
 }

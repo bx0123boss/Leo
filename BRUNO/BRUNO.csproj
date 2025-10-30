@@ -13,7 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <TargetFrameworkProfile />
-    <PublishUrl>C:\Users\Brandon\Desktop\Punto\</PublishUrl>
+    <PublishUrl>C:\Users\Brandon\Desktop\Jaeger soft\PUNTO\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -23,7 +23,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>206</ApplicationRevision>
+    <ApplicationRevision>215</ApplicationRevision>
     <ApplicationVersion>1.0.4.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -231,6 +231,9 @@
     <Compile Include="frmApartados.Designer.cs">
       <DependentUpon>frmApartados.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmBase.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="frmBuscaCliente.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -308,6 +311,12 @@
     </Compile>
     <Compile Include="frmConfiguracion.Designer.cs">
       <DependentUpon>frmConfiguracion.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmConfiguracionTicket.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmConfiguracionTicket.Designer.cs">
+      <DependentUpon>frmConfiguracionTicket.cs</DependentUpon>
     </Compile>
     <Compile Include="frmCortePorFechas.cs">
       <SubType>Form</SubType>
@@ -818,6 +827,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmConfiguracion.resx">
       <DependentUpon>frmConfiguracion.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmConfiguracionTicket.resx">
+      <DependentUpon>frmConfiguracionTicket.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmCortePorFechas.resx">
       <DependentUpon>frmCortePorFechas.cs</DependentUpon>

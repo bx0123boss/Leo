@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmCorte : Form
+    public partial class frmCorte : frmBase
     {
         double mas = 0;
         double menos = 0;
@@ -33,7 +33,7 @@ namespace BRUNO
         }
 
         private void dgvCorte_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
-        {
+        { 
             if (dgvCorte.Columns[e.ColumnIndex].Name == "Monto")
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
@@ -233,7 +233,15 @@ namespace BRUNO
             lblNoIva.Text = $"{montoSinIVA:C2}"; 
             lblIVA.Text = $"{iva:C2}"; 
             lblTotal.Text = $"{monto:C2}";
+            EstilizarDataGridView(this.dgvFolios);
+            EstilizarDataGridView(this.dgvCorte);
+            EstilizarDataGridView(this.dataGridView5);
+            EstilizarDataGridView(this.dataGridView1);
+            EstilizarDataGridView(this.dataGridView2);
+            EstilizarDataGridView(this.dataGridView3);
+            EstilizarDataGridView(this.dataGridView4);
 
+            EstilizarBotonPrimario(this.button1);
         }
         private void button1_Click(object sender, EventArgs e)
         {

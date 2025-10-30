@@ -45,6 +45,7 @@
             this.button5 = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
             this.button7 = new System.Windows.Forms.Button();
+            this.button6 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -208,7 +209,7 @@
             this.BtnCotizar.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.BtnCotizar.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnCotizar.ForeColor = System.Drawing.Color.White;
-            this.BtnCotizar.Location = new System.Drawing.Point(760, 122);
+            this.BtnCotizar.Location = new System.Drawing.Point(681, 95);
             this.BtnCotizar.Name = "BtnCotizar";
             this.BtnCotizar.Size = new System.Drawing.Size(215, 84);
             this.BtnCotizar.TabIndex = 10;
@@ -252,7 +253,7 @@
             this.button4.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.button4.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button4.ForeColor = System.Drawing.Color.White;
-            this.button4.Location = new System.Drawing.Point(760, 225);
+            this.button4.Location = new System.Drawing.Point(681, 225);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(215, 84);
             this.button4.TabIndex = 15;
@@ -273,6 +274,20 @@
             this.button7.Visible = false;
             this.button7.Click += new System.EventHandler(this.button7_Click);
             // 
+            // button6
+            // 
+            this.button6.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("button6.BackgroundImage")));
+            this.button6.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.button6.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button6.ForeColor = System.Drawing.Color.White;
+            this.button6.Location = new System.Drawing.Point(902, 159);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(115, 84);
+            this.button6.TabIndex = 20;
+            this.button6.Text = "Ticket";
+            this.button6.UseVisualStyleBackColor = true;
+            this.button6.Click += new System.EventHandler(this.button6_Click);
+            // 
             // frmPrincipal
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -281,6 +296,7 @@
             this.BackColor = System.Drawing.Color.MidnightBlue;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1174, 733);
+            this.Controls.Add(this.button6);
             this.Controls.Add(this.button7);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.button5);
@@ -327,6 +343,7 @@
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Button button7;
+        private System.Windows.Forms.Button button6;
     }
 }
 

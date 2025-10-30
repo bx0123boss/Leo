@@ -16,7 +16,9 @@ namespace BRUNO
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            Conexion.CargarConfiguracion(1);
             Application.Run(new frmLogin());
+            
         }
     }
 }
