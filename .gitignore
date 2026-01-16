@@ -1,78 +1,49 @@
-# Ignorar archivos binarios y de salida
+# =========================
+# Build outputs
+# =========================
 [Bb]in/
 [Oo]bj/
+**/bin/**
+**/obj/**
 
-# Ignorar archivos de usuario
+# =========================
+# Visual Studio
+# =========================
+.vs/
 *.user
 *.suo
 *.userprefs
-
-# Ignorar archivos de configuración de Visual Studio
-.vs/
 *.csproj.user
-*.csproj.local
 
-# Ignorar archivos de NuGet
-[Nn]u[Gg]et/
-*.nupkg
+# =========================
+# NuGet
+# =========================
 packages/
+*.nupkg
 
-# Ignorar archivos de ReSharper
-_ReSharper.*
-*.ReSharper.*
-
-# Ignorar archivos de Team Foundation Server
-*.tss
-
-# Ignorar archivos de logs y bases de datos
+# =========================
+# Logs & DB
+# =========================
 *.log
 *.sqlite
 
-# Ignorar archivos de configuración de Rider
+# =========================
+# IDEs
+# =========================
 .idea/
-
-# Ignorar archivos de MacOS
-.DS_Store
-
-# Ignorar archivos de pruebas
-[Tt]est[Rr]esult*/
-[Bb]uild[Ll]og.*
-
-# Ignorar archivos de resharper
-_ReSharper.*
-*.ReSharper
-
-# Ignorar archivos de sonar
-.sonar/
-
-# Ignorar archivos de dotnet
-.dotnet/
-
-# Ignorar archivos de Azure Functions
-func/
-
-# Ignorar archivos de Docker
-docker-compose.*
-.dockerignore
-**/.docker/**
-**/docker-compose.*
-**/docker-compose.*
-
-# Ignorar archivos de Node.js
-node_modules/
-
-# Ignorar archivos de Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Ignorar archivos de Visual Studio Code
 .vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
 
-**/obj/Debug/
-**/obj/Release/
+# =========================
+# OS
+# =========================
+.DS_Store
+
+# =========================
+# Tests
+# =========================
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
