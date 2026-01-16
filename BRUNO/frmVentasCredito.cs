@@ -125,6 +125,14 @@ namespace BRUNO
                     }
                     else
                     {
+                        cmd = new OleDbCommand("select Numero from Folios where Folio='FolioCredito';", conectar);
+                        OleDbDataReader reader = cmd.ExecuteReader();
+                        if (reader.Read())
+                        {
+                            foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
+                        }
+
+                        lblFolio.Text = "C" + String.Format("{0:0000}", foli);
                         Ticket ticket = new Ticket();
                         ticket.MaxChar = Conexion.MaxChar;
                         ticket.FontSize = Conexion.FontSize;
@@ -149,7 +157,7 @@ namespace BRUNO
                             string unidad = "0";
                             //Obtenemos existencias del articulo
                             cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
-                            OleDbDataReader reader = cmd.ExecuteReader();
+                            reader = cmd.ExecuteReader();
                             if (reader.Read())
                             {
                                 exis = Convert.ToDouble(Convert.ToString(reader[4].ToString()));
@@ -226,14 +234,7 @@ namespace BRUNO
         private void frmVentasCredito_Load(object sender, EventArgs e)
         {
             cmbPago.SelectedIndex = 0; 
-            cmd = new OleDbCommand("select Numero from Folios where Folio='FolioCredito';", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
-            }
-
-            lblFolio.Text = "C" + String.Format("{0:0000}", foli);
+         
             if (Conexion.lugar == "SANJUAN" && usuario == "Admin")
             {
                 dataGridView1.Columns[2].ReadOnly = false;

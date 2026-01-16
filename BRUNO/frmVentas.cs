@@ -41,7 +41,7 @@ namespace BRUNO
             EstilizarCheckBox(this.checkBox1);
             conectar.Open();
             cmbPago.SelectedIndex = 0;
-            if (Conexion.lugar == "LEO")
+            if (Conexion.lugar == "DEPORTES LEO")
             {
                 dataGridView1.Columns[2].ReadOnly = false;
             }
@@ -478,6 +478,11 @@ namespace BRUNO
             }
             //Area para imprimir ticket
             Dictionary<string, double> totales = new Dictionary<string, double>();
+            if (descuento != 0)
+            {
+                total=total - descuento;
+                totales.Add("Descuento", descuento);
+            }
             if (Conexion.ConIva)
             {
                 totales.Add("Subtotal", total / 1.16);
@@ -486,6 +491,7 @@ namespace BRUNO
             totales.Add("Total", total);
             totales.Add("Recibido", efectivo);
             totales.Add("Cambio", cambio);
+           
             TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", total, false, totales, cmbPago.Text);
 
            

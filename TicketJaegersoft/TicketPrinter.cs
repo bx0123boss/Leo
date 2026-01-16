@@ -225,17 +225,21 @@ public class TicketPrinter
         posicion += 30;
 
         // Dibujar la lista de productos
-        if (!_corte)
+        if (_productos.Count > 0)
         {
-            e.Graphics.DrawString("Cant   Producto         P.unit Importe", new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
+            if (!_corte)
+            {
+                e.Graphics.DrawString("Cant   Producto         P.unit Importe", new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
+            }
+            else
+            {
+                e.Graphics.DrawString("Folio         Sin IVA        Monto Total", new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
+            }
+            posicion += 20;
+            e.Graphics.DrawLine(new Pen(Color.Black), 1, posicion, 420, posicion);
+            posicion += 10;
         }
-        else
-        {
-            e.Graphics.DrawString("Folio         Sin IVA        Monto Total", new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
-        }
-        posicion += 20;
-        e.Graphics.DrawLine(new Pen(Color.Black), 1, posicion, 420, posicion);
-        posicion += 10;
+       
 
         StringFormat sf = new StringFormat();
         sf.Alignment = StringAlignment.Far;

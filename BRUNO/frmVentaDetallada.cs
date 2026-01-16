@@ -34,6 +34,7 @@ namespace BRUNO
             EstilizarDataGridView(this.dataGridView1);
             EstilizarBotonPeligro(this.button1);
             EstilizarBotonPrimario(this.button2);
+            dataGridView1.ReadOnly = true;
             ds = new DataSet();
             conectar.Open();
             da = new OleDbDataAdapter("select * from VentasContado where FolioVenta='" + lblFolio.Text + "';", conectar);

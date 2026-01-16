@@ -42,7 +42,7 @@ namespace BRUNO
             dgv.RowHeadersVisible = false;
             dgv.MultiSelect = false;
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgv.ReadOnly = true;
+            dgv.ReadOnly = false;
             dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
 
             // Estilo del Encabezado

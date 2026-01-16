@@ -255,13 +255,15 @@ namespace BRUNO
             {
                 foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
             }
-            foreach (DataGridViewRow row in dgvFolios.Rows)
+            bool detallado = false;
+            DialogResult dialogResult = MessageBox.Show("¿Requiere el corte impreso detallado?", "Alto!", MessageBoxButtons.YesNo);
+            if (dialogResult == DialogResult.Yes)
             {
-                // Verificar si el CheckBox está marcado (y que no sea la fila de encabezado)
-                if (row.Cells["Seleccionar"].Value != null && Convert.ToBoolean(row.Cells["Seleccionar"].Value))
+                detallado=true;
+            }
+                foreach (DataGridViewRow row in dgvFolios.Rows)
                 {
-                    // Obtener datos de la fila actual (ejemplo con una columna llamada "Folio")
-                    string folio = row.Cells["Folio"].Value.ToString();
+                if(detallado)
                     productos.Add(new Producto
                     {
                         Cantidad = 0,
@@ -269,12 +271,17 @@ namespace BRUNO
                         PrecioUnitario = Convert.ToDouble(row.Cells["Monto sin IVA"].Value.ToString()),
                         Total = Convert.ToDouble(row.Cells["Monto"].Value.ToString()),
                     });
-                    //insertar datos
-                    //MessageBox.Show($"Fila seleccionada: {folio}");
+                
+                if (row.Cells["Seleccionar"].Value != null && Convert.ToBoolean(row.Cells["Seleccionar"].Value))
+                    {
+                        string folio = row.Cells["Folio"].Value.ToString();
+                       
+                        //insertar datos
+                        //MessageBox.Show($"Fila seleccionada: {folio}");
 
-                    foli++;
+                        foli++;
+                    }
                 }
-            }
             cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioVenta';", conectar);
             cmd.ExecuteNonQuery();
             #endregion 
@@ -308,7 +315,9 @@ namespace BRUNO
                 cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dataGridView4[1, i].Value.ToString() + "','" + dataGridView4[2, i].Value.ToString() + "','" + folio + "','" + dataGridView4[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
-            cmd = new OleDbCommand("INSERT INTO histocortes(Id,Monto,Fecha,Mas,Menos,Tarjeta,utilidad,inversion) VALUES ('" + folio + "','" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+mas+"','"+menos+"','"+tarjeta+"','"+utilidad+"','"+inversion+"');", conectar);
+       
+
+                cmd = new OleDbCommand("INSERT INTO histocortes(Id,Monto,Fecha,Mas,Menos,Tarjeta,utilidad,inversion) VALUES ('" + folio + "','" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+mas+"','"+menos+"','"+tarjeta+"','"+utilidad+"','"+inversion+"');", conectar);
                 cmd.ExecuteNonQuery();
             
             cmd = new OleDbCommand("UPDATE Folios set Numero=" + folio + " where Folio='Corte';", conectar);

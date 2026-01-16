@@ -31,7 +31,7 @@ namespace BRUNO
             EstilizarBotonPrimario(this.button4);// Botón "Agregar"
             EstilizarBotonPeligro(this.button3);     // Botón "Eliminar"
             EstilizarBotonAdvertencia(this.button2); // Botón "Editar Contraseña"
-
+            EstilizarBotonPrimario(this.button5);
 
             ds = new DataSet();
             conectar.Open();
