@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using PuntoVentaWeb.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +5,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddScoped<PuntoVentaWeb.Services.CotizacionService>();
+builder.Services.AddScoped<PuntoVentaWeb.Services.EmailService>();
+builder.Services.AddScoped<PuntoVentaWeb.Services.ClienteService>();
 builder.Services.AddSingleton<WeatherForecastService>();
 
 var app = builder.Build();

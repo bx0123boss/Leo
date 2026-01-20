@@ -1,0 +1,95 @@
+﻿@page "/cotizacion/{Id:int}"
+@using PuntoVentaWeb.Models
+@using PuntoVentaWeb.Services
+@using System.IO
+@inject CotizacionService _cotizacionService
+@inject IJSRuntime JS
+
+<div class="container mt-4">
+    @if (cotizacion == null)
+    {
+        <div class="alert alert-info">Cargando cotización...</div>
+    }
+    else
+    {
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Cotización #@cotizacion.Id</h5>
+
+                <button class="btn btn-light text-primary fw-bold" @onclick="DescargarPdf">
+                    <i class="oi oi-print"></i> Descargar PDF
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-sm-6">
+                        <strong>Cliente:</strong> @cotizacion.ClienteNombre <br />
+                        <strong>Fecha:</strong> @cotizacion.Fecha.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                    <div class="col-sm-6 text-end">
+                        <h3 class="text-primary">@cotizacion.Total.ToString("C2")</h3>
+                    </div>
+                </div>
+
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Cant</th>
+                            <th>Descripción</th>
+                            <th class="text-end">P. Unitario</th>
+                            <th class="text-end">Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in cotizacion.Detalles)
+                        {
+                            <tr>
+                                <td>@item.Cantidad</td>
+                                <td>
+                                    @item.Descripcion <br />
+                                    <small class="text-muted">@item.ProductoCodigo</small>
+                                </td>
+                                <td class="text-end">@item.PrecioUnitario.ToString("C2")</td>
+                                <td class="text-end">@item.Importe.ToString("C2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="mt-3">
+                    <a href="/historial" class="btn btn-secondary">← Volver al Historial</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Cotizacion cotizacion;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Cargamos los datos completos desde SQL
+        cotizacion = await _cotizacionService.ObtenerCotizacionPorId(Id);
+    }
+
+    private async Task DescargarPdf()
+    {
+        if (cotizacion == null) return;
+
+        // 2. Obtener configuración (Identidad del Negocio)
+        var configNegocio = await _cotizacionService.ObtenerConfiguracion();
+        // 1. Generar los bytes del PDF usando nuestra clase PdfGenerator
+        var pdfBytes = PdfGenerator.CrearPdfCotizacion(cotizacion, configNegocio);
+
+        // 2. Crear un stream para enviarlo al navegador
+        using var stream = new MemoryStream(pdfBytes);
+        using var streamRef = new DotNetStreamReference(stream);
+
+        // 3. Llamar a la función JS que pusimos en _Layout.cshtml
+        await JS.InvokeVoidAsync("downloadFileFromStream", $"Cotizacion_{cotizacion.Id}.pdf", streamRef);
+    }
+}

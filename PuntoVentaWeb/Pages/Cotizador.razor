@@ -1,0 +1,466 @@
+﻿@page "/cotizacion"
+@using PuntoVentaWeb.Models
+@using PuntoVentaWeb.Services
+
+@inject CotizacionService _cotizacionService
+@inject IJSRuntime JS
+@inject EmailService _emailService
+
+<div class="container-fluid">
+    <h3>Nueva Cotización (Web)</h3>
+
+    <div class="card mb-3 border-primary">
+        <div class="card-header bg-light">
+            <strong>1. Datos Generales y Cliente</strong>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+
+                <div class="col-md-5 position-relative">
+                    <label class="form-label">Buscar Cliente:</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="oi oi-person"></i></span>
+                        <input type="text"
+                               class="form-control"
+                               placeholder="Escribe nombre o RFC..."
+                               @bind="busquedaCliente"
+                               @bind:event="oninput"
+                               @onkeyup="BuscarClienteEnTiempoReal" />
+
+                        <button class="btn btn-primary" title="Nuevo Cliente" @onclick="() => mostrarModalCliente = true">
+                            <i class="oi oi-plus"></i>
+                        </button>
+                    </div>
+                    @if (mostrarListaClientes && listaClientes != null && listaClientes.Count > 0)
+                    {
+                        <div class="list-group position-absolute shadow w-100" style="z-index: 1000; top: 75px; max-height: 200px; overflow-y: auto;">
+                            @foreach (var c in listaClientes)
+                            {
+                                <button type="button" class="list-group-item list-group-item-action" @onclick="() => SeleccionarCliente(c)">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">@c.Nombre</h6>
+                                        <small class="text-muted">ID: @c.Id</small>
+                                    </div>
+                                    <small class="text-muted">RFC: @c.RFC | Tel: @c.Telefono</small>
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="col-md-5">
+                    <label class="form-label">Cliente Seleccionado:</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control fw-bold text-success"
+                               value="@(nuevaCotizacion.ClienteId > 0 ? $"{nuevaCotizacion.ClienteNombre} (ID: {nuevaCotizacion.ClienteId})" : "Público General")"
+                               readonly />
+
+                        <button class="btn btn-outline-danger" type="button"
+                                title="Quitar cliente y volver a Público General"
+                                disabled="@(nuevaCotizacion.ClienteId == 0)"
+                                @onclick="LimpiarCliente">
+                            <span class="oi oi-trash"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <button class="btn btn-success w-100 mt-4" @onclick="GuardarEnBaseDatos">
+                        Guardar
+                    </button>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12">
+                    <label class="form-label">Observaciones / Notas:</label>
+                    <textarea class="form-control"
+                              @bind="nuevaCotizacion.Observaciones"
+                              rows="1"
+                              placeholder="Ej: Entregar a domicilio, pago pendiente, etc..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    Buscador de Productos
+                </div>
+                <div class="card-body">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" @bind="terminoBusqueda" @onkeyup="@(e => { if (e.Key == "Enter") Buscar(); })" placeholder="Código o Nombre..." />
+                        <button class="btn btn-secondary" @onclick="Buscar">Buscar</button>
+                    </div>
+
+                    @if (resultadosBusqueda != null && resultadosBusqueda.Count > 0)
+                    {
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Desc</th>
+                                        <th>$ Público</th>
+                                        <th>$ Mayoreo</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var prod in resultadosBusqueda)
+                                    {
+                                        <tr @onclick="() => PrepararProducto(prod)" style="cursor: pointer; background-color: @(productoSeleccionado == prod ? "#e9ecef" : "white")">
+                                            <td>
+                                                <strong>@prod.Nombre</strong><br />
+                                                <small class="text-muted">Cod: @prod.Id | Stock: @prod.Existencia</small>
+                                            </td>
+                                            <td class="text-end">@prod.Precioventa.ToString("C2")</td>
+                                            <td class="text-end">@prod.PrecioventaMayoreo.ToString("C2")</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary">→</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else if (busquedaRealizada)
+                    {
+                        <div class="alert alert-warning">No se encontraron productos.</div>
+                    }
+
+                    @if (productoSeleccionado != null)
+                    {
+                        <div class="border p-3 mt-3 bg-light rounded">
+                            <h5>Agregar: @productoSeleccionado.Nombre</h5>
+                            <div class="row g-2">
+                                <div class="col-4">
+                                    <label>Cantidad:</label>
+                                    <input type="number" class="form-control" @bind="cantidadAgregar" min="1" />
+                                </div>
+
+                                <div class="col-8">
+                                    <label>Precio Unitario:</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control fw-bold"
+                                               @bind="precioManual"
+                                               step="0.01" />
+                                    </div>
+                                    <div class="mt-1 text-end">
+                                        <span class="text-muted small me-2">Ref:</span>
+                                        <button class="btn btn-xs btn-outline-secondary" style="font-size:0.7rem;"
+                                                @onclick="() => precioManual = Math.Round(productoSeleccionado.Precioventa, 2)">
+                                            Púb: @productoSeleccionado.Precioventa.ToString("C2")
+                                        </button>
+
+                                        <button class="btn btn-xs btn-outline-secondary" style="font-size:0.7rem;"
+                                                @onclick="() => precioManual = Math.Round(productoSeleccionado.PrecioventaMayoreo, 2)">
+                                            May: @productoSeleccionado.PrecioventaMayoreo.ToString("C2")
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 mt-2">
+                                    <button class="btn btn-primary w-100" @onclick="AgregarAlCarrito">Agregar a la Cotización</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-dark text-white">
+                    Detalle de Cotización 
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                        <table class="table table-striped mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th style="width: 70px;">Cant</th>
+                                    <th>Producto</th>
+                                    <th style="width: 120px;">P. Unit</th>
+                                    <th>Importe</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in nuevaCotizacion.Detalles)
+                                {
+                                    <tr>
+                                        <td>
+                                            <input type="number" class="form-control form-control-sm"
+                                                   value="@item.Cantidad"
+                                                   @onchange="@(e => ActualizarLinea(item, e.Value, item.PrecioUnitario))"
+                                                   min="1" />
+                                        </td>
+                                        <td>
+                                            @item.Descripcion <br />
+                                            <small class="text-muted">@item.ProductoCodigo</small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control"
+                                                       value="@item.PrecioUnitario"
+                                                       step="0.01"
+                                                       @onchange="@(e => ActualizarLinea(item, item.Cantidad, e.Value))" />
+                                            </div>
+                                        </td>
+                                        <td class="text-end">@item.Importe.ToString("C2")</td>
+                                        <td class="text-center">
+                                            <button class="btn btn-sm btn-danger" @onclick="() => EliminarDelCarrito(item)">X</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <h4>Total: @nuevaCotizacion.Total.ToString("C2")</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (mostrarModalCliente)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title">Registrar Cliente Rápido</h5>
+                    <button type="button" class="btn-close" @onclick="() => mostrarModalCliente = false"></button>
+                </div>
+                <div class="modal-body">
+                    <FormularioCliente OnClienteGuardado="AlCrearCliente"
+                                       OnCancelar="() => mostrarModalCliente = false"
+                                       ShowCancelButton="true" />
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string busquedaCliente = "";
+    private List<Cliente> listaClientes = new List<Cliente>();
+    private bool mostrarListaClientes = false;
+    private bool mostrarModalCliente = false;
+    private string clienteEmailSeleccionado = "";
+
+    private void AlCrearCliente(Cliente nuevoCliente)
+    {
+        // 1. Cerramos el modal
+        mostrarModalCliente = false;
+
+        // 2. Seleccionamos automáticamente al cliente creado
+        // Nota: Como Access a veces no devuelve el ID al insertar, 
+        // asignamos el nombre y dejamos el ID en 0 o lo intentamos asignar si viene.
+        SeleccionarCliente(nuevoCliente);
+
+        
+        busquedaCliente = nuevoCliente.Nombre; 
+    }
+    private async Task BuscarClienteEnTiempoReal()
+    {
+        if (busquedaCliente.Length > 2)
+        {
+            listaClientes = await _cotizacionService.BuscarClientes(busquedaCliente);
+            mostrarListaClientes = true;
+        }
+        else
+        {
+            listaClientes.Clear();
+            mostrarListaClientes = false;
+        }
+    }
+
+    private void SeleccionarCliente(Cliente c)
+    {
+        nuevaCotizacion.ClienteId = c.Id;
+        nuevaCotizacion.ClienteNombre = c.Nombre;
+        clienteEmailSeleccionado = c.Correo;
+        busquedaCliente = "";
+        mostrarListaClientes = false;
+    }
+
+    // Variables de Estado
+    private Cotizacion nuevaCotizacion = new Cotizacion();
+    private List<Producto> resultadosBusqueda = new List<Producto>();
+    private string terminoBusqueda = "";
+    private bool busquedaRealizada = false;
+
+    // Variables de selección
+    private Producto productoSeleccionado;
+    private int cantidadAgregar = 1;
+
+    // CAMBIO: Variable para el precio manual
+    private decimal precioManual = 0;
+
+    // 1. BUSCAR
+    private async Task Buscar()
+    {
+        if (string.IsNullOrWhiteSpace(terminoBusqueda)) return;
+        busquedaRealizada = true;
+        productoSeleccionado = null;
+        resultadosBusqueda = await _cotizacionService.BuscarProductos(terminoBusqueda);
+    }
+
+    // 2. PREPARAR PRODUCTO (Click en la lista)
+    private void PrepararProducto(Producto prod)
+    {
+        productoSeleccionado = prod;
+        cantidadAgregar = 1;
+        precioManual = Math.Round(prod.Precioventa, 2);
+    }
+
+    // 3. AGREGAR AL CARRITO
+    private void AgregarAlCarrito()
+    {
+        if (productoSeleccionado == null) return;
+        if (cantidadAgregar <= 0) return;
+
+        // Usamos el precio que el usuario haya escrito o modificado
+        decimal precioFinal = precioManual;
+
+        var detalle = new DetalleCotizacion
+        {
+            ProductoCodigo = productoSeleccionado.Id,
+            Descripcion = productoSeleccionado.Nombre,
+            Cantidad = cantidadAgregar,
+            PrecioUnitario = precioFinal
+        };
+
+        nuevaCotizacion.Detalles.Add(detalle);
+
+        // Reset
+        productoSeleccionado = null;
+        terminoBusqueda = "";
+        resultadosBusqueda.Clear();
+    }
+
+    // Método para actualizar línea (Cantidad o Precio) desde la tabla
+    private void ActualizarLinea(DetalleCotizacion item, object cantObj, object precioObj)
+    {
+        if (int.TryParse(cantObj.ToString(), out int c) && c > 0)
+        {
+            item.Cantidad = c;
+        }
+
+        if (decimal.TryParse(precioObj.ToString(), out decimal p) && p >= 0)
+        {
+            item.PrecioUnitario = p;
+        }
+    }
+
+    private void EliminarDelCarrito(DetalleCotizacion item)
+    {
+        nuevaCotizacion.Detalles.Remove(item);
+    }
+
+    private async Task GuardarEnBaseDatos()
+    {
+        if (nuevaCotizacion.Detalles.Count == 0)
+        {
+            await JS.InvokeVoidAsync("alert", "La cotización está vacía.");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(nuevaCotizacion.ClienteNombre))
+        {
+            nuevaCotizacion.ClienteNombre = "Público en General";
+        }
+
+        try
+        {
+            // 1. GUARDAR EN BD
+            // Nota: Si tu método GuardarCotizacion devuelve el ID generado, úsalo aquí.
+            // Si no, tendremos que asumir un ID o buscar el último.
+            await _cotizacionService.GuardarCotizacion(nuevaCotizacion);
+            
+            // Tratamos de obtener el folio nuevo (Si tu servicio no lo devuelve, 
+            // puedes hacer una consulta rápida del último folio, o enviar con folio 0 provisional)
+            int nuevoFolio = await _cotizacionService.ObtenerUltimoFolio(); // *Necesitas agregar este método al servicio, o usar 0
+            nuevaCotizacion.Id = nuevoFolio > 0 ? nuevoFolio : 0;
+
+            await JS.InvokeVoidAsync("alert", "¡Cotización Guardada Exitosamente!");
+
+            // 2. LÓGICA DE ENVÍO DE CORREO
+            if (!string.IsNullOrEmpty(clienteEmailSeleccionado))
+            {
+                bool deseaEnviar = await JS.InvokeAsync<bool>("confirm", 
+                    $"El cliente tiene el correo registrado: {clienteEmailSeleccionado}.\n\n¿Deseas enviarle la cotización ahora mismo?");
+
+                if (deseaEnviar)
+                {
+                    await EnviarCorreoAutomatico(nuevoFolio);
+                }
+            }
+
+            // 3. LIMPIEZA DEL FORMULARIO
+            nuevaCotizacion = new Cotizacion();
+            clienteEmailSeleccionado = ""; // Reset email
+            resultadosBusqueda.Clear();
+            busquedaRealizada = false;
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error al procesar: " + ex.Message);
+        }
+    }
+
+    // MÉTODO AUXILIAR PARA ENVIAR
+    private async Task EnviarCorreoAutomatico(int folio)
+    {
+        try 
+        {
+            await JS.InvokeVoidAsync("alert", "Generando PDF y enviando correo, por favor espera...");
+
+            // 1. Obtener configuración para el PDF
+            var config = await _cotizacionService.ObtenerConfiguracion();
+
+            // 2. Generar PDF en memoria (sin descargar)
+            var pdfBytes = PdfGenerator.CrearPdfCotizacion(nuevaCotizacion, config);
+
+            // 3. Enviar usando el servicio
+            var resultado = await _emailService.EnviarCotizacionConPdf(
+                clienteEmailSeleccionado,
+                nuevaCotizacion.ClienteNombre,
+                $"Cotización #{folio} - {config.NombreLugar}",
+                pdfBytes,
+                folio
+            );
+
+            if (resultado.Exito)
+            {
+                await JS.InvokeVoidAsync("alert", "¡Correo enviado correctamente!");
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "La cotización se guardó, pero hubo un error al enviar el correo: " + resultado.Mensaje);
+            }
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            await JS.InvokeVoidAsync("alert", "Error técnico enviando correo.");
+        }
+    }
+
+    private void LimpiarCliente()
+    {
+        nuevaCotizacion.ClienteId = 0;
+        nuevaCotizacion.ClienteNombre = ""; 
+        clienteEmailSeleccionado = "";
+        busquedaCliente = "";
+    }
+}

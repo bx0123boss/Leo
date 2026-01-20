@@ -1,0 +1,119 @@
+﻿@page "/clientes"
+@using PuntoVentaWeb.Models
+@using PuntoVentaWeb.Services
+@inject ClienteService ClienteService
+@inject IJSRuntime JS
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Datos del Nuevo Cliente</h5>
+    </div>
+    <div class="card-body">
+        <EditForm Model="@cliente" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label class="form-label fw-bold">Nombre Completo / Razón Social</label>
+                    <InputText class="form-control" @bind-Value="cliente.Nombre" placeholder="Ej. Juan Pérez" />
+                    <ValidationMessage For="@(() => cliente.Nombre)" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">RFC</label>
+                    <InputText class="form-control" @bind-Value="cliente.RFC" />
+                    <ValidationMessage For="@(() => cliente.RFC)" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Teléfono</label>
+                    <InputText class="form-control" @bind-Value="cliente.Telefono" />
+                    <ValidationMessage For="@(() => cliente.Telefono)" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Correo Electrónico</label>
+                    <InputText class="form-control" @bind-Value="cliente.Correo" />
+                    <ValidationMessage For="@(() => cliente.Correo)" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-success fw-bold">Límite de Crédito ($)</label>
+                    <InputNumber class="form-control" @bind-Value="cliente.Limite" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Dirección</label>
+                <InputTextArea class="form-control" @bind-Value="cliente.Direccion" rows="2" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Referencia (Ubicación u Observaciones)</label>
+                <InputTextArea class="form-control" @bind-Value="cliente.Referencia" rows="2" />
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                @if (ShowCancelButton)
+                {
+                    <button type="button" class="btn btn-outline-secondary" @onclick="Cancelar">Cancelar</button>
+                }
+                <button type="submit" class="btn btn-primary">
+                    <span>💾</span> Guardar Cliente
+                </button>
+            </div>
+
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<Cliente> OnClienteGuardado { get; set; }
+    [Parameter] public EventCallback OnCancelar { get; set; }
+    [Parameter] public bool ShowCancelButton { get; set; } = false;
+
+    private Cliente cliente = new Cliente
+    {
+        Limite = 0,
+        RFC = "XAXX010101000",
+        Estatus = "Activo" // Aseguramos un estatus por defecto
+    };
+
+    private async Task Guardar()
+    {
+        try
+        {
+            // Llamada al servicio concreto (ClienteService)
+            bool exito = await ClienteService.GuardarCliente(cliente);
+
+            if (exito)
+            {
+                // Notificamos al padre
+                await OnClienteGuardado.InvokeAsync(cliente);
+
+                // Reiniciamos el formulario para el siguiente
+                cliente = new Cliente
+                {
+                    RFC = "XAXX010101000",
+                    Limite = 0,
+                    Estatus = "Activo"
+                };
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "No se pudo guardar en Access. Verifique que el archivo de base de datos no esté bloqueado o en uso exclusivo.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error técnico: {ex.Message}");
+        }
+    }
+
+    private async Task Cancelar()
+    {
+        await OnCancelar.InvokeAsync();
+    }
+}

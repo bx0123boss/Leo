@@ -3,9 +3,27 @@ public class Cotizacion
 {
     public int Id { get; set; }
     public DateTime Fecha { get; set; } = DateTime.Now;
+    public int ClienteId { get; set; }
     public string ClienteNombre { get; set; }
+    public string Observaciones { get; set; }
+    private decimal _totalDb; 
+
+    public decimal Total
+    {
+        get
+        {
+            if (Detalles != null && Detalles.Count > 0)
+                return Detalles.Sum(d => d.Importe);
+
+            return _totalDb;
+        }
+        set
+        {
+            _totalDb = value; 
+        }
+    }
+    // -------------------------
     public List<DetalleCotizacion> Detalles { get; set; } = new List<DetalleCotizacion>();
-    public decimal Total => Detalles.Sum(d => d.Importe);
 }
 
 public class DetalleCotizacion

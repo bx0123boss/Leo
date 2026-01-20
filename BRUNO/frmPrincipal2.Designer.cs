@@ -36,7 +36,6 @@
             // 
             // button5
             // 
-            this.button5.BackgroundImage = global::BRUNO.Properties.Resources.preview_gold_abstract_texture;
             this.button5.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.button5.Font = new System.Drawing.Font("Modern No. 20", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button5.ForeColor = System.Drawing.Color.White;
@@ -51,7 +50,6 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = global::BRUNO.Properties.Resources.Logo;
             this.pictureBox1.Location = new System.Drawing.Point(127, 105);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(496, 241);
@@ -61,7 +59,6 @@
             // 
             // BtnInventario
             // 
-            this.BtnInventario.BackgroundImage = global::BRUNO.Properties.Resources.preview_gold_abstract_texture;
             this.BtnInventario.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.BtnInventario.Font = new System.Drawing.Font("Modern No. 20", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnInventario.ForeColor = System.Drawing.Color.White;
@@ -78,7 +75,6 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackgroundImage = global::BRUNO.Properties.Resources.walpap2;
             this.ClientSize = new System.Drawing.Size(1370, 750);
             this.Controls.Add(this.button5);
             this.Controls.Add(this.pictureBox1);

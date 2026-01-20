@@ -1,23 +1,56 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+using System.Net.Sockets;
+using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Windows.Forms;
 
 namespace BRUNO
 {
     public partial class frmPrincipal : Form
     {
+        bool IsServidorActivo = false;
+        private Process _procesoWeb;
         public String usuario = "";
         public string NombreUsuario = "";
         public string idUsuario = "";
         public frmPrincipal()
         {
             InitializeComponent();
+            IsServidorActivo= ArrancarServidorWeb();
+        }
+        private bool ArrancarServidorWeb()
+        {
+            try
+            {
+                string rutaWebExe = @"C:\Jaeger Soft\ModuloWeb\PuntoVentaWeb.exe";
+                if (!File.Exists(rutaWebExe))
+                {
+                    // Opcional: Loguear error
+                    return false; // El archivo no existe
+                }
+
+                ProcessStartInfo info = new ProcessStartInfo();
+                info.FileName = rutaWebExe;
+                info.WindowStyle = ProcessWindowStyle.Hidden;
+                info.CreateNoWindow = true;
+                info.UseShellExecute = false;
+                info.WorkingDirectory = Path.GetDirectoryName(rutaWebExe);
+
+                _procesoWeb = Process.Start(info);
+
+                // Si _procesoWeb no es nulo, significa que Windows lanzó el EXE
+                if (_procesoWeb != null)
+                {
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error iniciando web: " + ex.Message);
+                return false; // Falló por excepción
+            }
         }
 
         private void BtnInventario_Click(object sender, EventArgs e)
@@ -214,6 +247,14 @@ namespace BRUNO
 
         private void frmPrincipal_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (_procesoWeb != null && !_procesoWeb.HasExited)
+            {
+                try
+                {
+                    _procesoWeb.Kill();
+                }
+                catch { /* Ignorar errores al cerrar */ }
+            }
             Application.Exit();
         }
 
@@ -285,6 +326,34 @@ namespace BRUNO
                 frmConfiguracionTicket USER = new frmConfiguracionTicket();
                 USER.Show();
             }
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            string url = "http://localhost:5000";
+            
+            if (IsServidorActivo)
+            {
+                try
+                {
+                    // Esto abre el navegador predeterminado (Chrome, Edge, etc.) en esa dirección
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = url,
+                        UseShellExecute = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("No se pudo abrir el navegador: " + ex.Message);
+                }
+            }
+            else
+                MessageBox.Show(
+                      "Servidor inactivo.\n\nContacte a soporte técnico para actualizar su sistema o verificar la instalación.",
+                      "Aviso",
+                      MessageBoxButtons.OK,
+                      MessageBoxIcon.Warning);
         }
     }
 }

@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BRUNO", "BRUNO\BRUNO.csproj", "{2245F717-F86F-455B-9099-8F2AEE91AB28}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketJaegersoft", "TicketJaegersoft\TicketJaegersoft.csproj", "{63123F8B-76DE-48B1-A0BB-5261A4FF4892}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PuntoVentaWeb", "PuntoVentaWeb\PuntoVentaWeb.csproj", "{EFBFF2B0-DEEA-43CE-BAC5-DC75EAA453EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +23,15 @@ Global
 		{63123F8B-76DE-48B1-A0BB-5261A4FF4892}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63123F8B-76DE-48B1-A0BB-5261A4FF4892}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63123F8B-76DE-48B1-A0BB-5261A4FF4892}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFBFF2B0-DEEA-43CE-BAC5-DC75EAA453EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFBFF2B0-DEEA-43CE-BAC5-DC75EAA453EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFBFF2B0-DEEA-43CE-BAC5-DC75EAA453EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFBFF2B0-DEEA-43CE-BAC5-DC75EAA453EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9F5E6D2B-04FA-4E73-ABD0-B7DA94E95DC8}
 	EndGlobalSection
 EndGlobal

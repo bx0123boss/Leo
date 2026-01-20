@@ -42,7 +42,6 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = global::BRUNO.Properties.Resources._2_2_key_png_hd;
             this.pictureBox1.Location = new System.Drawing.Point(12, 12);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(105, 140);

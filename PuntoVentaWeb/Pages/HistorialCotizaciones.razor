@@ -1,0 +1,214 @@
+﻿@page "/historial"
+@using PuntoVentaWeb.Services
+@using PuntoVentaWeb.Models
+@using System.IO
+@inject CotizacionService _cotizacionService
+@inject EmailService _emailService
+@inject IJSRuntime JS
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Historial de Cotizaciones</h3>
+        <a href="/cotizacion" class="btn btn-primary">
+            <i class="oi oi-plus"></i> Nueva Cotización
+        </a>
+    </div>
+
+    @if (cargando)
+    {
+        <div class="alert alert-info">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Cargando datos...
+        </div>
+    }
+    else if (listaCotizaciones == null || listaCotizaciones.Count == 0)
+    {
+        <div class="alert alert-warning">No hay cotizaciones registradas en SQL Server.</div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Folio</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Observaciones</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-center" style="width: 180px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var cot in listaCotizaciones.Skip((paginaActual - 1) * elementosPorPagina).Take(elementosPorPagina))
+                            {
+                                <tr>
+                                    <td><strong>#@cot.Id</strong></td>
+                                    <td>@cot.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@cot.ClienteNombre</td>
+
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(cot.Observaciones))
+                                        {
+                                            <span title="@cot.Observaciones" class="d-inline-block text-truncate" style="max-width: 250px;">
+                                                @cot.Observaciones
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small fst-italic">Sin observaciones</span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end text-success fw-bold">@cot.Total.ToString("C2")</td>
+
+                                    <td class="text-center">
+                                        <a href="/cotizacion/@cot.Id" class="btn btn-sm btn-outline-secondary me-1" title="Ver Detalles">
+                                            <i class="oi oi-eye"></i>
+                                        </a>
+
+                                        <button class="btn btn-sm btn-outline-danger" title="Descargar PDF" @onclick="() => DescargarPdfDesdeLista(cot.Id)">
+                                            <i class="oi oi-print"></i> PDF
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary ms-1"
+                                                title="Enviar por Correo"
+                                                @onclick="() => PrepararEnvioCorreo(cot)">
+                                            <i class="oi oi-envelope-closed"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <span class="text-muted small">
+                    Mostrando @((paginaActual - 1) * elementosPorPagina + 1) a @Math.Min(paginaActual * elementosPorPagina, listaCotizaciones.Count) de @listaCotizaciones.Count registros
+                </span>
+
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" @onclick="PaginaAnterior" disabled="@(paginaActual == 1)">
+                        <i class="oi oi-arrow-left"></i> Anterior
+                    </button>
+
+                    <button type="button" class="btn btn-outline-secondary disabled">
+                        Página @paginaActual de @TotalPaginas
+                    </button>
+
+                    <button type="button" class="btn btn-outline-primary" @onclick="PaginaSiguiente" disabled="@(paginaActual == TotalPaginas)">
+                        Siguiente <i class="oi oi-arrow-right"></i>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Cotizacion> listaCotizaciones;
+    private bool cargando = true;
+
+    // VARIABLES DE PAGINACIÓN
+    private int paginaActual = 1;
+    private int elementosPorPagina = 20;
+
+    // Propiedad calculada para saber cuántas páginas hay en total
+    private int TotalPaginas
+    {
+        get
+        {
+            if (listaCotizaciones == null) return 1;
+            return (int)Math.Ceiling((double)listaCotizaciones.Count / elementosPorPagina);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // NOTA: Si en tu CotizacionService tienes "SELECT TOP 100",
+            // solo podrás paginar esos 100. Quizás quieras aumentar ese TOP a 500 o 1000 en el servicio.
+            listaCotizaciones = await _cotizacionService.ObtenerHistorial();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error al cargar el historial: " + ex.Message);
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    // MÉTODOS DE CONTROL DE PAGINACIÓN
+    private void PaginaSiguiente()
+    {
+        if (paginaActual < TotalPaginas)
+        {
+            paginaActual++;
+        }
+    }
+
+    private void PaginaAnterior()
+    {
+        if (paginaActual > 1)
+        {
+            paginaActual--;
+        }
+    }
+    private async Task PrepararEnvioCorreo(Cotizacion cot)
+    {
+        var cotizacionCompleta = await _cotizacionService.ObtenerCotizacionPorId(cot.Id);
+        var configNegocio = await _cotizacionService.ObtenerConfiguracion();
+        var pdfBytes = PdfGenerator.CrearPdfCotizacion(cotizacionCompleta, configNegocio);
+        string correoDestino = await JS.InvokeAsync<string>("prompt", "Correo:", "");
+        if (string.IsNullOrWhiteSpace(correoDestino)) return;
+
+        await JS.InvokeVoidAsync("alert", "Enviando...");
+        var resultado = await _emailService.EnviarCotizacionConPdf(
+        correoDestino,
+        cot.ClienteNombre,  // <--- Pasamos el nombre del cliente aquí
+        $"Cotización #{cot.Id} - {cot.ClienteNombre}", // Asunto
+        pdfBytes,
+        cot.Id
+    );
+
+        if (resultado.Exito) await JS.InvokeVoidAsync("alert", "¡Enviado!");
+        else await JS.InvokeVoidAsync("alert", "Error: " + resultado.Mensaje);
+    }
+    private async Task DescargarPdfDesdeLista(int idCotizacion)
+    {
+        try
+        {
+            // 1. Obtener datos completos
+            var cotizacionCompleta = await _cotizacionService.ObtenerCotizacionPorId(idCotizacion);
+
+            if (cotizacionCompleta == null)
+            {
+                await JS.InvokeVoidAsync("alert", "No se pudo recuperar la información de la cotización.");
+                return;
+            }
+
+            // 2. Obtener configuración
+            var configNegocio = await _cotizacionService.ObtenerConfiguracion();
+
+            // 3. Generar PDF
+            var pdfBytes = PdfGenerator.CrearPdfCotizacion(cotizacionCompleta, configNegocio);
+
+            // 4. Descargar
+            using var stream = new MemoryStream(pdfBytes);
+            using var streamRef = new DotNetStreamReference(stream);
+            await JS.InvokeVoidAsync("downloadFileFromStream", $"Cotizacion_{idCotizacion}.pdf", streamRef);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            await JS.InvokeVoidAsync("alert", "Error al generar PDF: " + ex.Message);
+        }
+    }
+}

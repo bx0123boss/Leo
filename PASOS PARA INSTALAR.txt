@@ -1,0 +1,4 @@
+contraseñas de aplicacion de google: 
+llqj josr vhdp tfsl
+Powershell: 
+New-NetFirewallRule -DisplayName "PuntoVentaWeb" -Direction Inbound -LocalPort 5000 -Protocol TCP -Action Allow
