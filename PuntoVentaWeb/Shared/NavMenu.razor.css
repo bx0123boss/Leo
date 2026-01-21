@@ -4,11 +4,16 @@
 
 .top-row {
     height: 3.5rem;
-    background-color: rgba(0,0,0,0.4);
+    /* Usa la variable Guinda */
+    background-color: var(--color-primario);
+    border-bottom: 1px solid var(--color-primario-oscuro);
 }
 
 .navbar-brand {
     font-size: 1.1rem;
+    /* Usa la variable Dorada */
+    color: var(--color-dorado);
+    font-weight: bold;
 }
 
 .oi {
@@ -16,6 +21,7 @@
     font-size: 1.1rem;
     vertical-align: text-top;
     top: -2px;
+    color: var(--color-dorado);
 }
 
 .nav-item {
@@ -32,23 +38,27 @@
     }
 
     .nav-item ::deep a {
-        color: #d7d7d7;
+        color: var(--color-texto-gris);
         border-radius: 4px;
         height: 3rem;
         display: flex;
         align-items: center;
         line-height: 3rem;
+        transition: all 0.2s ease-in-out;
     }
 
-.nav-item ::deep a.active {
-    background-color: rgba(255,255,255,0.25);
-    color: white;
-}
+        /* ESTADO ACTIVO */
+        .nav-item ::deep a.active {
+            background-color: var(--color-primario);
+            color: var(--color-texto-blanco);
+            border-left: 4px solid var(--color-dorado);
+        }
 
-.nav-item ::deep a:hover {
-    background-color: rgba(255,255,255,0.1);
-    color: white;
-}
+        /* ESTADO HOVER (Pasar el mouse) */
+        .nav-item ::deep a:hover {
+            background-color: var(--color-fondo-menu-hover);
+            color: var(--color-dorado);
+        }
 
 @media (min-width: 641px) {
     .navbar-toggler {
@@ -56,7 +66,11 @@
     }
 
     .collapse {
-        /* Never collapse the sidebar for wide screens */
         display: block;
+    }
+
+    .side-bar, .sidebar {
+        /* Usa la variable Negra */
+        background-color: var(--color-fondo-menu);
     }
 }

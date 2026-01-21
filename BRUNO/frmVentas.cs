@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Data.OleDb;
 
 namespace BRUNO
 {
@@ -34,6 +35,7 @@ namespace BRUNO
             EstilizarBotonPrimario(this.button2);
             EstilizarBotonPrimario(this.button4);
             EstilizarBotonAdvertencia(this.button3);
+            EstilizarBotonAdvertencia(this.button5);
             EstilizarBotonPeligro(this.button1);
             EstilizarComboBox(this.cmbPago);
             EstilizarTextBox(this.txtDescuento);
@@ -69,6 +71,10 @@ namespace BRUNO
             lblTotal.Text = $"{RecalcularTotal:C}";
             lblCliente.Text = "PUBLICO EN GENERAL";
             checkBox1.Checked = false;
+            txtFolioCotizacion.Enabled = true;
+            txtFolioCotizacion.Text = "";
+            button5.Text = "Buscar";
+            dataGridView1.Rows.Clear();
             string[] opcionesPago = {
                     "01=EFECTIVO",
                     "02=CHEQUE NOMINATIVO",
@@ -153,23 +159,9 @@ namespace BRUNO
                         {
                             using (frmPrecio buscar = new frmPrecio())
                             {
-                                //se omite origen de precio
-                                /*
-                                if (buscar.ShowDialog() == DialogResult.OK)
-                                {
-                                    
-                                    if (buscar.tipo == "GEN")
-                                    {*/
                                         double preci = Convert.ToDouble(reader[3].ToString());
                                         dataGridView1.Rows.Add("1", Convert.ToString(reader[1].ToString()), String.Format("{0:0.00}", preci), String.Format("{0:0.00}", preci), Convert.ToString(reader[4].ToString()), Convert.ToString(reader[0].ToString()), origen, Convert.ToString(reader[8].ToString()), Convert.ToString(reader[7].ToString()), "","X");
-                                   /*}
-                                    else
-                                    {
-                                        double preci = Convert.ToDouble(reader[2].ToString());
-                                        dataGridView1.Rows.Add("1", Convert.ToString(reader[1].ToString()), String.Format("{0:0.00}", preci), String.Format("{0:0.00}", preci), Convert.ToString(reader[4].ToString()), Convert.ToString(reader[0].ToString()), origen, Convert.ToString(reader[8].ToString()), Convert.ToString(reader[7].ToString()), "","X");
-                                    }
-                                 }*/
-
+                                  
                             }
 
                         }
@@ -454,7 +446,7 @@ namespace BRUNO
                 double descuentoProporcional = (utilidad / totalUtilidad) * descuento;
                 double nuevaUtilidad = utilidad - descuentoProporcional;
                 //MessageBox.Show("Utilidad" + nuevaUtilidad);
-                cmd = new OleDbCommand("insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + nuevaUtilidad + "');", conectar);
+                cmd = new OleDbCommand("insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + (string.IsNullOrEmpty(idCliente) ? "0" : idCliente) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + nuevaUtilidad + "');", conectar);
                 cmd.ExecuteNonQuery();
                 string precio = "" + Math.Round(Convert.ToDouble(dataGridView1[3, i].Value.ToString()), 2);
                 if (dataGridView1[7, i].Value.ToString() == "IVA(16)")
@@ -624,6 +616,111 @@ namespace BRUNO
             }
         }
 
+        private void txtFolioCotizacion_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                if (!string.IsNullOrEmpty(txtFolioCotizacion.Text))
+                {
+                    CargarCotizacionWeb(txtFolioCotizacion.Text.Trim());
+                    txtFolioCotizacion.Enabled = false;
+                    button5.Text = "Borrar";
+                }
+            }
+        }
+        private void CargarCotizacionWeb(string folio)
+        {
+            string query = @"
+                   SELECT 
+                        C.ClienteId,
+	                    C.ClienteNombre,
+	                    C.Id,
+	                    DC.ProductoCodigo,
+	                    DC.Descripcion,
+	                    DC.Cantidad,
+	                    DC.PrecioUnitario,
+	                    DC.Importe
+                    FROM Cotizaciones C
+                    INNER JOIN DetalleCotizacion DC ON C.Id = DC.CotizacionId
+                    WHERE C.Id = @Folio";
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(Conexion.CadSQL))
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Folio", folio);
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (!reader.HasRows)
+                            {
+                                MessageBox.Show("Cotización no encontrada o inactiva.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                return;
+                            }
+
+                            while (reader.Read())
+                            {
+                                idCliente = reader["ClienteId"].ToString();
+                                lblCliente.Text = reader["ClienteNombre"].ToString();
+                                string codigoProd = reader["ProductoCodigo"].ToString();
+                                string descripcion = reader["Descripcion"].ToString();
+                                double cantidad = Convert.ToDouble(reader["Cantidad"]);
+                                double precioUni = Convert.ToDouble(reader["PrecioUnitario"]);
+                                double tolProducto = Convert.ToDouble(reader["Importe"]);
+                                AgregarProductoAVenta(codigoProd, cantidad, descripcion,precioUni, tolProducto);
+                            }
+                        }
+                    }
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al cargar cotización: " + ex.Message);
+            }
+        }
+
+        private void AgregarProductoAVenta(string codigoProd, double cantidad, string descripcion, double precioUni, double tolProducto)
+        {
+            cmd = new OleDbCommand("select * from Inventario where Id='" + codigoProd + "';", conectar);
+            OleDbDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                using (frmPrecio buscar = new frmPrecio())
+                {
+                    dataGridView1.Rows.Add(cantidad, descripcion, String.Format("{0:0.00}", precioUni), String.Format("{0:0.00}", tolProducto), Convert.ToString(reader[4].ToString()), codigoProd, origen, Convert.ToString(reader[8].ToString()), Convert.ToString(reader[7].ToString()), "", "X");
+                }
+
+            }
+            lblTotal.Text = $"{RecalcularTotal:C}";
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            if (txtFolioCotizacion.Enabled == false)
+            {
+                ReiniciarForm(); // Limpia grid, cliente, totales, etc.
+                txtFolioCotizacion.Enabled = true; // Reactivamos el campo
+                txtFolioCotizacion.Text = "";
+                button5.Text = "Buscar"; // Regresamos el texto a su estado original
+                txtFolioCotizacion.Focus();
+                return;
+            }
+
+            using (frmCotizacion historial = new frmCotizacion())
+            {
+                if (historial.ShowDialog() == DialogResult.OK)
+                {
+                    txtFolioCotizacion.Text = historial.Folio;
+                    CargarCotizacionWeb(historial.Folio);
+                    txtFolioCotizacion.Enabled = false;
+                    button5.Text = "Borrar";
+                }
+            }
+        }
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {

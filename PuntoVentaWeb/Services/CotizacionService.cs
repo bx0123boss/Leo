@@ -100,7 +100,7 @@ public class CotizacionService
         using (var con = new OdbcConnection(_accessString))
         {
             await con.OpenAsync();
-            string query = @"SELECT TOP 20 Id, Nombre, RFC, Direccion, Telefono 
+            string query = @"SELECT TOP 20 Id, Nombre, RFC, Direccion, Telefono , Correo
                                  FROM Clientes 
                                  WHERE Nombre LIKE ? OR RFC LIKE ?";
 
@@ -118,6 +118,7 @@ public class CotizacionService
                             Id = Convert.ToInt32(reader["Id"]),
                             Nombre = reader["Nombre"].ToString(),
                             RFC = reader["RFC"].ToString(),
+                            Correo = reader["Correo"].ToString(),
                             Direccion = reader["Direccion"].ToString(),
                             Telefono = reader["Telefono"].ToString()
                         });
@@ -136,9 +137,9 @@ public class CotizacionService
             {
                 try
                 {
-                    string sqlHead = @"INSERT INTO Cotizaciones (Fecha, ClienteNombre, Total, Observaciones) 
+                    string sqlHead = @"INSERT INTO Cotizaciones (Fecha, ClienteNombre, ClienteId, Total, Observaciones) 
                                    OUTPUT INSERTED.Id 
-                                   VALUES (@Fecha, @Cliente, @Total, @Observaciones)";
+                                   VALUES (@Fecha, @Cliente, @IdCliente, @Total, @Observaciones)";
 
                     int newId;
 
@@ -146,6 +147,7 @@ public class CotizacionService
                     {
                         cmd.Parameters.AddWithValue("@Fecha", cotizacion.Fecha);
                         cmd.Parameters.AddWithValue("@Cliente", cotizacion.ClienteNombre ?? "Público General");
+                        cmd.Parameters.AddWithValue("@IdCliente", cotizacion.ClienteId);
                         cmd.Parameters.AddWithValue("@Total", cotizacion.Total);
                         cmd.Parameters.AddWithValue("@Observaciones",
                             string.IsNullOrEmpty(cotizacion.Observaciones) ? DBNull.Value : cotizacion.Observaciones);

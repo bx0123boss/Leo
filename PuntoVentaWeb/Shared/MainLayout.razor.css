@@ -9,11 +9,13 @@ main {
 }
 
 .sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    /* Usa la variable de fondo de menú (Negro) */
+    background-color: var(--color-fondo-menu);
 }
 
 .top-row {
-    background-color: #f7f7f7;
+    /* Usa la variable de fondo del cuerpo (Gris claro #f7f7f7) */
+    background-color: var(--color-fondo-body);
     border-bottom: 1px solid #d6d5d5;
     justify-content: flex-end;
     height: 3.5rem;
@@ -24,7 +26,16 @@ main {
     .top-row ::deep a, .top-row .btn-link {
         white-space: nowrap;
         margin-left: 1.5rem;
+        text-decoration: none;
+        /* Usa la variable Color Primario (Guinda) */
+        color: var(--color-primario);
     }
+
+        .top-row ::deep a:hover, .top-row .btn-link:hover {
+            /* Usa la variable Dorado Oscuro para el hover */
+            color: var(--color-dorado-oscuro);
+            text-decoration: underline;
+        }
 
     .top-row a:first-child {
         overflow: hidden;
