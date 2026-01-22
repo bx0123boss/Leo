@@ -47,6 +47,11 @@ namespace BRUNO
             {
                 dataGridView1.Columns[2].ReadOnly = false;
             }
+            if (Conexion.lugar == "TURBOLLANTAS")
+            {
+                dataGridView1.Columns[2].ReadOnly = false;
+                dataGridView1.Columns[1].ReadOnly = false;
+            }
             else if (Conexion.lugar == "SANJUAN" && usuario == "Admin")
             {
                 dataGridView1.Columns[2].ReadOnly = false;
@@ -231,7 +236,7 @@ namespace BRUNO
 
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            try
+                try
             {
                 double cantidad = Convert.ToDouble(dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString());
                 double precio = Convert.ToDouble(dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString());
@@ -744,6 +749,26 @@ namespace BRUNO
                     CargarCotizacionWeb(historial.Folio);
                     txtFolioCotizacion.Enabled = false;
                     button5.Text = "Borrar";
+                }
+            }
+        }
+
+        private void dataGridView1_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+            if (Conexion.lugar == "TURBOLLANTAS")
+            {
+                // 1. Obtenemos el valor de la columna 5 (tu condición)
+                var valorCelda5 = dataGridView1.Rows[e.RowIndex].Cells[5].Value;
+
+                // Convertimos a string seguro
+                string verificador = valorCelda5 != null ? valorCelda5.ToString() : "";
+
+                // 2. Si el valor NO es "0", bloqueamos la edición
+                if (verificador != "0")
+                {
+                    e.Cancel = true; // ¡ESTO ES LA CLAVE! 
+                                     // Impide que aparezca el cursor para escribir.
+                                     // La celda se comporta como "Read Only".
                 }
             }
         }

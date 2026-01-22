@@ -91,6 +91,11 @@ namespace BRUNO
 
         private void button3_Click(object sender, EventArgs e)
         {
+            if (dataGridView1.CurrentRow == null)
+            {
+                MessageBox.Show("Por favor, seleccione un cliente para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             DialogResult dialogResult = MessageBox.Show("¿Estas seguro de elimiar al cliente?", "Alto!", MessageBoxButtons.YesNo);
             if (dialogResult == DialogResult.Yes)
             {

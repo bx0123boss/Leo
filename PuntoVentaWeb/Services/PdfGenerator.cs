@@ -16,8 +16,21 @@ public class PdfGenerator
         {
             container.Page(page =>
             {
-                page.Size(new PageSize(396, 312));
-                page.Margin(1, Unit.Centimetre);
+                // 1. TAMAÑO CARTA COMPLETA (8.5 x 11 pulgadas)
+                // Usamos el tamaño estándar para que la impresora no pida papel especial.
+                page.Size(new PageSize(612, 792));
+
+                // 2. EL TRUCO: MARGEN INFERIOR GIGANTE
+                // Definimos márgenes normales para Arriba, Izquierda y Derecha (1 cm)
+                page.MarginTop(1, Unit.Centimetre);
+                page.MarginLeft(1, Unit.Centimetre);
+                page.MarginRight(1, Unit.Centimetre);
+
+                // Definimos un Margen Inferior de 5.5 pulgadas (396 puntos)
+                // Esto bloquea la mitad de abajo de la hoja. El contenido y el pie de página
+                // se detendrán exactamente a la mitad.
+                page.MarginBottom(396);
+
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Arial"));
 
@@ -65,7 +78,7 @@ public class PdfGenerator
         {
             container.PaddingVertical(10).Column(column =>
             {
-                // 1. SECCIÓN DE OBSERVACIONES (Agregado)
+                // 1. SECCIÓN DE OBSERVACIONES
                 if (!string.IsNullOrEmpty(cotizacion.Observaciones))
                 {
                     column.Item().PaddingBottom(10).Background(Colors.Grey.Lighten4).Padding(5).Column(c =>

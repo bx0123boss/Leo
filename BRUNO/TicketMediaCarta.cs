@@ -20,7 +20,7 @@ namespace BRUNO
         private string _folio;
         private double _total;
         private string _cliente;
-        private string _formaPago; // Se mapea a "Observaciones"
+        private string _formaPago;
 
         // Datos del Negocio
         private string _nombreLugar;
@@ -45,80 +45,101 @@ namespace BRUNO
 
         public void ImprimirDirectamente(string nombreImpresora)
         {
-            QuestPDF.Settings.License = LicenseType.Community;
-
-            // 1. Crear el documento (Usando las dimensiones de tu ejemplo Web: 396x312)
-            var documento = Document.Create(container =>
-            {
-                container.Page(page =>
-                {
-                    page.Size(new PageSize(396, 312)); // Dimensiones copiadas de tu código
-                    page.Margin(1, Unit.Centimetre);
-                    page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Arial"));
-
-                    page.Header().Element(ComposeHeader);
-                    page.Content().Element(ComposeContent);
-                    page.Footer().Element(ComposeFooter);
-                });
-            });
-
-            // 2. Generar imágenes (Renderizado)
-            var imagenesDePaginas = documento.GenerateImages();
-
-            // 3. Configurar la Impresora
-            PrintDocument pd = new PrintDocument();
-            pd.PrinterSettings.PrinterName = nombreImpresora;
-
-            // CORRECCIÓN: Orientación VERTICAL (Parada)
-            pd.DefaultPageSettings.Landscape = false;
-
-            int paginaActual = 0;
-            pd.PrintPage += (sender, e) =>
-            {
-                if (paginaActual < imagenesDePaginas.Count())
-                {
-                    using (var ms = new MemoryStream(imagenesDePaginas.ElementAt(paginaActual)))
-                    {
-                        using (System.Drawing.Image img = System.Drawing.Image.FromStream(ms))
-                        {
-                            // Calcular dimensiones en centésimas de pulgada para DrawImage
-                            // 396 puntos = 5.5 pulgadas = 550 centésimas
-                            // 312 puntos = 4.33 pulgadas = 433 centésimas
-                            float anchoImpresion = 396f * 100f / 72f;
-                            float altoImpresion = 312f * 100f / 72f;
-
-                            // Dibujar imagen
-                            e.Graphics.DrawImage(img, 0, 0, anchoImpresion, altoImpresion);
-                        }
-                    }
-                    paginaActual++;
-                    e.HasMorePages = (paginaActual < imagenesDePaginas.Count());
-                }
-            };
-
             try
             {
+                QuestPDF.Settings.License = LicenseType.Community;
+
+                var documento = Document.Create(container =>
+                {
+                    container.Page(page =>
+                    {
+                        // 1. TAMAÑO CARTA COMPLETA (Para que la impresora no falle)
+                        // 612 pt = 8.5 pulgadas (Ancho)
+                        // 792 pt = 11 pulgadas (Alto)
+                        page.Size(new PageSize(612, 792));
+
+                        // 2. EL TRUCO: MARGEN INFERIOR GIGANTE
+                        // Margen normal arriba y lados (1 cm aprox = 28 pts)
+                        page.MarginTop(1, Unit.Centimetre);
+                        page.MarginLeft(1, Unit.Centimetre);
+                        page.MarginRight(1, Unit.Centimetre);
+
+                        // Margen inferior de 5.5 pulgadas (396 pts)
+                        // Esto obliga a que el "Footer" y el contenido terminen 
+                        // justo a la mitad de la hoja física.
+                        page.MarginBottom(396);
+
+                        page.PageColor(Colors.White);
+                        page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Arial"));
+
+                        page.Header().Element(ComposeHeader);
+                        page.Content().Element(ComposeContent);
+                        page.Footer().Element(ComposeFooter);
+                    });
+                });
+
+                // Generar imagen
+                var imagenesDePaginas = documento.GenerateImages();
+
+                PrintDocument pd = new PrintDocument();
+                pd.PrinterSettings.PrinterName = nombreImpresora;
+
+                if (!pd.PrinterSettings.IsValid)
+                    throw new InvalidPrinterException(pd.PrinterSettings);
+
+                // La hoja entra parada (Vertical)
+                pd.DefaultPageSettings.Landscape = false;
+
+                int paginaActual = 0;
+                pd.PrintPage += (sender, e) =>
+                {
+                    try
+                    {
+                        if (paginaActual < imagenesDePaginas.Count())
+                        {
+                            using (var ms = new MemoryStream(imagenesDePaginas.ElementAt(paginaActual)))
+                            {
+                                using (System.Drawing.Image img = System.Drawing.Image.FromStream(ms))
+                                {
+                                    // 3. IMPRIMIR TAMAÑO CARTA COMPLETO
+                                    // Así la impresora recibe una imagen de 8.5x11 y no se confunde.
+                                    // La mitad de abajo de esa imagen ya vendrá blanca por el margen que pusimos.
+                                    float anchoImpresion = 612f * 100f / 72f;
+                                    float altoImpresion = 792f * 100f / 72f;
+
+                                    e.Graphics.DrawImage(img, 0, 0, anchoImpresion, altoImpresion);
+                                }
+                            }
+                            paginaActual++;
+                            e.HasMorePages = (paginaActual < imagenesDePaginas.Count());
+                        }
+                    }
+                    catch (Exception exInt)
+                    {
+                        throw new Exception($"Error renderizando: {exInt.Message}", exInt);
+                    }
+                };
+
                 pd.Print();
             }
             catch (Exception ex)
             {
-                throw new Exception("Error de impresión: " + ex.Message);
+                // Tu manejo de errores detallado...
+                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                sb.AppendLine($"Error: {ex.Message}");
+                if (ex.InnerException != null) sb.AppendLine($"Interno: {ex.InnerException.Message}");
+                throw new Exception(sb.ToString());
             }
         }
-
-        // --- ENCABEZADO (Idéntico al código web) ---
         void ComposeHeader(IContainer container)
         {
             container.Row(row =>
             {
-                // 1. LOGO
                 if (!string.IsNullOrEmpty(_logoPath) && File.Exists(_logoPath))
                 {
                     row.ConstantItem(60).Image(_logoPath).FitArea();
                 }
 
-                // 2. DATOS DEL NEGOCIO
                 row.RelativeItem().PaddingLeft(10).Column(col =>
                 {
                     col.Item().Text(_nombreLugar).Bold().FontSize(12).FontColor(Colors.Blue.Darken2);
@@ -132,20 +153,18 @@ namespace BRUNO
                         }
                     }
 
-                    // Datos del Folio (Mapeado de "Cotización")
-                    col.Item().PaddingTop(5).Text($"Servicio: {_folio}").Bold().FontSize(10);
+                    col.Item().PaddingTop(5).Text($"Presupuesto: {_folio}").Bold().FontSize(10);
                     col.Item().Text($"Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}");
                     col.Item().Text($"Cliente: {_cliente}");
                 });
             });
         }
 
-        // --- CONTENIDO (Idéntico al código web) ---
+        // --- CONTENIDO ---
         void ComposeContent(IContainer container)
         {
             container.PaddingVertical(10).Column(column =>
             {
-                // 1. SECCIÓN DE OBSERVACIONES (Aquí ponemos la forma de pago)
                 if (!string.IsNullOrEmpty(_formaPago))
                 {
                     column.Item().PaddingBottom(10).Background(Colors.Grey.Lighten4).Padding(5).Column(c =>
@@ -155,15 +174,14 @@ namespace BRUNO
                     });
                 }
 
-                // 2. TABLA DE PRODUCTOS
                 column.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
                     {
-                        columns.ConstantColumn(30);  // Cant
-                        columns.RelativeColumn();    // Descripcion
-                        columns.ConstantColumn(55);  // Precio
-                        columns.ConstantColumn(55);  // Total
+                        columns.ConstantColumn(30);
+                        columns.RelativeColumn();
+                        columns.ConstantColumn(55);
+                        columns.ConstantColumn(55);
                     });
 
                     table.Header(header =>
@@ -180,16 +198,14 @@ namespace BRUNO
                     foreach (var item in _productos)
                     {
                         table.Cell().Text(item.Cantidad.ToString("0.##"));
-                        table.Cell().Text(item.Nombre).FontSize(8); // Descripcion
+                        table.Cell().Text(item.Nombre).FontSize(8);
                         table.Cell().AlignRight().Text($"{item.PrecioUnitario:N2}");
                         table.Cell().AlignRight().Text($"{item.Total:N2}");
                     }
 
-                    // Línea de Total
                     table.Footer(footer =>
                     {
                         footer.Cell().ColumnSpan(4).PaddingVertical(2).LineHorizontal(1).LineColor(Colors.Black);
-
                         footer.Cell().ColumnSpan(3).AlignRight().Text("TOTAL:").Bold().FontSize(11);
                         footer.Cell().AlignRight().Text($"{_total:C2}").Bold().FontSize(11).FontColor(Colors.Green.Darken2);
                     });
@@ -197,7 +213,7 @@ namespace BRUNO
             });
         }
 
-        // --- PIE DE PÁGINA (Idéntico al código web) ---
+        // --- PIE DE PÁGINA ---
         void ComposeFooter(IContainer container)
         {
             container.Column(col =>
