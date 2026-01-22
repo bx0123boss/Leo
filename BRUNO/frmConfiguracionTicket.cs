@@ -45,12 +45,13 @@ namespace BRUNO
                                 string datos = reader["DatosTicket"].ToString();
                                 string pie = reader["PieDeTicket"].ToString();
                                 string logo = reader["LogoPath"].ToString();
+                                string whatsapp = reader["Whatsapp"].ToString();
 
                                 // Convertimos el texto con | a líneas separadas
                                 txtEncabezado.Text = datos.Replace("|", Environment.NewLine);
                                 txtPie.Text = pie.Replace("|", Environment.NewLine);
                                 txtLogoPath.Text = logo;
-
+                                txtWhatsapp.Text = whatsapp;
                                 if (File.Exists(logo))
                                     picLogo.Image = System.Drawing.Image.FromFile(logo);
                             }
@@ -79,7 +80,7 @@ namespace BRUNO
                 {
                     conexion.Open();
 
-                    string query = "UPDATE Configuracion SET DatosTicket = @datos, PieDeTicket = @pie, LogoPath = @logo WHERE Id = @id";
+                    string query = "UPDATE Configuracion SET DatosTicket = @datos, PieDeTicket = @pie, LogoPath = @logo, Whatsapp = @whats WHERE Id = @id";
 
                     using (var cmd = new OleDbCommand(query, conexion))
                     {
@@ -87,11 +88,13 @@ namespace BRUNO
                         string datos = txtEncabezado.Text.Replace(Environment.NewLine, "|");
                         string pie = txtPie.Text.Replace(Environment.NewLine, "|");
                         string logo = txtLogoPath.Text;
+                        string whatsapp = txtWhatsapp.Text;
 
                         // IMPORTANTE: Los parámetros en el MISMO ORDEN que en la consulta
                         cmd.Parameters.AddWithValue("@datos", datos);
                         cmd.Parameters.AddWithValue("@pie", pie);
                         cmd.Parameters.AddWithValue("@logo", logo);
+                        cmd.Parameters.AddWithValue("@whats", whatsapp);
                         cmd.Parameters.AddWithValue("@id", idConfiguracion);
 
                         // Ejecutar la actualización sin preocuparse por el resultado

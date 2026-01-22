@@ -127,6 +127,8 @@ namespace BRUNO
         public static int FontSize;
         public static int MaxCharDescription;
         public static bool ConIva;
+        public static bool impresionMediaCarta;
+        public static string Whatsapp;
 
         public static void CargarConfiguracion(int id)
         {
@@ -151,6 +153,8 @@ namespace BRUNO
                             logoPath = reader["logoPath"].ToString();
                             datosTicket = reader["DatosTicket"].ToString().Split('|');
                             pieDeTicket = reader["PieDeTicket"].ToString().Split('|');
+                            impresionMediaCarta = Convert.ToBoolean(reader["MediaCarta"]);
+                            Whatsapp = reader["PieDeTicket"].ToString();
 
                         }
                     }

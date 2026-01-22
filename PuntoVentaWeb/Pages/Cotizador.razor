@@ -6,15 +6,19 @@
 @inject IJSRuntime JS
 @inject EmailService _emailService
 
-<div class="container-fluid">
+<div class="container-fluid pb-5">
     <div class="card mb-3 border-primary">
-        <div class="card-header bg-light">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center"
+             style="cursor: pointer;"
+             @onclick="() => datosGeneralesAbiertos = !datosGeneralesAbiertos">
             <strong>1. Datos Generales y Cliente</strong>
+            <i class="oi @(datosGeneralesAbiertos ? "oi-chevron-top" : "oi-chevron-bottom")"></i>
         </div>
-        <div class="card-body">
+
+        <div class="card-body @(datosGeneralesAbiertos ? "" : "d-none")">
             <div class="row align-items-center">
 
-                <div class="col-md-5 position-relative">
+                <div class="col-md-6 position-relative">
                     <label class="form-label">Buscar Cliente:</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="oi oi-person"></i></span>
@@ -46,7 +50,7 @@
                     }
                 </div>
 
-                <div class="col-md-5">
+                <div class="col-md-6">
                     <label class="form-label">Cliente Seleccionado:</label>
                     <div class="input-group">
                         <input type="text" class="form-control fw-bold text-success"
@@ -60,12 +64,6 @@
                             <span class="oi oi-trash"></span>
                         </button>
                     </div>
-                </div>
-
-                <div class="col-md-2">
-                    <button class="btn btn-success w-100 mt-4" @onclick="GuardarEnBaseDatos">
-                        Guardar
-                    </button>
                 </div>
             </div>
 
@@ -174,7 +172,7 @@
         <div class="col-md-6">
             <div class="card h-100">
                 <div class="card-header bg-dark text-white">
-                    Detalle de Cotización 
+                    Detalle de Cotización
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
@@ -222,7 +220,24 @@
                     </div>
                 </div>
                 <div class="card-footer text-end">
-                    <h4>Total: @nuevaCotizacion.Total.ToString("C2")</h4>
+                    <h4>Subtotal: @nuevaCotizacion.Total.ToString("C2")</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4 mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-success">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-0 text-success">Total Final: @nuevaCotizacion.Total.ToString("C2")</h3>
+                        <small class="text-muted">Verifique los datos antes de guardar.</small>
+                    </div>
+
+                    <button class="btn btn-lg btn-success px-5" @onclick="GuardarEnBaseDatos">
+                        <i class="oi oi-check me-2"></i> Guardar Cotización
+                    </button>
                 </div>
             </div>
         </div>
@@ -249,6 +264,9 @@
 }
 
 @code {
+    // NUEVO: Variable para controlar el collapse
+    private bool datosGeneralesAbiertos = true;
+
     private string busquedaCliente = "";
     private List<Cliente> listaClientes = new List<Cliente>();
     private bool mostrarListaClientes = false;
@@ -261,12 +279,9 @@
         mostrarModalCliente = false;
 
         // 2. Seleccionamos automáticamente al cliente creado
-        // Nota: Como Access a veces no devuelve el ID al insertar, 
-        // asignamos el nombre y dejamos el ID en 0 o lo intentamos asignar si viene.
         SeleccionarCliente(nuevoCliente);
 
-        
-        busquedaCliente = nuevoCliente.Nombre; 
+        busquedaCliente = nuevoCliente.Nombre;
     }
     private async Task BuscarClienteEnTiempoReal()
     {
@@ -289,6 +304,9 @@
         clienteEmailSeleccionado = c.Correo;
         busquedaCliente = "";
         mostrarListaClientes = false;
+
+        // OPCIONAL: Cerrar los datos generales al seleccionar cliente para dar espacio
+        // datosGeneralesAbiertos = false;
     }
 
     // Variables de Estado
@@ -301,7 +319,7 @@
     private Producto productoSeleccionado;
     private int cantidadAgregar = 1;
 
-    // CAMBIO: Variable para el precio manual
+    // Variable para el precio manual
     private decimal precioManual = 0;
 
     // 1. BUSCAR
@@ -381,13 +399,10 @@
         try
         {
             // 1. GUARDAR EN BD
-            // Nota: Si tu método GuardarCotizacion devuelve el ID generado, úsalo aquí.
-            // Si no, tendremos que asumir un ID o buscar el último.
             await _cotizacionService.GuardarCotizacion(nuevaCotizacion);
-            
-            // Tratamos de obtener el folio nuevo (Si tu servicio no lo devuelve, 
-            // puedes hacer una consulta rápida del último folio, o enviar con folio 0 provisional)
-            int nuevoFolio = await _cotizacionService.ObtenerUltimoFolio(); // *Necesitas agregar este método al servicio, o usar 0
+
+            // Tratamos de obtener el folio nuevo
+            int nuevoFolio = await _cotizacionService.ObtenerUltimoFolio();
             nuevaCotizacion.Id = nuevoFolio > 0 ? nuevoFolio : 0;
 
             await JS.InvokeVoidAsync("alert", "¡Cotización Guardada Exitosamente!");
@@ -395,7 +410,7 @@
             // 2. LÓGICA DE ENVÍO DE CORREO
             if (!string.IsNullOrEmpty(clienteEmailSeleccionado))
             {
-                bool deseaEnviar = await JS.InvokeAsync<bool>("confirm", 
+                bool deseaEnviar = await JS.InvokeAsync<bool>("confirm",
                     $"El cliente tiene el correo registrado: {clienteEmailSeleccionado}.\n\n¿Deseas enviarle la cotización ahora mismo?");
 
                 if (deseaEnviar)
@@ -409,6 +424,9 @@
             clienteEmailSeleccionado = ""; // Reset email
             resultadosBusqueda.Clear();
             busquedaRealizada = false;
+
+            // Opcional: Volver a abrir los datos generales al iniciar nueva cotización
+            datosGeneralesAbiertos = true;
         }
         catch (Exception ex)
         {
@@ -419,7 +437,7 @@
     // MÉTODO AUXILIAR PARA ENVIAR
     private async Task EnviarCorreoAutomatico(int folio)
     {
-        try 
+        try
         {
             await JS.InvokeVoidAsync("alert", "Generando PDF y enviando correo, por favor espera...");
 
@@ -447,7 +465,7 @@
                 await JS.InvokeVoidAsync("alert", "La cotización se guardó, pero hubo un error al enviar el correo: " + resultado.Mensaje);
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Console.WriteLine(ex.ToString());
             await JS.InvokeVoidAsync("alert", "Error técnico enviando correo.");
@@ -457,7 +475,7 @@
     private void LimpiarCliente()
     {
         nuevaCotizacion.ClienteId = 0;
-        nuevaCotizacion.ClienteNombre = ""; 
+        nuevaCotizacion.ClienteNombre = "";
         clienteEmailSeleccionado = "";
         busquedaCliente = "";
     }

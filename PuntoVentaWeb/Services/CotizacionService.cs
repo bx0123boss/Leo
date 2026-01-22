@@ -257,7 +257,7 @@ public class CotizacionService
             {
                 await con.OpenAsync();
 
-                string query = "SELECT TOP 1 Lugar, DatosTicket, FooterCorreoCotizacion, ConIva, LogoPath, CorreoEmisor,  PasswordEmisor FROM Configuracion";
+                string query = "SELECT TOP 1 Lugar, DatosTicket, FooterCorreoCotizacion, ConIva, LogoPath, CorreoEmisor,  PasswordEmisor, Whatsapp FROM Configuracion";
 
                 using (var cmd = new OdbcCommand(query, con))
                 {
@@ -281,6 +281,7 @@ public class CotizacionService
                             config.LogoPath = reader["LogoPath"].ToString();
                             config.CorreoEmisor = reader["CorreoEmisor"] != DBNull.Value ? reader["CorreoEmisor"].ToString() : "";
                             config.PasswordEmisor = reader["PasswordEmisor"] != DBNull.Value ? reader["PasswordEmisor"].ToString() : "";
+                            config.Whatsapp = reader["Whatsapp"] != DBNull.Value ? reader["Whatsapp"].ToString() : "";
                         }
                     }
                 }

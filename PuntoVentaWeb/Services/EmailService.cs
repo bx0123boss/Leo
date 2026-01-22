@@ -12,16 +12,14 @@ public class EmailService
 
     // RUTAS A TUS ARCHIVOS LOCALES
     private const string RUTA_LOGO_LOCAL = @"C:\Jaeger Soft\logo.png";
-    private const string RUTA_WHATSAPP_LOCAL = @"C:\Jaeger Soft\whatsapp.png"; // ¡Usa PNG para compatibilidad!
+    private const string RUTA_WHATSAPP_LOCAL = @"C:\Jaeger Soft\whatsapp.png"; 
 
-    private const string WHATSAPP_NUMERO = "5212311102765"; 
 
     public EmailService(CotizacionService cotizacionService)
     {
         _cotizacionService = cotizacionService;
     }
 
-    // CAMBIO: Ahora pedimos 'nombreCliente'
     public async Task<(bool Exito, string Mensaje)> EnviarCotizacionConPdf(
          string destinatario,
          string nombreCliente,
@@ -107,7 +105,7 @@ public class EmailService
 
         string nombreNegocio = WebUtility.HtmlEncode(config.NombreLugar ?? "Su Proveedor de Confianza");
         string nombreCliente = WebUtility.HtmlEncode(string.IsNullOrEmpty(cliente) ? "Cliente" : cliente);
-
+        string numeroWhatsapp = !string.IsNullOrEmpty(config.Whatsapp) ? config.Whatsapp : "520000000000";
         // HTML DISEÑADO
         return $@"
         <!DOCTYPE html>
@@ -162,7 +160,7 @@ public class EmailService
                                 <td width='70%' valign='top' style='padding-left: 15px; border-left: 1px solid #ddd;'>
                                     
                                     <div style='margin-bottom: 10px;'>
-                                        <a href='https://wa.me/{WHATSAPP_NUMERO}?text=Hola,%20tengo%20dudas%20sobre%20la%20cotización%20{folio}' style='text-decoration:none; color:#2E7D32; font-weight:bold; font-size: 14px;'>
+                                        <a href='https://wa.me/{numeroWhatsapp}?text=Hola,%20tengo%20dudas%20sobre%20la%20cotización%20{folio}' style='text-decoration:none; color:#2E7D32; font-weight:bold; font-size: 14px;'>
                                             <img src='cid:WhatsappImage' width='20' style='vertical-align: middle; margin-right: 5px;' border='0'>
                                             Escríbenos por WhatsApp
                                         </a>

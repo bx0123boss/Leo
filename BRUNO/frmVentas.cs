@@ -483,9 +483,35 @@ namespace BRUNO
             totales.Add("Total", total);
             totales.Add("Recibido", efectivo);
             totales.Add("Cambio", cambio);
-           
-            TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", total, false, totales, cmbPago.Text);
 
+            if (Conexion.impresionMediaCarta)
+            {
+                try
+                {
+                    TicketMediaCarta pdfTicket = new TicketMediaCarta(
+                         productos,
+                         lblFolio.Text,
+                         total,
+                         lblCliente.Text,
+                         cmbPago.Text,
+                         Conexion.lugar,
+                         Conexion.logoPath,    // <--- Logo
+                         Conexion.datosTicket, // <--- Encabezado del negocio
+                         Conexion.pieDeTicket  // <--- Pie de página
+                     );
+
+                    pdfTicket.ImprimirDirectamente(Conexion.impresora);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al imprimir PDF Media Carta: " + ex.Message);
+                }
+            }
+            else
+            {
+                TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", total, false, totales, cmbPago.Text);
+                ticketPrinter.ImprimirTicket();
+            }
            
             cmd = new OleDbCommand("insert into Ventas(Monto,Fecha,Folio,Estatus, Descuento, Pago) values('" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','COBRADO','" + descuento + "','" + cmbPago.Text + "');", conectar);
             cmd.ExecuteNonQuery();
@@ -497,7 +523,7 @@ namespace BRUNO
             foli = foli + 1;
             cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioContado';", conectar);
             cmd.ExecuteNonQuery();
-            ticketPrinter.ImprimirTicket();
+           
             ReiniciarForm();
             MessageBox.Show(this,"Venta realizada con exito", "VENTA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
 

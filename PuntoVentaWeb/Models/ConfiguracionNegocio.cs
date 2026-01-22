@@ -8,4 +8,5 @@ public class ConfiguracionNegocio
     public string LogoPath { get; set; } // Ruta local ej: C:\Jaeger Soft\logo.jpg
     public string CorreoEmisor { get; set; }
     public string PasswordEmisor { get; set; }
+    public string Whatsapp { get; set; }
 }
