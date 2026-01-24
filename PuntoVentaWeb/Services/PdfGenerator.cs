@@ -48,11 +48,14 @@ public class PdfGenerator
                 // 1. LOGO (Izquierda)
                 if (config != null && !string.IsNullOrEmpty(config.LogoPath) && System.IO.File.Exists(config.LogoPath))
                 {
-                    row.ConstantItem(60).Image(config.LogoPath).FitArea();
+                    // CAMBIO AQUÍ: Se aumentó de 100 a 160 para hacerlo más grande.
+                    // Puedes subir este número si lo quieres aún más grande (ej. 200).
+                    row.ConstantItem(160).Image(config.LogoPath).FitArea();
                 }
 
                 // 2. DATOS DEL NEGOCIO (Derecha)
-                row.RelativeItem().PaddingLeft(10).Column(col =>
+                // Se agrega un padding un poco mayor (15 o 20) si el logo queda muy pegado al texto
+                row.RelativeItem().PaddingLeft(15).Column(col =>
                 {
                     if (config != null)
                     {

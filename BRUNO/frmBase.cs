@@ -1,6 +1,7 @@
-﻿using System.Windows.Forms;
+﻿using System;
 using System.Drawing;
-using System;
+using System.Windows.Forms;
+using Excel = Microsoft.Office.Interop.Excel;
 
 namespace BRUNO
 {
@@ -20,18 +21,14 @@ namespace BRUNO
         }
 
 
-      
 
         /// <summary>
-        /// Aplica el estilo "dark mode" estándar a un DataGridView.
-        /// </summary>
-        /// <summary>
-        /// Aplica el estilo "dark mode" estándar a un DataGridView,
-        /// incluyendo filas con colores alternos (estilo cebra).
+        /// Aplica el estilo "dark mode" estándar a un DataGridView
+        /// y agrega funcionalidad de exportación con Click Derecho.
         /// </summary>
         public void EstilizarDataGridView(DataGridView dgv)
         {
-            // Estilos generales del DataGridView
+            // --- Estilos Visuales (Tu código original) ---
             dgv.BackgroundColor = Color.FromArgb(40, 40, 40);
             dgv.BorderStyle = BorderStyle.None;
             dgv.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
@@ -40,6 +37,8 @@ namespace BRUNO
             dgv.AllowUserToDeleteRows = false;
             dgv.AllowUserToResizeRows = false;
             dgv.RowHeadersVisible = false;
+            // Nota: Cambié MultiSelect a true para que la experiencia sea mejor, 
+            // pero puedes dejarlo en false si tu lógica lo requiere.
             dgv.MultiSelect = false;
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgv.ReadOnly = false;
@@ -57,27 +56,150 @@ namespace BRUNO
             dgv.ColumnHeadersDefaultCellStyle = headerStyle;
             dgv.ColumnHeadersHeight = 32;
 
-            // Estilo de Celdas (Filas Pares)
+            // Estilo de Celdas
             DataGridViewCellStyle cellStyle = new DataGridViewCellStyle();
-            cellStyle.BackColor = Color.FromArgb(35, 35, 35); // Color base (oscuro)
+            cellStyle.BackColor = Color.FromArgb(35, 35, 35);
             cellStyle.ForeColor = Color.White;
             cellStyle.Font = new Font("Segoe UI Semibold", 12.5F, FontStyle.Regular);
             cellStyle.SelectionBackColor = Color.FromArgb(70, 130, 180);
             cellStyle.SelectionForeColor = Color.White;
             dgv.DefaultCellStyle = cellStyle;
 
-            // ***************************************************************
-            // * AJUSTE: Aumentar el contraste del color alterno
-            // ***************************************************************
+            // Estilo Alterno
             DataGridViewCellStyle alternatingCellStyle = new DataGridViewCellStyle();
-            // Aumentamos el brillo para que sea más fácil de distinguir
             alternatingCellStyle.BackColor = Color.FromArgb(55, 55, 55);
             alternatingCellStyle.ForeColor = Color.White;
             alternatingCellStyle.Font = new Font("Segoe UI Semibold", 12.5F, FontStyle.Regular);
             alternatingCellStyle.SelectionBackColor = Color.FromArgb(70, 130, 180);
             alternatingCellStyle.SelectionForeColor = Color.White;
-
             dgv.AlternatingRowsDefaultCellStyle = alternatingCellStyle;
+
+            // --- NUEVO: AGREGAR MENÚ CONTEXTUAL PARA EXCEL ---
+            AgregarMenuContextualExcel(dgv);
+        }
+
+        /// <summary>
+        /// Crea un ContextMenuStrip y lo asigna al DataGridView
+        /// </summary>
+        private void AgregarMenuContextualExcel(DataGridView dgv)
+        {
+            ContextMenuStrip menu = new ContextMenuStrip();
+
+            // Creamos el item del menú
+            ToolStripMenuItem itemExportar = new ToolStripMenuItem();
+            itemExportar.Text = "Exportar a Excel";
+            // Si tienes un icono en tus recursos, descomenta la siguiente línea:
+            // itemExportar.Image = Properties.Resources.excel_icon; 
+
+            // Asignamos el evento Click
+            itemExportar.Click += (s, e) => { ExportarGridAExcel(dgv); };
+
+            menu.Items.Add(itemExportar);
+
+            // Asignamos el menú al Grid. 
+            // Si el Grid ya tiene un menú, habría que agregarlo a la colección existente,
+            // pero asumiremos que no tiene o que este es el principal.
+            if (dgv.ContextMenuStrip == null)
+            {
+                dgv.ContextMenuStrip = menu;
+            }
+            else
+            {
+                dgv.ContextMenuStrip.Items.Add(new ToolStripSeparator());
+                dgv.ContextMenuStrip.Items.Add(itemExportar);
+            }
+        }
+
+        /// <summary>
+        /// Lógica para recorrer el Grid y pasarlo a Excel usando Interop.
+        /// </summary>
+        private void ExportarGridAExcel(DataGridView dgv)
+        {
+            if (dgv.Rows.Count == 0)
+            {
+                MessageBox.Show("No hay datos para exportar.", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            try
+            {
+                // Cambiar el cursor a espera
+                this.Cursor = Cursors.WaitCursor;
+
+                // 1. Crear la aplicación de Excel
+                Excel.Application excelApp = new Excel.Application();
+
+                // 2. Crear un libro nuevo
+                Excel.Workbook workbook = excelApp.Workbooks.Add();
+                Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Worksheets[1];
+
+                // 3. Exportar Encabezados
+                int colIndex = 1; // Excel empieza en 1
+                for (int i = 0; i < dgv.Columns.Count; i++)
+                {
+                    // Solo exportamos columnas visibles
+                    if (dgv.Columns[i].Visible)
+                    {
+                        worksheet.Cells[1, colIndex] = dgv.Columns[i].HeaderText;
+                        colIndex++;
+                    }
+                }
+
+                // Dar formato negrita a la cabecera
+                Excel.Range headerRange = worksheet.Range[worksheet.Cells[1, 1], worksheet.Cells[1, colIndex - 1]];
+                headerRange.Font.Bold = true;
+                headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(Color.LightGray);
+
+                // 4. Exportar Filas
+                // NOTA: Para muchos datos esto puede ser lento celda por celda.
+                // Si tienes miles de registros, se recomienda usar arreglos de objetos [,]
+                // Para uso normal de POS (cientos de registros), esto funciona bien.
+
+                int rowIndex = 2; // Fila 1 es cabecera
+                foreach (DataGridViewRow row in dgv.Rows)
+                {
+                    // Evitar la fila de 'nuevo registro' si existe
+                    if (row.IsNewRow) continue;
+
+                    colIndex = 1;
+                    for (int i = 0; i < dgv.Columns.Count; i++)
+                    {
+                        if (dgv.Columns[i].Visible)
+                        {
+                            object valor = row.Cells[i].Value;
+
+                            // Manejo básico de fechas para que Excel no las invierta
+                            if (valor != null)
+                            {
+                                if (valor is DateTime)
+                                {
+                                    worksheet.Cells[rowIndex, colIndex] = ((DateTime)valor).ToString("dd/MM/yyyy HH:mm");
+                                }
+                                else
+                                {
+                                    worksheet.Cells[rowIndex, colIndex] = valor.ToString();
+                                }
+                            }
+                            colIndex++;
+                        }
+                    }
+                    rowIndex++;
+                }
+
+                // 5. Ajustar columnas automáticamente
+                worksheet.Columns.AutoFit();
+
+                // 6. Mostrar Excel
+                excelApp.Visible = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al exportar a Excel: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
         }
 
         // --- Métodos de estilo para Botones ---

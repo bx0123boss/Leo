@@ -16,6 +16,7 @@ namespace BRUNO
         double menos = 0;
         double tarjeta = 0;
         double trans = 0;
+        public string fechaApertura = "";
         public string usuario = "";
         private DataSet ds;
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Restaurante.accdb");
@@ -108,7 +109,14 @@ namespace BRUNO
                 porcentaje = Convert.ToDecimal(reader[0].ToString());
             }
             lblComision.Text = $"{porcentaje:F2}% Comisión:";
-
+            
+            cmd = new OleDbCommand("select * from Fech where Id=1;", conectar);
+            reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                int caja = Convert.ToInt32(Convert.ToString(reader[1].ToString()));
+                fechaApertura = Convert.ToString(reader[2].ToString());
+            }
             ds = new DataSet();
             da = new OleDbDataAdapter("select * from Corte where Pago='04=TARJETA DE CREDITO' or Pago='28=TARJETA DE DEBITO';", conectar);
             da.Fill(ds, "Id");
@@ -121,7 +129,17 @@ namespace BRUNO
             dataGridView4.DataSource = ds.Tables["Id"];
             dataGridView4.Columns[0].Visible = false;
 
-           
+            DateTime fechaDate;
+            if (!DateTime.TryParse(this.fechaApertura, out fechaDate))
+            {
+                fechaDate = DateTime.Now.Date;
+            }
+            string fechaInicioSQL = fechaDate.ToString("yyyy-MM-dd HH:mm:ss");
+            string fechaFinSQL = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            ds = new DataSet();
+            da = new OleDbDataAdapter("SELECT Categoria, SUM(MontoTotal) as Total FROM VentasContado Where  Fecha >= #" + fechaInicioSQL + "# and Fecha <= #" + fechaFinSQL + "# AND FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus = 'COBRADO') GROUP BY Categoria", conectar);
+            da.Fill(ds, "Id");
+            dataGridView6.DataSource = ds.Tables["Id"];
 
             for (int i = 0; i < dgvCorte.RowCount; i++)
             {
@@ -240,6 +258,7 @@ namespace BRUNO
             EstilizarDataGridView(this.dataGridView2);
             EstilizarDataGridView(this.dataGridView3);
             EstilizarDataGridView(this.dataGridView4);
+            EstilizarDataGridView(this.dataGridView6);
 
             EstilizarBotonPrimario(this.button1);
         }
@@ -286,17 +305,10 @@ namespace BRUNO
             cmd.ExecuteNonQuery();
             #endregion 
 
-            string fecha = "";
-            cmd = new OleDbCommand("select * from Fech where Id=1;", conectar);
-            reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                int caja = Convert.ToInt32(Convert.ToString(reader[1].ToString()));
-                fecha = Convert.ToString(reader[2].ToString());
-            }
+           
             button1.Visible = false;
             folio++;
-            string[] encabezados = new string[] { "**********  CORTE DE CAJA  ********", "             Apertura de caja:", fecha, "               Corte de caja:", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() };
+            string[] encabezados = new string[] { "**********  CORTE DE CAJA  ********", "             Apertura de caja:", fechaApertura, "               Corte de caja:", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() };
             for (int i = 0; i < dgvCorte.RowCount; i++)
             {                
                 //MessageBox.Show("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvCorte[1, i].Value.ToString() + "','" + dgvCorte[2, i].Value.ToString() + "','" + dgvCorte[3, i].Value.ToString() + "','" + folio + "','PAGO CONTADO');");

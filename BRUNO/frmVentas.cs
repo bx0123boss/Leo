@@ -42,6 +42,7 @@ namespace BRUNO
             EstilizarTextBox(this.textBox1);
             EstilizarCheckBox(this.checkBox1);
             conectar.Open();
+            dataGridView1.Columns[0].ReadOnly = false;
             cmbPago.SelectedIndex = 0;
             if (Conexion.lugar == "DEPORTES LEO")
             {
@@ -51,6 +52,7 @@ namespace BRUNO
             {
                 dataGridView1.Columns[2].ReadOnly = false;
                 dataGridView1.Columns[1].ReadOnly = false;
+                dataGridView1.Columns[0].ReadOnly = false;
             }
             else if (Conexion.lugar == "SANJUAN" && usuario == "Admin")
             {
@@ -423,6 +425,7 @@ namespace BRUNO
                     Total = Convert.ToDouble(dataGridView1[3, i].Value.ToString()),
                 });
                 string unidad = "0";
+                string categoria = "";
                 //Obtenemos existencias del articulo
                 cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
                 reader = cmd.ExecuteReader();
@@ -430,6 +433,7 @@ namespace BRUNO
                 {
                     exis = Convert.ToDouble(Convert.ToString(reader[4].ToString()));
                     unidad = Convert.ToString(reader[9].ToString());
+                    categoria = Convert.ToString(reader["Categoria"].ToString());
                     unidad = "pz";
                     if (unidad == "")
                     {
@@ -450,8 +454,9 @@ namespace BRUNO
                 // Calcula el descuento proporcional para este producto
                 double descuentoProporcional = (utilidad / totalUtilidad) * descuento;
                 double nuevaUtilidad = utilidad - descuentoProporcional;
+                
                 //MessageBox.Show("Utilidad" + nuevaUtilidad);
-                cmd = new OleDbCommand("insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + (string.IsNullOrEmpty(idCliente) ? "0" : idCliente) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + nuevaUtilidad + "');", conectar);
+                cmd = new OleDbCommand("insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad, Categoria) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + (string.IsNullOrEmpty(idCliente) ? "0" : idCliente) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + nuevaUtilidad + "','"+categoria+"');", conectar);
                 cmd.ExecuteNonQuery();
                 string precio = "" + Math.Round(Convert.ToDouble(dataGridView1[3, i].Value.ToString()), 2);
                 if (dataGridView1[7, i].Value.ToString() == "IVA(16)")
@@ -493,19 +498,27 @@ namespace BRUNO
             {
                 try
                 {
-                    TicketMediaCarta pdfTicket = new TicketMediaCarta(
-                         productos,
-                         lblFolio.Text,
-                         total,
-                         lblCliente.Text,
-                         cmbPago.Text,
-                         Conexion.lugar,
-                         Conexion.logoPath,    // <--- Logo
-                         Conexion.datosTicket, // <--- Encabezado del negocio
-                         Conexion.pieDeTicket  // <--- Pie de página
-                     );
+                    DialogResult respuesta = MessageBox.Show(
+                            "¿Deseas imprimir?",
+                            "IMPRESIÓN",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question);
+                    if (respuesta == DialogResult.Yes)
+                    {
+                        TicketMediaCarta pdfTicket = new TicketMediaCarta(
+                             productos,
+                             lblFolio.Text,
+                             total,
+                             lblCliente.Text,
+                             cmbPago.Text,
+                             Conexion.lugar,
+                             Conexion.logoPath,    // <--- Logo
+                             Conexion.datosTicket, // <--- Encabezado del negocio
+                             Conexion.pieDeTicket  // <--- Pie de página
+                         );
 
-                    pdfTicket.ImprimirDirectamente(Conexion.impresora);
+                        pdfTicket.ImprimirDirectamente(Conexion.impresora);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -757,13 +770,12 @@ namespace BRUNO
         {
             if (Conexion.lugar == "TURBOLLANTAS")
             {
-                // 1. Obtenemos el valor de la columna 5 (tu condición)
+                if (e.ColumnIndex == 0 || e.ColumnIndex == 2)
+                {
+                    return;
+                }
                 var valorCelda5 = dataGridView1.Rows[e.RowIndex].Cells[5].Value;
-
-                // Convertimos a string seguro
                 string verificador = valorCelda5 != null ? valorCelda5.ToString() : "";
-
-                // 2. Si el valor NO es "0", bloqueamos la edición
                 if (verificador != "0")
                 {
                     e.Cancel = true; // ¡ESTO ES LA CLAVE! 

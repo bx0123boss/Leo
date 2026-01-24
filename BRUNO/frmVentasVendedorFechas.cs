@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmVentasVendedorFechas : Form
+    public partial class frmVentasVendedorFechas : frmBase
     {
         private DataSet ds;
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
@@ -56,7 +56,8 @@ namespace BRUNO
 
         private void frmVentasVendedorFechas_Load(object sender, EventArgs e)
         {
-
+            EstilizarBotonPeligro(button1);
+            EstilizarDataGridView(dataGridView1);
         }
 
         private void label1_Click(object sender, EventArgs e)

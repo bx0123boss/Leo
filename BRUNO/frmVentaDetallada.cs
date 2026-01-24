@@ -132,9 +132,34 @@ namespace BRUNO
             totales.Add("Subtotal", total / 1.16);
             totales.Add("IVA", (total / 1.16) * 0.16);
             totales.Add("Total", total);
-            TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", 0, false, totales, lblPago.Text);
+            if (Conexion.impresionMediaCarta)
+            {
+                try
+                {
+                        TicketMediaCarta pdfTicket = new TicketMediaCarta(
+                             productos,
+                             lblFolio.Text,
+                             total,
+                             lblCliente.Text,
+                             lblPago.Text,
+                             Conexion.lugar,
+                             Conexion.logoPath,    // <--- Logo
+                             Conexion.datosTicket, // <--- Encabezado del negocio
+                             Conexion.pieDeTicket  // <--- Pie de página
+                         );
 
-            ticketPrinter.ImprimirTicket();
+                        pdfTicket.ImprimirDirectamente(Conexion.impresora);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al imprimir PDF Media Carta: " + ex.Message);
+                }
+            }
+            else
+            {
+                TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", 0, false, totales, lblPago.Text);
+                ticketPrinter.ImprimirTicket();
+            }
         }
 
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)

@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmVentasDiariasVendedor : Form
+    public partial class frmVentasDiariasVendedor : frmBase
     {
         private DataSet ds;
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
@@ -40,6 +40,8 @@ namespace BRUNO
 
         private void frmVentasDiariasVendedor_Load(object sender, EventArgs e)
         {
+            EstilizarDataGridView(dataGridView1);
+            EstilizarBotonPeligro(button1);
             ds = new DataSet();
             da = new OleDbDataAdapter("Select * from VentasCajero where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59#;", conectar);
             da.Fill(ds, "Id");

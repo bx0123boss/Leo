@@ -81,6 +81,7 @@ namespace BRUNO
             EstilizarBotonPrimario(this.btnPrimero);
             EstilizarBotonPrimario(this.btnAnterior);
             EstilizarBotonPrimario(this.btnSiguiente);
+            EstilizarBotonPrimario(this.button14);
             EstilizarBotonPrimario(this.btnUltimo);
             EstilizarBotonPrimario(this.BtnApartados);    // Botón "Agregar"
             EstilizarBotonPeligro(this.button1);
@@ -464,26 +465,155 @@ namespace BRUNO
             //    //dataGridView2.Columns[0].Visible = false;
             //}
         }
-
-        private void button3_Click(object sender, EventArgs e)
+        private void ExportarInventarioExcel(object sender, EventArgs e)
         {
-            frmLineas Linea = new frmLineas();
-            Linea.Show();
-            this.Close();
+            try
+            {
+                // 1. PREGUNTAR AL USUARIO
+                DialogResult respuesta = MessageBox.Show(
+                    "¿Deseas separar el inventario por Categorías en hojas distintas?\n\n" +
+                    "SÍ: Crea una hoja de Excel por cada categoría.\n" +
+                    "NO: Exporta todo el inventario en una sola lista continua.",
+                    "Opciones de Exportación",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
+
+                if (respuesta == DialogResult.Cancel) return;
+
+                this.Cursor = Cursors.WaitCursor;
+
+                // 2. OBTENER DATOS
+                System.Data.DataTable dtInventario = new System.Data.DataTable();
+                using (OleDbConnection conn = new OleDbConnection(Conexion.CadCon))
+                {
+                    conn.Open();
+                    // Traemos todo. Si es una sola lista, ordenamos por Nombre. Si es por categoría, ayuda que venga ordenado por Categoria.
+                    string query = "SELECT * FROM Inventario ORDER BY Categoria, Nombre";
+                    OleDbDataAdapter da = new OleDbDataAdapter(query, conn);
+                    da.Fill(dtInventario);
+                }
+
+                if (dtInventario.Rows.Count == 0)
+                {
+                    MessageBox.Show("No hay datos para exportar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                // 3. INICIAR EXCEL
+                Microsoft.Office.Interop.Excel.Application excelApp = new Microsoft.Office.Interop.Excel.Application();
+                Workbook workbook = excelApp.Workbooks.Add(XlSheetType.xlWorksheet);
+
+                // Limpiar hojas extra
+                while (workbook.Worksheets.Count > 1)
+                {
+                    ((Worksheet)workbook.Worksheets[1]).Delete();
+                }
+
+                // ==========================================================================================
+                // OPCIÓN A: SEPARAR POR CATEGORÍAS (Respuesta = YES)
+                // ==========================================================================================
+                if (respuesta == DialogResult.Yes)
+                {
+                    var categorias = dtInventario.AsEnumerable()
+                                                 .Select(row => row["Categoria"].ToString())
+                                                 .Distinct()
+                                                 .ToList();
+
+                    foreach (string categoria in categorias)
+                    {
+                        DataRow[] filas = dtInventario.Select($"Categoria = '{categoria.Replace("'", "''")}'");
+                        if (filas.Length > 0)
+                        {
+                            // Crear/Seleccionar Hoja
+                            Worksheet ws;
+                            if (workbook.Worksheets.Count == 1 && ((Worksheet)workbook.Worksheets[1]).Name.Contains("Hoja"))
+                                ws = (Worksheet)workbook.Worksheets[1];
+                            else
+                                ws = (Worksheet)workbook.Worksheets.Add(After: workbook.Worksheets[workbook.Worksheets.Count]);
+
+                            // Nombre seguro para la hoja
+                            string nombreHoja = string.IsNullOrEmpty(categoria) ? "Sin Categoria" : categoria;
+                            nombreHoja = nombreHoja.Replace("/", "-").Replace("*", "").Replace("?", "").Replace("[", "").Replace("]", "").Replace(":", "");
+                            if (nombreHoja.Length > 30) nombreHoja = nombreHoja.Substring(0, 30);
+                            try { ws.Name = nombreHoja; } catch { }
+
+                            VolcarDatosAExcel(ws, dtInventario.Columns, filas);
+                        }
+                    }
+                }
+                // ==========================================================================================
+                // OPCIÓN B: TODO EN UNA SOLA HOJA (Respuesta = NO)
+                // ==========================================================================================
+                else if (respuesta == DialogResult.No)
+                {
+                    Worksheet ws = (Worksheet)workbook.Worksheets[1];
+                    ws.Name = "Inventario Completo";
+
+                    // Convertimos todas las filas del DataTable a un arreglo DataRow[] para usar el mismo método helper
+                    DataRow[] todasLasFilas = dtInventario.Select();
+
+                    VolcarDatosAExcel(ws, dtInventario.Columns, todasLasFilas);
+                }
+
+                // 4. MOSTRAR EXCEL
+                excelApp.Visible = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al exportar: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        /// <summary>
+        /// Método auxiliar para escribir encabezados y datos en una hoja dada (Evita repetir código).
+        /// </summary>
+        private void VolcarDatosAExcel(Worksheet ws, DataColumnCollection columnas, DataRow[] filas)
         {
-            frmDescuentoPorCategoria desc = new frmDescuentoPorCategoria();
-            desc.Show();
-            this.Close();
-        }
+            // 1. Encabezados
+            int colIndex = 1;
+            foreach (DataColumn col in columnas)
+            {
+                ws.Cells[1, colIndex] = col.ColumnName;
+                colIndex++;
+            }
 
-        private void label5_Click(object sender, EventArgs e)
-        {
-           
-        }
+            // Formato Encabezados
+            Range headerRange = ws.Range[ws.Cells[1, 1], ws.Cells[1, columnas.Count]];
+            headerRange.Font.Bold = true;
+            headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(Color.LightGray);
 
+            // 2. Datos (Optimizados con Matriz)
+            if (filas.Length > 0)
+            {
+                object[,] datosMatriz = new object[filas.Length, columnas.Count];
+
+                for (int r = 0; r < filas.Length; r++)
+                {
+                    for (int c = 0; c < columnas.Count; c++)
+                    {
+                        // Importante: Convertir a String o manejar tipos para evitar errores de COM
+                        // Excel a veces se confunde con DBNull
+                        if (filas[r][c] == DBNull.Value)
+                            datosMatriz[r, c] = "";
+                        else
+                            datosMatriz[r, c] = filas[r][c].ToString();
+                    }
+                }
+
+                Range startCell = ws.Cells[2, 1];
+                Range endCell = ws.Cells[1 + filas.Length, columnas.Count];
+                Range writeRange = ws.Range[startCell, endCell];
+
+                writeRange.Value2 = datosMatriz;
+            }
+
+            // 3. Ajustar Ancho
+            ws.Columns.AutoFit();
+        }
         private void label3_Click_1(object sender, EventArgs e)
         {
             

@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Drawing; // Para WinForms e Image
-using System.Drawing.Printing; // Para PrintDocument
-using QuestPDF.Fluent;
+﻿using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-
+using System;
+using System.Collections.Generic;
+using System.Drawing; // Para WinForms e Image
+using System.Drawing.Printing; // Para PrintDocument
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
 // Alias para evitar conflicto entre System.Drawing.Image y QuestPDF.Infrastructure.Image
 using QImage = QuestPDF.Infrastructure.Image;
 
@@ -124,11 +124,17 @@ namespace BRUNO
             }
             catch (Exception ex)
             {
-                // Tu manejo de errores detallado...
+                MessageBox.Show(
+                 ex.ToString(),
+                 "ERROR QuestPDF",
+                 MessageBoxButtons.OK,
+                 MessageBoxIcon.Error
+             );
                 System.Text.StringBuilder sb = new System.Text.StringBuilder();
                 sb.AppendLine($"Error: {ex.Message}");
                 if (ex.InnerException != null) sb.AppendLine($"Interno: {ex.InnerException.Message}");
                 throw new Exception(sb.ToString());
+              
             }
         }
         void ComposeHeader(IContainer container)
@@ -137,23 +143,28 @@ namespace BRUNO
             {
                 if (!string.IsNullOrEmpty(_logoPath) && File.Exists(_logoPath))
                 {
-                    row.ConstantItem(60).Image(_logoPath).FitArea();
+                    // ANTES: 60 (muy pequeño)
+                    // AHORA: 140 (bastante grande, aprox. 5 cm de ancho)
+                    // FitArea() ajustará la altura proporcionalmente.
+                    row.ConstantItem(140).Image(_logoPath).FitArea();
                 }
 
-                row.RelativeItem().PaddingLeft(10).Column(col =>
+                // El texto se ajusta al espacio restante
+                row.RelativeItem().PaddingLeft(15).Column(col =>
                 {
-                    col.Item().Text(_nombreLugar).Bold().FontSize(12).FontColor(Colors.Blue.Darken2);
+                    // Aumenté un poco la fuente del título también
+                    col.Item().Text(_nombreLugar).Bold().FontSize(14).FontColor(Colors.Blue.Darken2);
 
                     if (_datosTicket != null)
                     {
                         foreach (var linea in _datosTicket)
                         {
                             if (!string.IsNullOrWhiteSpace(linea))
-                                col.Item().Text(linea.Trim()).FontSize(8);
+                                col.Item().Text(linea.Trim()).FontSize(9);
                         }
                     }
 
-                    col.Item().PaddingTop(5).Text($"Presupuesto: {_folio}").Bold().FontSize(10);
+                    col.Item().PaddingTop(8).Text($"Presupuesto: {_folio}").Bold().FontSize(11);
                     col.Item().Text($"Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}");
                     col.Item().Text($"Cliente: {_cliente}");
                 });
@@ -165,7 +176,7 @@ namespace BRUNO
         {
             container.PaddingVertical(10).Column(column =>
             {
-                if (!string.IsNullOrEmpty(_formaPago))
+                if (!string.IsNullOrEmpty(_formaPago) || Conexion.lugar != "TURBOLLANTAS")
                 {
                     column.Item().PaddingBottom(10).Background(Colors.Grey.Lighten4).Padding(5).Column(c =>
                     {

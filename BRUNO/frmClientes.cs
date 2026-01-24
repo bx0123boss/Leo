@@ -13,7 +13,7 @@ using System.Globalization;
 
 namespace BRUNO
 {
-    public partial class frmClientes : Form
+    public partial class frmClientes : frmBase
     {
         private DataSet ds;
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
@@ -29,6 +29,16 @@ namespace BRUNO
 
         private void frmClientes_Load(object sender, EventArgs e)
         {
+            EstilizarDataGridView(dataGridView1);
+            EstilizarBotonPrimario(button1);
+            EstilizarBotonPrimario(button2);
+            EstilizarBotonPrimario(button3);
+            EstilizarBotonPrimario(button4);
+            EstilizarBotonPrimario(button5);
+            EstilizarBotonPrimario(button6);
+            EstilizarBotonPrimario(button8);
+            EstilizarTextBox(textBox1);
+
             ds = new DataSet();
             conectar.Open();
             da = new OleDbDataAdapter("select * from Clientes where Estatus='ACTIVO';", conectar);

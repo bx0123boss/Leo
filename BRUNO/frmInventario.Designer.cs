@@ -158,7 +158,6 @@
             this.label5.Size = new System.Drawing.Size(86, 24);
             this.label5.TabIndex = 34;
             this.label5.Text = "Filtrado:";
-            this.label5.Click += new System.EventHandler(this.label5_Click);
             // 
             // label3
             // 
@@ -286,7 +285,7 @@
             // 
             this.button18.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button18.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button18.Location = new System.Drawing.Point(23, 996);
+            this.button18.Location = new System.Drawing.Point(3, 1176);
             this.button18.Margin = new System.Windows.Forms.Padding(4);
             this.button18.Name = "button18";
             this.button18.Size = new System.Drawing.Size(205, 63);
@@ -342,8 +341,7 @@
             this.button14.TabIndex = 56;
             this.button14.Text = "IMPRIMIR";
             this.button14.UseVisualStyleBackColor = true;
-            this.button14.Visible = false;
-            this.button14.Click += new System.EventHandler(this.button14_Click);
+            this.button14.Click += new System.EventHandler(this.ExportarInventarioExcel);
             // 
             // button4
             // 
