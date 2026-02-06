@@ -1,15 +1,43 @@
 ﻿@inherits LayoutComponentBase
+@using PuntoVentaWeb.Services
+@using PuntoVentaWeb.Models
+@inject ConfiguracionService ConfigService
 
-<PageTitle>PuntoVentaWeb</PageTitle>
+<PageTitle>Jaegersoft Web</PageTitle>
 
-<div class="page">
+<div class="page" style="--color-primario: @config.ColorPrimario; --color-dorado: @config.ColorSecundario;">
+
     <div class="sidebar">
         <NavMenu />
     </div>
 
     <main>
+        <div class="top-row px-4">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div>
+
         <article class="content px-4">
             @Body
         </article>
     </main>
 </div>
+
+@code {
+    private ConfiguracionApariencia config = new ConfiguracionApariencia
+    {
+        ColorPrimario = "#003366",
+        ColorSecundario = "#ff6600"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Traemos la configuración real de la BD
+        var configDb = await ConfigService.ObtenerColores();
+
+        // Si la BD devolvió algo válido, lo usamos
+        if (!string.IsNullOrEmpty(configDb.ColorPrimario))
+        {
+            config = configDb;
+        }
+    }
+}

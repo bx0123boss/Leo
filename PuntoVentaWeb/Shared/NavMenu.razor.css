@@ -4,14 +4,15 @@
 
 .top-row {
     height: 3.5rem;
-    /* Usa la variable Guinda */
+    /* Ahora tomará el color principal configurado en BD */
     background-color: var(--color-primario);
-    border-bottom: 1px solid var(--color-primario-oscuro);
+    /* Usamos brillo en lugar de color fijo oscuro para el borde */
+    border-bottom: 1px solid rgba(0,0,0,0.2);
 }
 
 .navbar-brand {
     font-size: 1.1rem;
-    /* Usa la variable Dorada */
+    /* Ahora tomará el color secundario configurado en BD */
     color: var(--color-dorado);
     font-weight: bold;
 }
@@ -47,14 +48,14 @@
         transition: all 0.2s ease-in-out;
     }
 
-        /* ESTADO ACTIVO */
+        /* ESTADO ACTIVO: Fondo principal, Borde secundario */
         .nav-item ::deep a.active {
             background-color: var(--color-primario);
             color: var(--color-texto-blanco);
             border-left: 4px solid var(--color-dorado);
         }
 
-        /* ESTADO HOVER (Pasar el mouse) */
+        /* ESTADO HOVER: Fondo gris oscuro, Texto secundario */
         .nav-item ::deep a:hover {
             background-color: var(--color-fondo-menu-hover);
             color: var(--color-dorado);
@@ -70,7 +71,7 @@
     }
 
     .side-bar, .sidebar {
-        /* Usa la variable Negra */
+        /* Fondo negro fijo para el menú lateral */
         background-color: var(--color-fondo-menu);
     }
 }

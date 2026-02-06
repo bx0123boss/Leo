@@ -81,6 +81,18 @@ namespace BRUNO
             }
         }
 
+        private void dataGridView6_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (dataGridView6.Columns[e.ColumnIndex].Name == "Total")
+            {
+                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
+                {
+                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.FormattingApplied = true;
+                }
+            }
+        }
+
         private void frmCorte_Load(object sender, EventArgs e)
         {
             if (usuario=="Invitado")

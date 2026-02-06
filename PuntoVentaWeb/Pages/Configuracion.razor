@@ -1,0 +1,230 @@
+﻿@page "/configuracion"
+@using PuntoVentaWeb.Models
+@using PuntoVentaWeb.Services
+@inject ConfiguracionService ConfigService
+@inject IJSRuntime JS
+
+<h3>Configuración del Sistema</h3>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+            <li class="nav-item">
+                <a class="nav-link @(tabActiva == 1 ? "active" : "")" @onclick="() => tabActiva = 1" style="cursor:pointer">Campos Cotización</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(tabActiva == 2 ? "active" : "")" @onclick="() => tabActiva = 2" style="cursor:pointer">Apariencia (Colores)</a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+
+        @if (tabActiva == 1)
+        {
+            <div class="row mb-3">
+                <div class="col">
+                    <h5>Campos Dinámicos para Autos/Cotizaciones</h5>
+                    <button class="btn btn-primary btn-sm" @onclick="NuevoCampo">
+                        <span class="oi oi-plus"></span> Agregar Campo
+                    </button>
+                </div>
+            </div>
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Orden</th>
+                        <th>Etiqueta</th>
+                        <th>Tipo Dato</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var campo in campos)
+                    {
+                        <tr>
+                            <td>@campo.Orden</td>
+                            <td>@campo.NombreEtiqueta</td>
+                            <td>@campo.TipoDato</td>
+                            <td>
+                                @if (campo.Activo)
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else
+                                {
+
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                }
+                            </td>
+                            <td>
+                                <button class="btn btn-outline-primary btn-sm" @onclick="() => EditarCampo(campo)">Editar</button>
+                                <button class="btn btn-outline-danger btn-sm" @onclick="() => EliminarCampo(campo)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @if (modoEdicion)
+            {
+                <div class="border p-3 mt-3 bg-light">
+                    <h6>@(campoActual.Id == 0 ? "Nuevo Campo" : "Editar Campo")</h6>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label>Etiqueta</label>
+                            <input class="form-control" @bind="campoActual.NombreEtiqueta" placeholder="Ej: Placas" />
+                        </div>
+                        <div class="col-md-3">
+                            <label>Tipo Dato</label>
+                            <select class="form-control" @bind="campoActual.TipoDato">
+                                <option value="Texto">Texto</option>
+                                <option value="Numero">Número</option>
+                                <option value="Fecha">Fecha</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label>Orden</label>
+                            <input type="number" class="form-control" @bind="campoActual.Orden" />
+                        </div>
+                        <div class="col-md-2 pt-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" @bind="campoActual.Activo" id="chkActivo">
+                                <label class="form-check-label" for="chkActivo">Activo</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pt-4">
+                            <button class="btn btn-success btn-sm" @onclick="GuardarCampoActual">Guardar</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="CancelarEdicion">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else if (tabActiva == 2)
+        {
+            <h5>Paleta de Colores Institucional</h5>
+            <p class="text-muted">Selecciona los colores que se usarán en los encabezados y botones.</p>
+
+            <div class="row">
+                <div class="col-md-4 text-center">
+                    <label class="form-label fw-bold">Color Principal</label>
+                    <div class="input-group mb-3">
+                        <input type="color" class="form-control form-control-color"
+                               @bind="coloresConfig.ColorPrimario"
+                               title="Elige tu color principal">
+                        <input type="text" class="form-control" @bind="coloresConfig.ColorPrimario" readonly>
+                    </div>
+                </div>
+
+                <div class="col-md-4 text-center">
+                    <label class="form-label fw-bold">Color Secundario</label>
+                    <div class="input-group mb-3">
+                        <input type="color" class="form-control form-control-color"
+                               @bind="coloresConfig.ColorSecundario"
+                               title="Elige tu color secundario">
+                        <input type="text" class="form-control" @bind="coloresConfig.ColorSecundario" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-4 offset-md-4 text-center">
+                    <label class="form-label fw-bold">Días de Validez de la Cotización</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><span class="oi oi-calendar"></span></span>
+                        <input type="number" class="form-control text-center" @bind="coloresConfig.DiasValidez" min="1" max="365" />
+                        <span class="input-group-text">Días</span>
+                    </div>
+                    <small class="text-muted">Se usará para calcular la fecha de vencimiento en el PDF.</small>
+                </div>
+            </div>
+
+            <div class="mt-4 text-center">
+                <button class="btn btn-primary" @onclick="GuardarColores">
+                    <span class="oi oi-check"></span> Guardar Configuración
+                </button>
+            </div>
+
+            <div class="mt-5 p-3 text-white rounded" style="background-color: @coloresConfig.ColorPrimario;">
+                Esta es una muestra del color PRINCIPAL con texto blanco.
+                <button class="btn btn-sm mt-2" style="background-color: @coloresConfig.ColorSecundario; color: white;">Botón Secundario</button>
+            </div>
+        }
+
+    </div>
+</div>
+
+@code {
+    private int tabActiva = 1;
+    private List<CotizacionCampoConfig> campos = new List<CotizacionCampoConfig>();
+    private CotizacionCampoConfig campoActual = new CotizacionCampoConfig();
+    private ConfiguracionApariencia coloresConfig = new ConfiguracionApariencia();
+    private bool modoEdicion = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        campos = await ConfigService.ObtenerCamposCotizacion();
+        coloresConfig = await ConfigService.ObtenerColores();
+    }
+
+    // --- Lógica Campos ---
+    private void NuevoCampo()
+    {
+        campoActual = new CotizacionCampoConfig { Orden = campos.Count + 1 };
+        modoEdicion = true;
+    }
+
+    private void EditarCampo(CotizacionCampoConfig campo)
+    {
+        // Clonamos para no editar directamente en la tabla hasta guardar
+        campoActual = new CotizacionCampoConfig
+        {
+            Id = campo.Id,
+            NombreEtiqueta = campo.NombreEtiqueta,
+            TipoDato = campo.TipoDato,
+            Orden = campo.Orden,
+            Activo = campo.Activo
+        };
+        modoEdicion = true;
+    }
+
+    private async Task GuardarCampoActual()
+    {
+        if (string.IsNullOrWhiteSpace(campoActual.NombreEtiqueta)) return;
+
+        await ConfigService.GuardarCampo(campoActual);
+        modoEdicion = false;
+        await CargarDatos();
+    }
+
+    private async Task EliminarCampo(CotizacionCampoConfig campo)
+    {
+        bool confirmado = await JS.InvokeAsync<bool>("confirm", $"¿Eliminar el campo {campo.NombreEtiqueta}?");
+        if (confirmado)
+        {
+            await ConfigService.EliminarCampo(campo.Id);
+            await CargarDatos();
+        }
+    }
+
+    private void CancelarEdicion()
+    {
+        modoEdicion = false;
+        campoActual = new CotizacionCampoConfig();
+    }
+
+    // --- Lógica Colores ---
+    private async Task GuardarColores()
+    {
+        await ConfigService.GuardarColores(coloresConfig);
+        // Aquí podrías inyectar un servicio para refrescar el layout si fuera necesario
+        await JS.InvokeVoidAsync("alert", "Colores actualizados correctamente.");
+    }
+}

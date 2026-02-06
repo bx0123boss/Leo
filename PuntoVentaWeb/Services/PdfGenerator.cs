@@ -2,26 +2,38 @@
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using PuntoVentaWeb.Models;
+using Microsoft.Extensions.Configuration; // Necesario para leer appsettings
+using System.Data.SqlClient; // O Microsoft.Data.SqlClient
 
 namespace PuntoVentaWeb.Services;
 
 public class PdfGenerator
 {
-    // AHORA RECIBIMOS EL OBJETO 'CLIENTE' COMO PARÁMETRO ADICIONAL
+    private class ColoresPdf
+    {
+        public string Primario { get; set; } = "#720e1e"; // Guinda Default
+        public string Secundario { get; set; } = "#FFD700"; // Dorado Default
+        public int DiasValidez { get; set; } = 15; // Valor por defecto
+    }
+
     public static byte[] CrearPdfCotizacion(Cotizacion cotizacion, Cliente cliente, ConfiguracionNegocio config)
     {
         QuestPDF.Settings.License = LicenseType.Community;
 
+        // 1. OBTENER COLORES (Estética del código que te gustó)
+        var coloresHex = ObtenerColoresDesdeBD();
+
+        var colorPrincipal = Color.FromHex(coloresHex.Primario);
+        var colorSecundario = Color.FromHex(coloresHex.Secundario);
+        var colorGrisClaro = Colors.Grey.Lighten3;
+        // CÁLCULO DE LA FECHA DE coloresHex
+        var fechaVigencia = cotizacion.Fecha.AddDays(coloresHex.DiasValidez);
         return Document.Create(container =>
         {
             container.Page(page =>
             {
-                page.Size(new PageSize(612, 792));
-                page.MarginTop(1, Unit.Centimetre);
-                page.MarginLeft(1, Unit.Centimetre);
-                page.MarginRight(1, Unit.Centimetre);
-                page.MarginBottom(396);
-
+                page.Size(PageSizes.Letter);
+                page.Margin(1, Unit.Centimetre);
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Arial"));
 
@@ -31,31 +43,61 @@ public class PdfGenerator
             });
         }).GeneratePdf();
 
+        // ---------------------------------------------------------
+        // MÉTODOS DE DISEÑO
+        // ---------------------------------------------------------
+
         void ComposeHeader(IContainer container)
         {
-            container.Row(row =>
+            container.Column(col =>
             {
-                // LOGO
-                if (config != null && !string.IsNullOrEmpty(config.LogoPath) && System.IO.File.Exists(config.LogoPath))
-                {
-                    row.ConstantItem(140).Image(config.LogoPath).FitArea();
-                }
+                // BARRA SUPERIOR DE COLOR
+                col.Item().Height(6).Background(colorPrincipal);
 
-                // DATOS EMPRESA
-                row.RelativeItem().PaddingLeft(15).Column(col =>
+                col.Item().PaddingTop(10).Row(row =>
                 {
-                    if (config != null)
+                    // LOGO
+                    if (config != null && !string.IsNullOrEmpty(config.LogoPath) && System.IO.File.Exists(config.LogoPath))
                     {
-                        col.Item().Text(config.NombreLugar).Bold().FontSize(12).FontColor(Colors.Blue.Darken2);
-                        foreach (var linea in config.DatosTicket)
-                        {
-                            if (!string.IsNullOrWhiteSpace(linea))
-                                col.Item().Text(linea.Trim()).FontSize(8);
-                        }
+                        row.ConstantItem(130).Image(config.LogoPath).FitArea();
                     }
-                    col.Item().PaddingTop(5).Text($"Cotización #: {cotizacion.Id}").Bold().FontSize(10);
-                    col.Item().Text($"Fecha: {cotizacion.Fecha:dd/MM/yyyy HH:mm}");
+
+                    // DATOS DE LA EMPRESA
+                    row.RelativeItem().PaddingLeft(15).Column(infoCol =>
+                    {
+                        if (config != null)
+                        {
+                            infoCol.Item().Text(config.NombreLugar.ToUpper()).Bold().FontSize(16).FontColor(colorPrincipal);
+
+                            foreach (var linea in config.DatosTicket)
+                            {
+                                if (!string.IsNullOrWhiteSpace(linea))
+                                    infoCol.Item().Text(linea.Trim()).FontSize(8).FontColor(Colors.Grey.Darken2);
+                            }
+                        }
+                    });
+
+                    // CUADRO DE FOLIO Y FECHA
+                    row.ConstantItem(120).Border(1).BorderColor(colorPrincipal).Padding(0).Column(box =>
+                    {
+                        box.Item().Background(colorPrincipal).Padding(2).AlignCenter().Text("COTIZACIÓN").Bold().FontColor(Colors.White);
+
+                        box.Item().Padding(4).Column(c => {
+                            c.Item().AlignCenter().Text($"Folio: {cotizacion.Id}").FontSize(11).Bold().FontColor(Colors.Black);
+                            c.Item().PaddingTop(2).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+                            c.Item().PaddingTop(2).AlignCenter().Text($"{cotizacion.Fecha:dd/MMM/yyyy}").FontSize(8);
+                            c.Item().AlignCenter().Text($"{cotizacion.Fecha:HH:mm} hrs").FontSize(7).FontColor(Colors.Grey.Darken2);
+
+                            // --- AQUÍ MOSTRAMOS LA VIGENCIA CALCULADA ---
+                            c.Item().PaddingTop(3).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+                            c.Item().PaddingTop(2).AlignCenter().Text("Vigente hasta:").FontSize(6).Bold().FontColor(colorPrincipal);
+                            c.Item().AlignCenter().Text($"{fechaVigencia:dd/MMM/yyyy}").FontSize(8).Bold();
+                        });
+                    });
                 });
+
+                // Línea separadora decorativa
+                col.Item().PaddingTop(10).LineHorizontal(2).LineColor(colorSecundario);
             });
         }
 
@@ -63,43 +105,57 @@ public class PdfGenerator
         {
             container.PaddingVertical(10).Column(column =>
             {
-                // --- 1. CUADRO DE DATOS DEL CLIENTE ---
-                column.Item().PaddingBottom(5).Border(1).BorderColor(Colors.Grey.Medium).Padding(5).Column(colCliente =>
+                // --- FILA SUPERIOR: DATOS DEL CLIENTE Y OBSERVACIONES ---
+                column.Item().PaddingBottom(10).Row(row =>
                 {
-                    colCliente.Item().PaddingBottom(2).Text("DATOS DEL CLIENTE").Bold().FontSize(8).FontColor(Colors.Grey.Darken2);
-
-                    // Función auxiliar local
-                    void AgregarDato(string etiqueta, string valor)
+                    // IZQUIERDA: Datos del Cliente
+                    row.RelativeItem().Column(c =>
                     {
-                        if (!string.IsNullOrWhiteSpace(valor))
+                        // Título con pequeña barra lateral
+                        c.Item().Row(titleRow =>
                         {
-                            colCliente.Item().Text(text =>
+                            titleRow.ConstantItem(5).Height(15).Background(colorSecundario);
+                            titleRow.RelativeItem().PaddingLeft(5).Text("DATOS DEL CLIENTE").Bold().FontSize(10).FontColor(colorPrincipal);
+                        });
+
+                        c.Item().PaddingTop(3).PaddingLeft(10).Column(datos =>
+                        {
+                            var nombreFinal = cliente?.Nombre ?? cotizacion.ClienteNombre ?? "Público General";
+                            datos.Item().Text(nombreFinal).Bold().FontSize(11);
+
+                            if (cliente != null)
                             {
-                                text.Span($"{etiqueta}: ").Bold();
-                                text.Span(valor);
-                            });
-                        }
-                    }
+                                if (!string.IsNullOrEmpty(cliente.Direccion)) datos.Item().Text(cliente.Direccion);
+                                if (!string.IsNullOrEmpty(cliente.Telefono)) datos.Item().Text($"Tel: {cliente.Telefono}");
+                                if (!string.IsNullOrEmpty(cliente.RFC)) datos.Item().Text($"RFC: {cliente.RFC}");
+                            }
+                        });
+                    });
 
-                    // A. NOMBRE: Usamos el objeto cliente si existe, si no el histórico de la cotización
-                    var nombreFinal = cliente?.Nombre ?? cotizacion.ClienteNombre ?? "Público General";
-                    AgregarDato("Nombre", nombreFinal);
-
-                    // B. RESTO DE DATOS (Usando el parámetro 'cliente')
-                    if (cliente != null)
+                    // DERECHA: Observaciones (¡LÓGICA RECUPERADA!)
+                    // Se muestra si hay texto O si es TURBOLLANTAS (aunque esté vacío)
+                    if (!string.IsNullOrEmpty(cotizacion.Observaciones) || (config != null && config.NombreLugar == "TURBOLLANTAS"))
                     {
-                        AgregarDato("Teléfono", cliente.Telefono);
-                        AgregarDato("Dirección", cliente.Direccion);
-                        AgregarDato("Referencia", cliente.Referencia);
-                        AgregarDato("RFC", cliente.RFC);
-                        AgregarDato("Correo", cliente.Correo);
+                        row.RelativeItem().PaddingLeft(10).Column(c =>
+                        {
+                            c.Item().Text("OBSERVACIONES").Bold().FontSize(9).FontColor(colorPrincipal);
+
+                            // Usamos un cuadro gris claro para destacar la nota
+                            c.Item().Background(colorGrisClaro).Padding(5).Column(nota =>
+                            {
+                                // Si es null (caso turbollantas vacío), ponemos string.Empty
+                                var textoNota = cotizacion.Observaciones ?? "";
+                                nota.Item().Text(textoNota).Italic().FontSize(8);
+                            });
+                        });
                     }
                 });
 
-                // --- 2. DATOS EXTRA / DINÁMICOS ---
+                // --- DATOS EXTRA (Placas, Modelo, etc.) - ¡LÓGICA RECUPERADA! ---
                 if (!string.IsNullOrEmpty(cotizacion.Datos))
                 {
-                    column.Item().PaddingBottom(5).Border(1).BorderColor(Colors.Black).Padding(4).Text(text =>
+                    // Los ponemos en un bloque separado antes de la tabla con borde del color principal
+                    column.Item().PaddingBottom(10).Border(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(text =>
                     {
                         var listaDatos = cotizacion.Datos.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
                         foreach (var dato in listaDatos)
@@ -107,57 +163,78 @@ public class PdfGenerator
                             var partes = dato.Split(new[] { ':' }, 2);
                             if (partes.Length == 2)
                             {
-                                text.Span($"{partes[0].Trim()}: ").Bold();
-                                text.Span($"{partes[1].Trim()}   ");
+                                // La etiqueta en color principal (ej. "Placas:")
+                                text.Span($"{partes[0].Trim()}: ").Bold().FontColor(colorPrincipal);
+                                // El valor en negro (ej. "XYZ-123")
+                                text.Span($"{partes[1].Trim()}    ");
                             }
                         }
                     });
                 }
-
-                // --- 3. OBSERVACIONES ---
-                if (!string.IsNullOrEmpty(cotizacion.Observaciones) || (config != null && config.NombreLugar == "TURBOLLANTAS"))
-                {
-                    column.Item().PaddingBottom(5).Border(1).BorderColor(Colors.Black).Padding(4).Column(c =>
-                    {
-                        c.Item().Text("Observaciones / Notas:").Bold().FontSize(8);
-                        c.Item().Text(cotizacion.Observaciones).FontSize(9).Italic();
-                    });
-                }
-
-                // --- 4. TABLA DE PRODUCTOS ---
+                // --- TABLA DE PRODUCTOS (Estilo Corporativo) ---
                 column.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
                     {
-                        columns.ConstantColumn(35); // Cant
-                        columns.RelativeColumn();   // Desc
+                        columns.ConstantColumn(30); // #
+                        columns.ConstantColumn(40); // Cant
+                        columns.RelativeColumn();   // Descripcion (Se ajusta sola)
                         columns.ConstantColumn(70); // P.Unit
+                        columns.ConstantColumn(65); // TASA IVA (NUEVA)
+                        columns.ConstantColumn(50); // DESC (NUEVA)
                         columns.ConstantColumn(70); // Importe
                     });
 
+                    // Encabezado de la tabla
                     table.Header(header =>
                     {
-                        header.Cell().Element(CellStyle).Text("Cant").Bold();
-                        header.Cell().Element(CellStyle).Text("Descripción").Bold();
-                        header.Cell().Element(CellStyle).AlignRight().Text("P.Unit").Bold();
-                        header.Cell().Element(CellStyle).AlignRight().Text("Importe").Bold();
+                        IContainer HeaderStyle(IContainer c) => c.Background(colorPrincipal).PaddingVertical(3).PaddingHorizontal(2);
 
-                        static IContainer CellStyle(IContainer container) => container.PaddingVertical(2).BorderBottom(1).BorderColor(Colors.Black);
+                        header.Cell().Element(HeaderStyle).Text("#").FontColor(Colors.White).Bold();
+                        header.Cell().Element(HeaderStyle).AlignCenter().Text("CANT").FontColor(Colors.White).Bold();
+                        header.Cell().Element(HeaderStyle).Text("DESCRIPCIÓN").FontColor(Colors.White).Bold();
+
+                        // Columnas originales y nuevas
+                        header.Cell().Element(HeaderStyle).AlignRight().Text("P.UNIT").FontColor(Colors.White).Bold();
+                        header.Cell().Element(HeaderStyle).AlignRight().Text("TASA IVA %").FontColor(Colors.White).Bold(); // NUEVA
+                        header.Cell().Element(HeaderStyle).AlignRight().Text("DESC").FontColor(Colors.White).Bold();       // NUEVA
+                        header.Cell().Element(HeaderStyle).AlignRight().Text("IMPORTE").FontColor(Colors.White).Bold();
                     });
 
-                    foreach (var item in cotizacion.Detalles)
+                    // Filas (Efecto Cebra)
+                    for (int i = 0; i < cotizacion.Detalles.Count; i++)
                     {
-                        table.Cell().PaddingVertical(1).Text(item.Cantidad.ToString());
-                        table.Cell().PaddingVertical(1).Text(item.Descripcion).FontSize(8);
-                        table.Cell().PaddingVertical(1).AlignRight().Text($"{item.PrecioUnitario:N2}");
-                        table.Cell().PaddingVertical(1).AlignRight().Text($"{item.Importe:N2}");
+                        var item = cotizacion.Detalles[i];
+                        var bg = i % 2 == 0 ? Colors.White : colorGrisClaro;
+
+                        IContainer CellStyle(IContainer c) => c.Background(bg).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingVertical(2).PaddingHorizontal(2);
+
+                        table.Cell().Element(CellStyle).Text((i + 1).ToString()).FontSize(8).FontColor(Colors.Grey.Darken2);
+                        table.Cell().Element(CellStyle).AlignCenter().Text(item.Cantidad.ToString()).Bold();
+                        table.Cell().Element(CellStyle).Text(item.Descripcion).FontSize(9);
+
+                        // Precios y nuevas columnas estáticas
+                        table.Cell().Element(CellStyle).AlignRight().Text($"{item.PrecioUnitario:N2}");
+                        table.Cell().Element(CellStyle).AlignRight().Text("16.00%"); // Valor fijo
+                        table.Cell().Element(CellStyle).AlignRight().Text("$0.00");  // Valor fijo
+                        table.Cell().Element(CellStyle).AlignRight().Text($"{item.Importe:N2}").Bold();
                     }
 
+                    // --- TOTALES (Footer) ---
                     table.Footer(footer =>
                     {
-                        footer.Cell().ColumnSpan(4).PaddingVertical(2).LineHorizontal(1);
-                        footer.Cell().ColumnSpan(3).AlignRight().PaddingRight(5).Text("TOTAL:").Bold().FontSize(11);
-                        footer.Cell().AlignRight().Text($"{cotizacion.Total:C2}").Bold().FontSize(11).FontColor(Colors.Green.Darken2);
+                        // Ajustamos el ColSpan a 7 porque ahora hay 7 columnas en total
+                        footer.Cell().ColumnSpan(7).PaddingTop(5).AlignRight().Row(row =>
+                        {
+                            row.ConstantItem(200).Border(1).BorderColor(colorPrincipal).Padding(5).Column(c =>
+                            {
+                                c.Item().Row(r =>
+                                {
+                                    r.RelativeItem().Text("TOTAL:").Bold().FontSize(12);
+                                    r.RelativeItem().AlignRight().Text($"{cotizacion.Total:C2}").Bold().FontSize(13);
+                                });
+                            });
+                        });
                     });
                 });
             });
@@ -167,23 +244,81 @@ public class PdfGenerator
         {
             container.Column(col =>
             {
+                col.Item().LineHorizontal(1).LineColor(colorPrincipal);
+
                 if (config != null && config.PieDeTicket != null)
                 {
-                    col.Item().PaddingTop(5).LineHorizontal(0.5f).LineColor(Colors.Grey.Lighten2);
-                    foreach (var linea in config.PieDeTicket)
+                    col.Item().PaddingTop(2).Column(c =>
                     {
-                        if (!string.IsNullOrWhiteSpace(linea))
-                            col.Item().AlignCenter().Text(linea.Trim()).Italic().FontSize(7);
-                    }
+                        foreach (var linea in config.PieDeTicket)
+                        {
+                            if (!string.IsNullOrWhiteSpace(linea))
+                                c.Item().AlignCenter().Text(linea.Trim()).FontSize(7).Italic().FontColor(Colors.Grey.Darken1);
+                        }
+                    });
                 }
-                col.Item().AlignCenter().Text(x =>
+
+                col.Item().PaddingTop(2).Row(row =>
                 {
-                    x.Span("Página ");
-                    x.CurrentPageNumber();
-                    x.Span(" de ");
-                    x.TotalPages();
+                    row.RelativeItem().Text($"Generado el {DateTime.Now:g}").FontSize(6).FontColor(Colors.Grey.Lighten1);
+                    row.RelativeItem().AlignRight().Text(x =>
+                    {
+                        x.Span("Página ").FontSize(6);
+                        x.CurrentPageNumber().FontSize(6);
+                        x.Span(" de ").FontSize(6);
+                        x.TotalPages().FontSize(6);
+                    });
                 });
             });
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // MÉTODO PRIVADO: Obtiene los colores de SQL Server
+    // -----------------------------------------------------------------------
+    private static ColoresPdf ObtenerColoresDesdeBD()
+    {
+        var colores = new ColoresPdf();
+        try
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+            var configuration = builder.Build();
+            string connectionString = configuration.GetConnectionString("SQL");
+
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                using (var conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+                    string query = "SELECT TOP 1 ColorPrimario, ColorSecundario, DiasValidez FROM ConfiguracionApariencia";
+                    using (var cmd = new SqlCommand(query, conn))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                var c1 = reader["ColorPrimario"]?.ToString();
+                                var c2 = reader["ColorSecundario"]?.ToString();
+
+                                if (!string.IsNullOrEmpty(c1)) colores.Primario = c1;
+                                if (!string.IsNullOrEmpty(c2)) colores.Secundario = c2;
+                                if (reader["DiasValidez"] != DBNull.Value)
+                                {
+                                    colores.DiasValidez = Convert.ToInt32(reader["DiasValidez"]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error obteniendo colores para PDF: {ex.Message}");
+        }
+        return colores;
     }
 }

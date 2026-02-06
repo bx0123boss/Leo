@@ -1,4 +1,5 @@
 using PuntoVentaWeb.Data;
+using PuntoVentaWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<PuntoVentaWeb.Services.CotizacionService>();
 builder.Services.AddScoped<PuntoVentaWeb.Services.EmailService>();
 builder.Services.AddScoped<PuntoVentaWeb.Services.ClienteService>();
+builder.Services.AddScoped<PuntoVentaWeb.Services.ConfiguracionService>();
 builder.Services.AddSingleton<WeatherForecastService>();
 
 var app = builder.Build();
