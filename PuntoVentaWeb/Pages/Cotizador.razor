@@ -2,21 +2,20 @@
 @using PuntoVentaWeb.Models
 @using PuntoVentaWeb.Services
 
+@inject ClienteService _clienteService
 @inject CotizacionService _cotizacionService
 @inject IJSRuntime JS
 @inject EmailService _emailService
 
 <div class="container-fluid pb-5">
-<div class="card mb-3 border-primary">
-<div class="card-header bg-light d-flex justify-content-between align-items-center"
+    <div class="card mb-3 border-primary">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center"
              style="cursor: pointer;"
              @onclick="() => datosGeneralesAbiertos = !datosGeneralesAbiertos">
-            
+
             <strong>1. Datos Generales y Cliente</strong>
 
             <div class="d-flex align-items-center">
-                
-                @* CAMBIO: Solo mostramos la etiqueta verde si la sección está CERRADA (False) *@
                 @if (!datosGeneralesAbiertos)
                 {
                     <span class="badge bg-success me-3">
@@ -30,15 +29,13 @@
                         }
                     </span>
                 }
-
-                @* La flecha siempre se muestra *@
                 <i class="oi @(datosGeneralesAbiertos ? "oi-chevron-top" : "oi-chevron-bottom")"></i>
             </div>
         </div>
 
-    <div class="card-body @(datosGeneralesAbiertos ? "" : "d-none")">
+        <div class="card-body @(datosGeneralesAbiertos ? "" : "d-none")">
             <div class="row align-items-center">
-
+                @* Buscador de Cliente (Igual que antes) *@
                 <div class="col-md-6 position-relative">
                     <label class="form-label">Buscar Cliente:</label>
                     <div class="input-group">
@@ -97,9 +94,30 @@
                               placeholder="Ej: Entregar a domicilio, pago pendiente, etc..."></textarea>
                 </div>
             </div>
+
+            @* --- NUEVO: SECCIÓN DINÁMICA DE DATOS --- *@
+            @if (nuevaCotizacion.DatosDinamicos != null && nuevaCotizacion.DatosDinamicos.Any())
+            {
+                <div class="row mt-3 pt-3 border-top">
+                    <div class="col-12 mb-2">
+                        <h6 class="text-primary"><i class="oi oi-list"></i> Datos Adicionales de Cotización</h6>
+                    </div>
+                    @foreach (var dato in nuevaCotizacion.DatosDinamicos)
+                    {
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label small fw-bold">@dato.Etiqueta:</label>
+                            <input type="text" class="form-control form-control-sm"
+                                   @bind="dato.Valor"
+                                   placeholder="Ingrese @dato.Etiqueta..." />
+                        </div>
+                    }
+                </div>
+            }
+            @* ---------------------------------------- *@
         </div>
     </div>
 
+    @* Secciones de Productos y Detalle (Sin cambios mayores) *@
     <div class="row">
         <div class="col-md-6">
             <div class="card h-100">
@@ -295,25 +313,57 @@
 }
 
 @code {
-    // NUEVO: Variable para controlar el collapse
     private bool datosGeneralesAbiertos = true;
-
     private string busquedaCliente = "";
     private List<Cliente> listaClientes = new List<Cliente>();
     private bool mostrarListaClientes = false;
     private bool mostrarModalCliente = false;
     private string clienteEmailSeleccionado = "";
 
+    // Estado de configuración
+    private List<string> configuracionCampos = new List<string>();
+
+    // Variables de Estado
+    private Cotizacion nuevaCotizacion = new Cotizacion();
+    private List<Producto> resultadosBusqueda = new List<Producto>();
+    private string terminoBusqueda = "";
+    private bool busquedaRealizada = false;
+    private Producto productoSeleccionado;
+    private int cantidadAgregar = 1;
+    private decimal precioManual = 0;
+
+    // --- NUEVO: Inicialización del componente ---
+    protected override async Task OnInitializedAsync()
+    {
+        // 1. Cargamos la configuración de SQL (ej: "Proyecto", "Vigencia")
+        configuracionCampos = await _cotizacionService.ObtenerConfiguracionCampos();
+        
+        // 2. Preparamos la primera cotización vacía con esos campos
+        await InicializarCotizacion();
+    }
+
+    // --- NUEVO: Método helper para resetear el formulario con campos dinámicos ---
+    private async Task InicializarCotizacion()
+    {
+        nuevaCotizacion = new Cotizacion();
+        
+        // Agregamos los items vacíos para que el HTML los pinte
+        if (configuracionCampos != null)
+        {
+            foreach (var campo in configuracionCampos)
+            {
+                nuevaCotizacion.DatosDinamicos.Add(new DatoDinamicoItem { Etiqueta = campo, Valor = "" });
+            }
+        }
+    }
+
     private void AlCrearCliente(Cliente nuevoCliente)
     {
-        // 1. Cerramos el modal
         mostrarModalCliente = false;
-
-        // 2. Seleccionamos automáticamente al cliente creado
         SeleccionarCliente(nuevoCliente);
-
         busquedaCliente = nuevoCliente.Nombre;
     }
+
     private async Task BuscarClienteEnTiempoReal()
     {
         if (busquedaCliente.Length > 2)
@@ -337,88 +387,61 @@
         mostrarListaClientes = false;
     }
 
-    // Variables de Estado
-    private Cotizacion nuevaCotizacion = new Cotizacion();
-    private List<Producto> resultadosBusqueda = new List<Producto>();
-    private string terminoBusqueda = "";
-    private bool busquedaRealizada = false;
-
-    // Variables de selección
-    private Producto productoSeleccionado;
-    private int cantidadAgregar = 1;
-
-    // Variable para el precio manual
-    private decimal precioManual = 0;
-
-    // 1. BUSCAR 
     private async Task Buscar()
     {
         if (string.IsNullOrWhiteSpace(terminoBusqueda)) return;
 
-        // --- NUEVA LÓGICA: Si es "0", agrega directo ---
         if (terminoBusqueda.Trim() == "0")
         {
             var detalle = new DetalleCotizacion
             {
                 ProductoCodigo = "0",
-                Descripcion = "PRODUCTO GENERICO", // Se podrá editar gracias a la lógica que ya pusimos en la tabla
+                Descripcion = "PRODUCTO GENERICO",
                 Cantidad = 1,
                 PrecioUnitario = 0
             };
-
             nuevaCotizacion.Detalles.Add(detalle);
-
-            // Limpiamos todo para seguir capturando rápido
             terminoBusqueda = "";
             productoSeleccionado = null;
             resultadosBusqueda.Clear();
             busquedaRealizada = false;
-            return; // ¡Importante! Salimos aquí para no buscar en la BD
+            return;
         }
-        // ------------------------------------------------
 
         busquedaRealizada = true;
         productoSeleccionado = null;
         resultadosBusqueda = await _cotizacionService.BuscarProductos(terminoBusqueda);
     }
 
-    // 2. PREPARAR PRODUCTO (Click en la lista)
     private void PrepararProducto(Producto prod)
     {
-        // CAMBIO 1: Si es ID 0, agregar directo
         if (prod.Id == "0")
         {
             var detalle = new DetalleCotizacion
             {
                 ProductoCodigo = "0",
-                Descripcion = "PRODUCTO GENERICO", // Descripción inicial editable
+                Descripcion = "PRODUCTO GENERICO",
                 Cantidad = 1,
-                PrecioUnitario = 0 // Inicia en 0 para que el usuario lo cambie en la tabla si quiere
+                PrecioUnitario = 0
             };
-
             nuevaCotizacion.Detalles.Add(detalle);
-
-            // Limpiamos la búsqueda y selección
             productoSeleccionado = null;
             terminoBusqueda = "";
             resultadosBusqueda.Clear();
         }
         else
         {
-            // Comportamiento normal para el resto de productos
             productoSeleccionado = prod;
             cantidadAgregar = 1;
             precioManual = Math.Round(prod.Precioventa, 2);
         }
     }
 
-    // 3. AGREGAR AL CARRITO
     private void AgregarAlCarrito()
     {
         if (productoSeleccionado == null) return;
         if (cantidadAgregar <= 0) return;
 
-        // Usamos el precio que el usuario haya escrito o modificado
         decimal precioFinal = precioManual;
 
         var detalle = new DetalleCotizacion
@@ -430,25 +453,15 @@
         };
 
         nuevaCotizacion.Detalles.Add(detalle);
-
-        // Reset
         productoSeleccionado = null;
         terminoBusqueda = "";
         resultadosBusqueda.Clear();
     }
 
-    // Método para actualizar línea (Cantidad o Precio) desde la tabla
     private void ActualizarLinea(DetalleCotizacion item, object cantObj, object precioObj)
     {
-        if (int.TryParse(cantObj.ToString(), out int c) && c > 0)
-        {
-            item.Cantidad = c;
-        }
-
-        if (decimal.TryParse(precioObj.ToString(), out decimal p) && p >= 0)
-        {
-            item.PrecioUnitario = p;
-        }
+        if (int.TryParse(cantObj.ToString(), out int c) && c > 0) item.Cantidad = c;
+        if (decimal.TryParse(precioObj.ToString(), out decimal p) && p >= 0) item.PrecioUnitario = p;
     }
 
     private void EliminarDelCarrito(DetalleCotizacion item)
@@ -471,16 +484,14 @@
 
         try
         {
-            // 1. GUARDAR EN BD
+            // El servicio ahora se encarga de convertir DatosDinamicos -> string Datos
             await _cotizacionService.GuardarCotizacion(nuevaCotizacion);
 
-            // Tratamos de obtener el folio nuevo
             int nuevoFolio = await _cotizacionService.ObtenerUltimoFolio();
             nuevaCotizacion.Id = nuevoFolio > 0 ? nuevoFolio : 0;
 
             await JS.InvokeVoidAsync("alert", "¡Cotización Guardada Exitosamente!");
 
-            // 2. LÓGICA DE ENVÍO DE CORREO
             if (!string.IsNullOrEmpty(clienteEmailSeleccionado))
             {
                 bool deseaEnviar = await JS.InvokeAsync<bool>("confirm",
@@ -492,13 +503,13 @@
                 }
             }
 
-            // 3. LIMPIEZA DEL FORMULARIO
-            nuevaCotizacion = new Cotizacion();
-            clienteEmailSeleccionado = ""; // Reset email
+            // --- NUEVO: Usamos el método de inicialización para limpiar y recrear los campos ---
+            await InicializarCotizacion();
+            // ----------------------------------------------------------------------------------
+            
+            clienteEmailSeleccionado = "";
             resultadosBusqueda.Clear();
             busquedaRealizada = false;
-
-            // Opcional: Volver a abrir los datos generales al iniciar nueva cotización
             datosGeneralesAbiertos = true;
         }
         catch (Exception ex)
@@ -507,20 +518,19 @@
         }
     }
 
-    // MÉTODO AUXILIAR PARA ENVIAR
     private async Task EnviarCorreoAutomatico(int folio)
     {
         try
         {
             await JS.InvokeVoidAsync("alert", "Generando PDF y enviando correo, por favor espera...");
-
-            // 1. Obtener configuración para el PDF
             var config = await _cotizacionService.ObtenerConfiguracion();
-
-            // 2. Generar PDF en memoria (sin descargar)
-            var pdfBytes = PdfGenerator.CrearPdfCotizacion(nuevaCotizacion, config);
-
-            // 3. Enviar usando el servicio
+            Cliente clienteParaPdf = null;
+            if (nuevaCotizacion.ClienteId > 0)
+            {
+                clienteParaPdf = await _clienteService.ObtenerClientePorId(nuevaCotizacion.ClienteId);
+            }
+            var pdfBytes = PdfGenerator.CrearPdfCotizacion(nuevaCotizacion,clienteParaPdf, config);
+            
             var resultado = await _emailService.EnviarCotizacionConPdf(
                 clienteEmailSeleccionado,
                 nuevaCotizacion.ClienteNombre,

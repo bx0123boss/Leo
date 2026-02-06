@@ -7,28 +7,19 @@ namespace PuntoVentaWeb.Services;
 
 public class PdfGenerator
 {
-    public static byte[] CrearPdfCotizacion(Cotizacion cotizacion, ConfiguracionNegocio config)
+    // AHORA RECIBIMOS EL OBJETO 'CLIENTE' COMO PARÁMETRO ADICIONAL
+    public static byte[] CrearPdfCotizacion(Cotizacion cotizacion, Cliente cliente, ConfiguracionNegocio config)
     {
-        // Configuración de Licencia Community (Gratuita)
         QuestPDF.Settings.License = LicenseType.Community;
 
         return Document.Create(container =>
         {
             container.Page(page =>
             {
-                // 1. TAMAÑO CARTA COMPLETA (8.5 x 11 pulgadas)
-                // Usamos el tamaño estándar para que la impresora no pida papel especial.
                 page.Size(new PageSize(612, 792));
-
-                // 2. EL TRUCO: MARGEN INFERIOR GIGANTE
-                // Definimos márgenes normales para Arriba, Izquierda y Derecha (1 cm)
                 page.MarginTop(1, Unit.Centimetre);
                 page.MarginLeft(1, Unit.Centimetre);
                 page.MarginRight(1, Unit.Centimetre);
-
-                // Definimos un Margen Inferior de 5.5 pulgadas (396 puntos)
-                // Esto bloquea la mitad de abajo de la hoja. El contenido y el pie de página
-                // se detendrán exactamente a la mitad.
                 page.MarginBottom(396);
 
                 page.PageColor(Colors.White);
@@ -40,115 +31,151 @@ public class PdfGenerator
             });
         }).GeneratePdf();
 
-        // --- ENCABEZADO CON LOGO Y DATOS ---
         void ComposeHeader(IContainer container)
         {
             container.Row(row =>
             {
-                // 1. LOGO (Izquierda)
+                // LOGO
                 if (config != null && !string.IsNullOrEmpty(config.LogoPath) && System.IO.File.Exists(config.LogoPath))
                 {
-                    // CAMBIO AQUÍ: Se aumentó de 100 a 160 para hacerlo más grande.
-                    // Puedes subir este número si lo quieres aún más grande (ej. 200).
-                    row.ConstantItem(160).Image(config.LogoPath).FitArea();
+                    row.ConstantItem(140).Image(config.LogoPath).FitArea();
                 }
 
-                // 2. DATOS DEL NEGOCIO (Derecha)
-                // Se agrega un padding un poco mayor (15 o 20) si el logo queda muy pegado al texto
+                // DATOS EMPRESA
                 row.RelativeItem().PaddingLeft(15).Column(col =>
                 {
                     if (config != null)
                     {
                         col.Item().Text(config.NombreLugar).Bold().FontSize(12).FontColor(Colors.Blue.Darken2);
-
                         foreach (var linea in config.DatosTicket)
                         {
                             if (!string.IsNullOrWhiteSpace(linea))
                                 col.Item().Text(linea.Trim()).FontSize(8);
                         }
                     }
-
-                    // Datos de la Cotización
                     col.Item().PaddingTop(5).Text($"Cotización #: {cotizacion.Id}").Bold().FontSize(10);
                     col.Item().Text($"Fecha: {cotizacion.Fecha:dd/MM/yyyy HH:mm}");
-                    col.Item().Text($"Cliente: {cotizacion.ClienteNombre}");
                 });
             });
         }
 
-        // --- CONTENIDO (Observaciones + Tabla) ---
         void ComposeContent(IContainer container)
         {
             container.PaddingVertical(10).Column(column =>
             {
-                // 1. SECCIÓN DE OBSERVACIONES
-                if (!string.IsNullOrEmpty(cotizacion.Observaciones))
+                // --- 1. CUADRO DE DATOS DEL CLIENTE ---
+                column.Item().PaddingBottom(5).Border(1).BorderColor(Colors.Grey.Medium).Padding(5).Column(colCliente =>
                 {
-                    column.Item().PaddingBottom(10).Background(Colors.Grey.Lighten4).Padding(5).Column(c =>
+                    colCliente.Item().PaddingBottom(2).Text("DATOS DEL CLIENTE").Bold().FontSize(8).FontColor(Colors.Grey.Darken2);
+
+                    // Función auxiliar local
+                    void AgregarDato(string etiqueta, string valor)
+                    {
+                        if (!string.IsNullOrWhiteSpace(valor))
+                        {
+                            colCliente.Item().Text(text =>
+                            {
+                                text.Span($"{etiqueta}: ").Bold();
+                                text.Span(valor);
+                            });
+                        }
+                    }
+
+                    // A. NOMBRE: Usamos el objeto cliente si existe, si no el histórico de la cotización
+                    var nombreFinal = cliente?.Nombre ?? cotizacion.ClienteNombre ?? "Público General";
+                    AgregarDato("Nombre", nombreFinal);
+
+                    // B. RESTO DE DATOS (Usando el parámetro 'cliente')
+                    if (cliente != null)
+                    {
+                        AgregarDato("Teléfono", cliente.Telefono);
+                        AgregarDato("Dirección", cliente.Direccion);
+                        AgregarDato("Referencia", cliente.Referencia);
+                        AgregarDato("RFC", cliente.RFC);
+                        AgregarDato("Correo", cliente.Correo);
+                    }
+                });
+
+                // --- 2. DATOS EXTRA / DINÁMICOS ---
+                if (!string.IsNullOrEmpty(cotizacion.Datos))
+                {
+                    column.Item().PaddingBottom(5).Border(1).BorderColor(Colors.Black).Padding(4).Text(text =>
+                    {
+                        var listaDatos = cotizacion.Datos.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var dato in listaDatos)
+                        {
+                            var partes = dato.Split(new[] { ':' }, 2);
+                            if (partes.Length == 2)
+                            {
+                                text.Span($"{partes[0].Trim()}: ").Bold();
+                                text.Span($"{partes[1].Trim()}   ");
+                            }
+                        }
+                    });
+                }
+
+                // --- 3. OBSERVACIONES ---
+                if (!string.IsNullOrEmpty(cotizacion.Observaciones) || (config != null && config.NombreLugar == "TURBOLLANTAS"))
+                {
+                    column.Item().PaddingBottom(5).Border(1).BorderColor(Colors.Black).Padding(4).Column(c =>
                     {
                         c.Item().Text("Observaciones / Notas:").Bold().FontSize(8);
                         c.Item().Text(cotizacion.Observaciones).FontSize(9).Italic();
                     });
                 }
 
-                // 2. TABLA DE PRODUCTOS
+                // --- 4. TABLA DE PRODUCTOS ---
                 column.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
                     {
-                        columns.ConstantColumn(30);  // Cant
-                        columns.RelativeColumn();    // Descripcion
-                        columns.ConstantColumn(55);  // Precio
-                        columns.ConstantColumn(55);  // Total
+                        columns.ConstantColumn(35); // Cant
+                        columns.RelativeColumn();   // Desc
+                        columns.ConstantColumn(70); // P.Unit
+                        columns.ConstantColumn(70); // Importe
                     });
 
                     table.Header(header =>
                     {
-                        header.Cell().Text("Cant").Bold();
-                        header.Cell().Text("Descripción").Bold();
-                        header.Cell().AlignRight().Text("P.Unit").Bold();
-                        header.Cell().AlignRight().Text("Importe").Bold();
+                        header.Cell().Element(CellStyle).Text("Cant").Bold();
+                        header.Cell().Element(CellStyle).Text("Descripción").Bold();
+                        header.Cell().Element(CellStyle).AlignRight().Text("P.Unit").Bold();
+                        header.Cell().Element(CellStyle).AlignRight().Text("Importe").Bold();
 
-                        header.Cell().ColumnSpan(4)
-                              .PaddingVertical(2).LineHorizontal(1).LineColor(Colors.Grey.Lighten1);
+                        static IContainer CellStyle(IContainer container) => container.PaddingVertical(2).BorderBottom(1).BorderColor(Colors.Black);
                     });
 
                     foreach (var item in cotizacion.Detalles)
                     {
-                        table.Cell().Text(item.Cantidad.ToString());
-                        table.Cell().Text(item.Descripcion).FontSize(8);
-                        table.Cell().AlignRight().Text($"{item.PrecioUnitario:N2}");
-                        table.Cell().AlignRight().Text($"{item.Importe:N2}");
+                        table.Cell().PaddingVertical(1).Text(item.Cantidad.ToString());
+                        table.Cell().PaddingVertical(1).Text(item.Descripcion).FontSize(8);
+                        table.Cell().PaddingVertical(1).AlignRight().Text($"{item.PrecioUnitario:N2}");
+                        table.Cell().PaddingVertical(1).AlignRight().Text($"{item.Importe:N2}");
                     }
 
-                    // Línea de Total
                     table.Footer(footer =>
                     {
-                        footer.Cell().ColumnSpan(4).PaddingVertical(2).LineHorizontal(1).LineColor(Colors.Black);
-
-                        footer.Cell().ColumnSpan(3).AlignRight().Text("TOTAL:").Bold().FontSize(11);
+                        footer.Cell().ColumnSpan(4).PaddingVertical(2).LineHorizontal(1);
+                        footer.Cell().ColumnSpan(3).AlignRight().PaddingRight(5).Text("TOTAL:").Bold().FontSize(11);
                         footer.Cell().AlignRight().Text($"{cotizacion.Total:C2}").Bold().FontSize(11).FontColor(Colors.Green.Darken2);
                     });
                 });
             });
         }
 
-        // --- PIE DE PÁGINA ---
         void ComposeFooter(IContainer container)
         {
             container.Column(col =>
             {
-                col.Item().PaddingVertical(5).LineHorizontal(0.5f).LineColor(Colors.Grey.Lighten2);
-
                 if (config != null && config.PieDeTicket != null)
                 {
+                    col.Item().PaddingTop(5).LineHorizontal(0.5f).LineColor(Colors.Grey.Lighten2);
                     foreach (var linea in config.PieDeTicket)
                     {
                         if (!string.IsNullOrWhiteSpace(linea))
                             col.Item().AlignCenter().Text(linea.Trim()).Italic().FontSize(7);
                     }
                 }
-
                 col.Item().AlignCenter().Text(x =>
                 {
                     x.Span("Página ");

@@ -2,6 +2,7 @@
 @using PuntoVentaWeb.Models
 @using PuntoVentaWeb.Services
 @using System.IO
+@inject ClienteService _clienteService
 @inject CotizacionService _cotizacionService
 @inject IJSRuntime JS
 
@@ -80,10 +81,13 @@
     {
         if (cotizacion == null) return;
 
-        // 2. Obtener configuración (Identidad del Negocio)
         var configNegocio = await _cotizacionService.ObtenerConfiguracion();
-        // 1. Generar los bytes del PDF usando nuestra clase PdfGenerator
-        var pdfBytes = PdfGenerator.CrearPdfCotizacion(cotizacion, configNegocio);
+        Cliente cliente = null;
+        if (cotizacion.ClienteId > 0)
+        {
+            cliente = await _clienteService.ObtenerClientePorId(cotizacion.ClienteId);
+        }
+        var pdfBytes = PdfGenerator.CrearPdfCotizacion(cotizacion, cliente,  configNegocio);
 
         // 2. Crear un stream para enviarlo al navegador
         using var stream = new MemoryStream(pdfBytes);

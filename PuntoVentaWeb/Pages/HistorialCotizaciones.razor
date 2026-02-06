@@ -3,6 +3,7 @@
 @using PuntoVentaWeb.Models
 @using System.IO
 @inject CotizacionService _cotizacionService
+@inject ClienteService _clienteService
 @inject EmailService _emailService
 @inject IJSRuntime JS
 
@@ -225,7 +226,8 @@
     {
         var cotizacionCompleta = await _cotizacionService.ObtenerCotizacionPorId(cot.Id);
         var configNegocio = await _cotizacionService.ObtenerConfiguracion();
-        var pdfBytes = PdfGenerator.CrearPdfCotizacion(cotizacionCompleta, configNegocio);
+        var cliente = await _clienteService.ObtenerClientePorId(cotizacionCompleta.ClienteId);
+        var pdfBytes = PdfGenerator.CrearPdfCotizacion(cotizacionCompleta, cliente, configNegocio);
         string correoDestino = await JS.InvokeAsync<string>("prompt", "Correo:", "");
         if (string.IsNullOrWhiteSpace(correoDestino)) return;
 
@@ -249,7 +251,8 @@
             var cotizacionCompleta = await _cotizacionService.ObtenerCotizacionPorId(idCotizacion);
             if (cotizacionCompleta == null) return;
             var configNegocio = await _cotizacionService.ObtenerConfiguracion();
-            var pdfBytes = PdfGenerator.CrearPdfCotizacion(cotizacionCompleta, configNegocio);
+            var cliente = await _clienteService.ObtenerClientePorId(cotizacionCompleta.ClienteId);
+            var pdfBytes = PdfGenerator.CrearPdfCotizacion(cotizacionCompleta, cliente, configNegocio);
             using var stream = new MemoryStream(pdfBytes);
             using var streamRef = new DotNetStreamReference(stream);
             await JS.InvokeVoidAsync("downloadFileFromStream", $"Cotizacion_{idCotizacion}.pdf", streamRef);

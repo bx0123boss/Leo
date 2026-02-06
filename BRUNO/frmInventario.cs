@@ -469,7 +469,6 @@ namespace BRUNO
         {
             try
             {
-                // 1. PREGUNTAR AL USUARIO
                 DialogResult respuesta = MessageBox.Show(
                     "¿Deseas separar el inventario por Categorías en hojas distintas?\n\n" +
                     "SÍ: Crea una hoja de Excel por cada categoría.\n" +
@@ -481,13 +480,10 @@ namespace BRUNO
                 if (respuesta == DialogResult.Cancel) return;
 
                 this.Cursor = Cursors.WaitCursor;
-
-                // 2. OBTENER DATOS
                 System.Data.DataTable dtInventario = new System.Data.DataTable();
                 using (OleDbConnection conn = new OleDbConnection(Conexion.CadCon))
                 {
                     conn.Open();
-                    // Traemos todo. Si es una sola lista, ordenamos por Nombre. Si es por categoría, ayuda que venga ordenado por Categoria.
                     string query = "SELECT * FROM Inventario ORDER BY Categoria, Nombre";
                     OleDbDataAdapter da = new OleDbDataAdapter(query, conn);
                     da.Fill(dtInventario);
@@ -498,8 +494,6 @@ namespace BRUNO
                     MessageBox.Show("No hay datos para exportar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
-
-                // 3. INICIAR EXCEL
                 Microsoft.Office.Interop.Excel.Application excelApp = new Microsoft.Office.Interop.Excel.Application();
                 Workbook workbook = excelApp.Workbooks.Add(XlSheetType.xlWorksheet);
 
@@ -509,9 +503,6 @@ namespace BRUNO
                     ((Worksheet)workbook.Worksheets[1]).Delete();
                 }
 
-                // ==========================================================================================
-                // OPCIÓN A: SEPARAR POR CATEGORÍAS (Respuesta = YES)
-                // ==========================================================================================
                 if (respuesta == DialogResult.Yes)
                 {
                     var categorias = dtInventario.AsEnumerable()
@@ -554,8 +545,6 @@ namespace BRUNO
 
                     VolcarDatosAExcel(ws, dtInventario.Columns, todasLasFilas);
                 }
-
-                // 4. MOSTRAR EXCEL
                 excelApp.Visible = true;
             }
             catch (Exception ex)

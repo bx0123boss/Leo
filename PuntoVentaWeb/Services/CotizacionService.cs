@@ -130,6 +130,13 @@ public class CotizacionService
     }
     public async Task GuardarCotizacion(Cotizacion cotizacion)
     {
+        if (cotizacion.DatosDinamicos != null && cotizacion.DatosDinamicos.Any())
+        {
+         
+            cotizacion.Datos = string.Join(";", cotizacion.DatosDinamicos
+                .Where(x => !string.IsNullOrWhiteSpace(x.Valor))
+                .Select(x => $"{x.Etiqueta}:{x.Valor}"));
+        }
         using (var con = new SqlConnection(_sqlString))
         {
             await con.OpenAsync();
@@ -137,9 +144,9 @@ public class CotizacionService
             {
                 try
                 {
-                    string sqlHead = @"INSERT INTO Cotizaciones (Fecha, ClienteNombre, ClienteId, Total, Observaciones) 
+                    string sqlHead = @"INSERT INTO Cotizaciones (Fecha, ClienteNombre, ClienteId, Total, Observaciones, Datos) 
                                    OUTPUT INSERTED.Id 
-                                   VALUES (@Fecha, @Cliente, @IdCliente, @Total, @Observaciones)";
+                                   VALUES (@Fecha, @Cliente, @IdCliente, @Total, @Observaciones, @Datos)";
 
                     int newId;
 
@@ -151,6 +158,7 @@ public class CotizacionService
                         cmd.Parameters.AddWithValue("@Total", cotizacion.Total);
                         cmd.Parameters.AddWithValue("@Observaciones",
                             string.IsNullOrEmpty(cotizacion.Observaciones) ? DBNull.Value : cotizacion.Observaciones);
+                        cmd.Parameters.AddWithValue("@Datos", string.IsNullOrEmpty(cotizacion.Datos) ? DBNull.Value : cotizacion.Datos);
 
                         newId = (int)await cmd.ExecuteScalarAsync();
                     }
@@ -207,8 +215,25 @@ public class CotizacionService
                             ClienteId = reader.GetSchemaTable().Select("ColumnName = 'ClienteId'").Length > 0 && reader["ClienteId"] != DBNull.Value
                                         ? Convert.ToInt32(reader["ClienteId"]) : 0,
                             Observaciones = reader.GetSchemaTable().Select("ColumnName = 'Observaciones'").Length > 0 && reader["Observaciones"] != DBNull.Value
-                                            ? reader["Observaciones"].ToString() : ""
+                                            ? reader["Observaciones"].ToString() : "",
+                            Datos = reader["Datos"] != DBNull.Value ? reader["Datos"].ToString() : ""
                         };
+                        if (!string.IsNullOrEmpty(cotizacion.Datos))
+                        {
+                            var pares = cotizacion.Datos.Split(';');
+                            foreach (var par in pares)
+                            {
+                                var partes = par.Split(':');
+                                if (partes.Length == 2)
+                                {
+                                    cotizacion.DatosDinamicos.Add(new DatoDinamicoItem
+                                    {
+                                        Etiqueta = partes[0],
+                                        Valor = partes[1]
+                                    });
+                                }
+                            }
+                        }
 
                         // Recuperamos el total si existe columna
                         if (reader.HasRows && reader.GetSchemaTable().Select("ColumnName = 'Total'").Length > 0 && reader["Total"] != DBNull.Value)
@@ -244,8 +269,27 @@ public class CotizacionService
         }
         return cotizacion;
     }
-
-    // Dentro de CotizacionService.cs
+    public async Task<List<string>> ObtenerConfiguracionCampos()
+    {
+        var campos = new List<string>();
+        using (var con = new SqlConnection(_sqlString))
+        {
+            await con.OpenAsync();
+            // Solo traemos los nombres activos ordenados
+            string sql = "SELECT NombreEtiqueta FROM CotizacionCamposConfig WHERE Activo = 1 ORDER BY Orden";
+            using (var cmd = new SqlCommand(sql, con))
+            {
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (reader.Read())
+                    {
+                        campos.Add(reader["NombreEtiqueta"].ToString());
+                    }
+                }
+            }
+        }
+        return campos;
+    }
 
     public async Task<ConfiguracionNegocio> ObtenerConfiguracion()
     {

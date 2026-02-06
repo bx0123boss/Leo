@@ -140,7 +140,42 @@ public class ClienteService
         }
         return lista;
     }
+    /// <summary>
+    /// Obtiene un cliente específico por su ID desde Access.
+    /// </summary>
+    public async Task<Cliente> ObtenerClientePorId(int id)
+    {
+        try
+        {
+            using (var con = new OdbcConnection(_accessString))
+            {
+                await con.OpenAsync();
 
+                string query = @"SELECT Id, Nombre, RFC, Direccion, Telefono, Correo, Limite, Estatus, Referencia 
+                                 FROM Clientes 
+                                 WHERE Id = ?";
+
+                using (var cmd = new OdbcCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("?", id);
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (reader.Read())
+                        {
+                            return MapearReaderACliente(reader);
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener cliente por ID: {ex.Message}");
+        }
+
+        return null; // Retorna null si no lo encuentra o hay error
+    }
     // Helper para no repetir código de mapeo
     private Cliente MapearReaderACliente(System.Data.Common.DbDataReader reader)
     {

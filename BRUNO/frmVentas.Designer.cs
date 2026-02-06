@@ -62,12 +62,14 @@
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.lblUsuario = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
+            this.lblObservaciones = new System.Windows.Forms.Label();
             this.lblCajero = new System.Windows.Forms.Label();
             this.printDocument1 = new System.Drawing.Printing.PrintDocument();
             this.txtFolioCotizacion = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
             this.button5 = new System.Windows.Forms.Button();
+            this.lblDatosCotizacion = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -366,7 +368,7 @@
             this.label4.BackColor = System.Drawing.Color.Transparent;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.ForeColor = System.Drawing.Color.White;
-            this.label4.Location = new System.Drawing.Point(23, 43);
+            this.label4.Location = new System.Drawing.Point(268, 10);
             this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(114, 25);
@@ -379,7 +381,7 @@
             this.lblCliente.BackColor = System.Drawing.Color.Transparent;
             this.lblCliente.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblCliente.ForeColor = System.Drawing.Color.White;
-            this.lblCliente.Location = new System.Drawing.Point(163, 43);
+            this.lblCliente.Location = new System.Drawing.Point(408, 10);
             this.lblCliente.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblCliente.Name = "lblCliente";
             this.lblCliente.Size = new System.Drawing.Size(234, 24);
@@ -478,19 +480,19 @@
             this.lblUsuario.Text = "usuario";
             this.lblUsuario.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lblUsuario_MouseDoubleClick);
             // 
-            // label7
+            // lblObservaciones
             // 
-            this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label7.AutoSize = true;
-            this.label7.BackColor = System.Drawing.Color.Transparent;
-            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.75F, System.Drawing.FontStyle.Bold);
-            this.label7.ForeColor = System.Drawing.Color.White;
-            this.label7.Location = new System.Drawing.Point(1050, 9);
-            this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(77, 24);
-            this.label7.TabIndex = 32;
-            this.label7.Text = "Cajero:";
+            this.lblObservaciones.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblObservaciones.AutoSize = true;
+            this.lblObservaciones.BackColor = System.Drawing.Color.Transparent;
+            this.lblObservaciones.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.75F, System.Drawing.FontStyle.Bold);
+            this.lblObservaciones.ForeColor = System.Drawing.Color.White;
+            this.lblObservaciones.Location = new System.Drawing.Point(1050, 9);
+            this.lblObservaciones.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblObservaciones.Name = "lblObservaciones";
+            this.lblObservaciones.Size = new System.Drawing.Size(77, 24);
+            this.lblObservaciones.TabIndex = 32;
+            this.lblObservaciones.Text = "Cajero:";
             // 
             // lblCajero
             // 
@@ -544,16 +546,39 @@
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
+            // lblDatosCotizacion
+            // 
+            this.lblDatosCotizacion.AutoSize = true;
+            this.lblDatosCotizacion.BackColor = System.Drawing.Color.Transparent;
+            this.lblDatosCotizacion.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblDatosCotizacion.ForeColor = System.Drawing.Color.Yellow;
+            this.lblDatosCotizacion.Location = new System.Drawing.Point(31, 41);
+            this.lblDatosCotizacion.Name = "lblDatosCotizacion";
+            this.lblDatosCotizacion.Size = new System.Drawing.Size(0, 18);
+            this.lblDatosCotizacion.TabIndex = 37;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.BackColor = System.Drawing.Color.Transparent;
+            this.label9.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label9.ForeColor = System.Drawing.Color.Yellow;
+            this.label9.Location = new System.Drawing.Point(31, 64);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(0, 18);
+            this.label9.TabIndex = 38;
+            // 
             // frmVentas
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.ClientSize = new System.Drawing.Size(1343, 629);
+            this.Controls.Add(this.label9);
             this.Controls.Add(this.button5);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.txtFolioCotizacion);
-            this.Controls.Add(this.label7);
+            this.Controls.Add(this.lblObservaciones);
             this.Controls.Add(this.lblCajero);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.lblUsuario);
@@ -576,6 +601,7 @@
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.lblDatosCotizacion);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.KeyPreview = true;
             this.Margin = new System.Windows.Forms.Padding(4);
@@ -613,7 +639,7 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         public System.Windows.Forms.Label lblUsuario;
-        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label lblObservaciones;
         public System.Windows.Forms.Label lblCajero;
         private System.Drawing.Printing.PrintDocument printDocument1;
         private System.Windows.Forms.DataGridViewTextBoxColumn Cant;
@@ -630,5 +656,7 @@
         private System.Windows.Forms.TextBox txtFolioCotizacion;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.Label lblDatosCotizacion;
+        private System.Windows.Forms.Label label9;
     }
 }

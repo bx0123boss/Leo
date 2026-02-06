@@ -19,8 +19,9 @@ namespace BRUNO
         double exis = 0.0;
         string idCliente = "0";
         double descuento;
+        string datos = "", observaciones="";
+        string direccion;
         int foli;
-        string direccion = "";
         public string usuario = "", idUsuario = "";
         public frmVentas()
         {
@@ -63,6 +64,8 @@ namespace BRUNO
         {
             conectar.Close();
             total = 0;
+            observaciones = "";
+            datos = "";
             iva = 0;
             origen = "";
             exis = 0.0;
@@ -80,6 +83,8 @@ namespace BRUNO
             checkBox1.Checked = false;
             txtFolioCotizacion.Enabled = true;
             txtFolioCotizacion.Text = "";
+            label9.Text = "";
+            lblDatosCotizacion.Text = "";
             button5.Text = "Buscar";
             dataGridView1.Rows.Clear();
             string[] opcionesPago = {
@@ -211,19 +216,13 @@ namespace BRUNO
             }
             try
             {
-                // Eliminar filas del origen de datos (depende de tu implementación)
                 foreach (DataGridViewRow row in dataGridView1.SelectedRows)
                 {
-                    // Aquí debes implementar la lógica para eliminar del origen de datos
-                    // Por ejemplo, si está vinculado a un DataTable:
                     if (row.DataBoundItem != null)
                     {
-                        // Lógica para eliminar del origen de datos
-                        // Ejemplo para DataTable:
                         ((DataRowView)row.DataBoundItem).Row.Delete();
                     }
 
-                    // Eliminar del DataGridView
                     dataGridView1.Rows.Remove(row);
                 }
                 lblTotal.Text = $"{RecalcularTotal:C}";
@@ -233,7 +232,6 @@ namespace BRUNO
             {
                 MessageBox.Show($"Error al eliminar filas: {ex.Message}");
             }
-            //dataGridView1.Rows.RemoveAt(dataGridView1.CurrentRow.Index);
         }
 
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
@@ -510,7 +508,10 @@ namespace BRUNO
                              lblFolio.Text,
                              total,
                              lblCliente.Text,
+                             idCliente,
                              cmbPago.Text,
+                             datos,
+                             observaciones,
                              Conexion.lugar,
                              Conexion.logoPath,    // <--- Logo
                              Conexion.datosTicket, // <--- Encabezado del negocio
@@ -674,6 +675,7 @@ namespace BRUNO
         }
         private void CargarCotizacionWeb(string folio)
         {
+            
             string query = @"
                    SELECT 
                         C.ClienteId,
@@ -683,7 +685,9 @@ namespace BRUNO
 	                    DC.Descripcion,
 	                    DC.Cantidad,
 	                    DC.PrecioUnitario,
-	                    DC.Importe
+	                    DC.Importe,
+                        C.Datos,
+                        C.Observaciones
                     FROM Cotizaciones C
                     INNER JOIN DetalleCotizacion DC ON C.Id = DC.CotizacionId
                     WHERE C.Id = @Folio";
@@ -714,6 +718,8 @@ namespace BRUNO
                                 double cantidad = Convert.ToDouble(reader["Cantidad"]);
                                 double precioUni = Convert.ToDouble(reader["PrecioUnitario"]);
                                 double tolProducto = Convert.ToDouble(reader["Importe"]);
+                                observaciones = reader["Observaciones"].ToString();
+                                datos = reader["Datos"].ToString();
                                 AgregarProductoAVenta(codigoProd, cantidad, descripcion,precioUni, tolProducto);
                             }
                         }
@@ -724,6 +730,28 @@ namespace BRUNO
             catch (Exception ex)
             {
                 MessageBox.Show("Error al cargar cotización: " + ex.Message);
+            }
+            if (!string.IsNullOrEmpty(datos))
+            {
+                string textoVisual = datos.Replace(";", "   |   ");
+
+                lblDatosCotizacion.Text = textoVisual;
+                lblDatosCotizacion.Visible = true;
+            }
+            else
+            {
+                lblDatosCotizacion.Text = "";
+                lblDatosCotizacion.Visible = false;
+            }
+            if (!string.IsNullOrEmpty(observaciones))
+            {
+                label9.Text = "Observaciones: " + observaciones;
+                label9.Visible = true;
+            }
+            else
+            {
+                label9.Text = "";
+                label9.Visible = false;
             }
         }
 
@@ -750,6 +778,8 @@ namespace BRUNO
                 txtFolioCotizacion.Enabled = true; // Reactivamos el campo
                 txtFolioCotizacion.Text = "";
                 button5.Text = "Buscar"; // Regresamos el texto a su estado original
+                datos = "";
+                observaciones = "";
                 txtFolioCotizacion.Focus();
                 return;
             }
