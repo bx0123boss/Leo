@@ -128,6 +128,84 @@ public class CotizacionService
         }
         return lista;
     }
+    public async Task ActualizarCotizacion(Cotizacion cotizacion)
+    {
+        // 1. Procesamos los datos dinámicos exactamente igual (Etiqueta:Valor;Etiqueta:Valor)
+        if (cotizacion.DatosDinamicos != null && cotizacion.DatosDinamicos.Any())
+        {
+            cotizacion.Datos = string.Join(";", cotizacion.DatosDinamicos
+                .Where(x => !string.IsNullOrWhiteSpace(x.Valor))
+                .Select(x => $"{x.Etiqueta}:{x.Valor}"));
+        }
+
+        using (var con = new SqlConnection(_sqlString))
+        {
+            await con.OpenAsync();
+            using (var transaction = con.BeginTransaction())
+            {
+                try
+                {
+                    // 2. Actualizamos el encabezado
+                    string sqlHead = @"UPDATE Cotizaciones 
+                                 SET Fecha = @Fecha, 
+                                     ClienteNombre = @Cliente, 
+                                     ClienteId = @IdCliente, 
+                                     Total = @Total, 
+                                     Observaciones = @Observaciones, 
+                                     Datos = @Datos 
+                                 WHERE Id = @Id";
+
+                    using (var cmd = new SqlCommand(sqlHead, con, transaction))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", cotizacion.Id);
+                        cmd.Parameters.AddWithValue("@Fecha", cotizacion.Fecha);
+                        cmd.Parameters.AddWithValue("@Cliente", cotizacion.ClienteNombre ?? "Público General");
+                        cmd.Parameters.AddWithValue("@IdCliente", cotizacion.ClienteId); // Cambiar a ClienteId si así se llama en tu modelo
+                        cmd.Parameters.AddWithValue("@Total", cotizacion.Total);
+                        cmd.Parameters.AddWithValue("@Observaciones",
+                            string.IsNullOrEmpty(cotizacion.Observaciones) ? DBNull.Value : cotizacion.Observaciones);
+                        cmd.Parameters.AddWithValue("@Datos",
+                            string.IsNullOrEmpty(cotizacion.Datos) ? DBNull.Value : cotizacion.Datos);
+
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+
+                    // 3. Borramos el detalle viejo para re-insertar el nuevo
+                    string sqlDelete = "DELETE FROM DetalleCotizacion WHERE CotizacionId = @Id";
+                    using (var cmdDel = new SqlCommand(sqlDelete, con, transaction))
+                    {
+                        cmdDel.Parameters.AddWithValue("@Id", cotizacion.Id);
+                        await cmdDel.ExecuteNonQueryAsync();
+                    }
+
+                    // 4. Insertamos los nuevos detalles (Misma lógica que en Guardar)
+                    string sqlDet = @"INSERT INTO DetalleCotizacion (CotizacionId, ProductoCodigo, Descripcion, Cantidad, PrecioUnitario, Importe) 
+                                 VALUES (@Id, @Cod, @Desc, @Cant, @Prec, @Imp)";
+
+                    foreach (var det in cotizacion.Detalles)
+                    {
+                        using (var cmd = new SqlCommand(sqlDet, con, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@Id", cotizacion.Id);
+                            cmd.Parameters.AddWithValue("@Cod", det.ProductoCodigo ?? "");
+                            cmd.Parameters.AddWithValue("@Desc", det.Descripcion ?? "");
+                            cmd.Parameters.AddWithValue("@Cant", det.Cantidad);
+                            cmd.Parameters.AddWithValue("@Prec", det.PrecioUnitario);
+                            cmd.Parameters.AddWithValue("@Imp", det.Importe);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
+
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+    }
     public async Task GuardarCotizacion(Cotizacion cotizacion)
     {
         if (cotizacion.DatosDinamicos != null && cotizacion.DatosDinamicos.Any())

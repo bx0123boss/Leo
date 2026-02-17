@@ -139,6 +139,7 @@ namespace BRUNO
                         TicketMediaCarta pdfTicket = new TicketMediaCarta(
                              productos,
                              lblFolio.Text,
+                             0,
                              total,
                              lblCliente.Text,
                              dataGridView1[6, 0].Value.ToString(),

@@ -32,7 +32,7 @@ public class PdfGenerator
         {
             container.Page(page =>
             {
-                page.Size(PageSizes.Letter);
+                page.Size(new PageSize(612, 396));
                 page.Margin(1, Unit.Centimetre);
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Arial"));
@@ -122,12 +122,11 @@ public class PdfGenerator
                         {
                             var nombreFinal = cliente?.Nombre ?? cotizacion.ClienteNombre ?? "Público General";
                             datos.Item().Text(nombreFinal).Bold().FontSize(11);
-
-                            if (cliente != null)
+                            if (cliente != null || config.NombreLugar == "TURBOLLANTAS")
                             {
-                                if (!string.IsNullOrEmpty(cliente.Direccion)) datos.Item().Text(cliente.Direccion);
-                                if (!string.IsNullOrEmpty(cliente.Telefono)) datos.Item().Text($"Tel: {cliente.Telefono}");
-                                if (!string.IsNullOrEmpty(cliente.RFC)) datos.Item().Text($"RFC: {cliente.RFC}");
+                                datos.Item().Text($"Dirección: {cliente?.Direccion ?? ""}");
+                                datos.Item().Text($"Teléfono: {cliente?.Telefono ?? ""}");
+                                datos.Item().Text($"RFC: {cliente?.RFC ?? ""}");
                             }
                         });
                     });
@@ -151,22 +150,35 @@ public class PdfGenerator
                     }
                 });
 
-                // --- DATOS EXTRA (Placas, Modelo, etc.) - ¡LÓGICA RECUPERADA! ---
-                if (!string.IsNullOrEmpty(cotizacion.Datos))
+                // --- DATOS EXTRA (Placas, Modelo, etc.)
+                if (!string.IsNullOrEmpty(cotizacion.Datos) || config.NombreLugar == "TURBOLLANTAS")
                 {
                     // Los ponemos en un bloque separado antes de la tabla con borde del color principal
                     column.Item().PaddingBottom(10).Border(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(text =>
                     {
                         var listaDatos = cotizacion.Datos.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                        foreach (var dato in listaDatos)
+                        if (listaDatos.Length > 0)
                         {
-                            var partes = dato.Split(new[] { ':' }, 2);
-                            if (partes.Length == 2)
+                            foreach (var dato in listaDatos)
                             {
-                                // La etiqueta en color principal (ej. "Placas:")
-                                text.Span($"{partes[0].Trim()}: ").Bold().FontColor(colorPrincipal);
-                                // El valor en negro (ej. "XYZ-123")
-                                text.Span($"{partes[1].Trim()}    ");
+                                var partes = dato.Split(new[] { ':' }, 2);
+                                if (partes.Length == 2)
+                                {
+                                    // La etiqueta en color principal (ej. "Placas:")
+                                    text.Span($"{partes[0].Trim()}: ").Bold().FontColor(colorPrincipal);
+                                    // El valor en negro (ej. "XYZ-123")
+                                    text.Span($"{partes[1].Trim()}    ");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            string[] camposDefault = { "Placas", "Modelo", "Color", "Kilometraje" };
+                            var camposConfig = ObtenerCamposConfiguradosDesdeBD();
+                            foreach (var campo in camposDefault)
+                            {
+                                text.Span($"{campo}: ").Bold().FontColor(colorPrincipal);
+                                text.Span("________________    "); // Espacio vacío para llenar
                             }
                         }
                     });
@@ -178,62 +190,52 @@ public class PdfGenerator
                     {
                         columns.ConstantColumn(30); // #
                         columns.ConstantColumn(40); // Cant
-                        columns.RelativeColumn();   // Descripcion (Se ajusta sola)
+                        columns.RelativeColumn();   // Descripcion
                         columns.ConstantColumn(70); // P.Unit
-                        columns.ConstantColumn(65); // TASA IVA (NUEVA)
-                        columns.ConstantColumn(50); // DESC (NUEVA)
+                        columns.ConstantColumn(65); // TASA IVA
+                        columns.ConstantColumn(50); // DESC
                         columns.ConstantColumn(70); // Importe
                     });
 
-                    // Encabezado de la tabla
                     table.Header(header =>
                     {
                         IContainer HeaderStyle(IContainer c) => c.Background(colorPrincipal).PaddingVertical(3).PaddingHorizontal(2);
-
                         header.Cell().Element(HeaderStyle).Text("#").FontColor(Colors.White).Bold();
                         header.Cell().Element(HeaderStyle).AlignCenter().Text("CANT").FontColor(Colors.White).Bold();
                         header.Cell().Element(HeaderStyle).Text("DESCRIPCIÓN").FontColor(Colors.White).Bold();
-
-                        // Columnas originales y nuevas
                         header.Cell().Element(HeaderStyle).AlignRight().Text("P.UNIT").FontColor(Colors.White).Bold();
-                        header.Cell().Element(HeaderStyle).AlignRight().Text("TASA IVA %").FontColor(Colors.White).Bold(); // NUEVA
-                        header.Cell().Element(HeaderStyle).AlignRight().Text("DESC").FontColor(Colors.White).Bold();       // NUEVA
+                        header.Cell().Element(HeaderStyle).AlignRight().Text("TASA IVA %").FontColor(Colors.White).Bold();
+                        header.Cell().Element(HeaderStyle).AlignRight().Text("DESC").FontColor(Colors.White).Bold();
                         header.Cell().Element(HeaderStyle).AlignRight().Text("IMPORTE").FontColor(Colors.White).Bold();
                     });
 
-                    // Filas (Efecto Cebra)
                     for (int i = 0; i < cotizacion.Detalles.Count; i++)
                     {
                         var item = cotizacion.Detalles[i];
                         var bg = i % 2 == 0 ? Colors.White : colorGrisClaro;
-
                         IContainer CellStyle(IContainer c) => c.Background(bg).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingVertical(2).PaddingHorizontal(2);
 
                         table.Cell().Element(CellStyle).Text((i + 1).ToString()).FontSize(8).FontColor(Colors.Grey.Darken2);
                         table.Cell().Element(CellStyle).AlignCenter().Text(item.Cantidad.ToString()).Bold();
                         table.Cell().Element(CellStyle).Text(item.Descripcion).FontSize(9);
-
-                        // Precios y nuevas columnas estáticas
                         table.Cell().Element(CellStyle).AlignRight().Text($"{item.PrecioUnitario:N2}");
-                        table.Cell().Element(CellStyle).AlignRight().Text("16.00%"); // Valor fijo
-                        table.Cell().Element(CellStyle).AlignRight().Text("$0.00");  // Valor fijo
+                        table.Cell().Element(CellStyle).AlignRight().Text("16.00%");
+                        table.Cell().Element(CellStyle).AlignRight().Text("$0.00");
                         table.Cell().Element(CellStyle).AlignRight().Text($"{item.Importe:N2}").Bold();
                     }
 
-                    // --- TOTALES (Footer) ---
-                    table.Footer(footer =>
+                    // IMPORTANTE: NO USAR table.Footer() aquí para el Total
+                });
+
+                // --- BLOQUE DE TOTALES (Fuera de la tabla para que salga solo al final) ---
+                column.Item().AlignRight().Row(row =>
+                {
+                    row.ConstantItem(200).PaddingTop(5).Border(1).BorderColor(colorPrincipal).Padding(5).Column(c =>
                     {
-                        // Ajustamos el ColSpan a 7 porque ahora hay 7 columnas en total
-                        footer.Cell().ColumnSpan(7).PaddingTop(5).AlignRight().Row(row =>
+                        c.Item().Row(r =>
                         {
-                            row.ConstantItem(200).Border(1).BorderColor(colorPrincipal).Padding(5).Column(c =>
-                            {
-                                c.Item().Row(r =>
-                                {
-                                    r.RelativeItem().Text("TOTAL:").Bold().FontSize(12);
-                                    r.RelativeItem().AlignRight().Text($"{cotizacion.Total:C2}").Bold().FontSize(13);
-                                });
-                            });
+                            r.RelativeItem().Text("TOTAL:").Bold().FontSize(12);
+                            r.RelativeItem().AlignRight().Text($"{cotizacion.Total:C2}").Bold().FontSize(13);
                         });
                     });
                 });
@@ -273,6 +275,44 @@ public class PdfGenerator
         }
     }
 
+    private static List<string> ObtenerCamposConfiguradosDesdeBD()
+    {
+        var campos = new List<string>();
+        try
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+            var configuration = builder.Build();
+            string connectionString = configuration.GetConnectionString("SQL");
+
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                // 2. Consultamos los campos activos
+                using (var con= new SqlConnection(connectionString))
+                {
+                    con.Open();
+                    string sql = "SELECT NombreEtiqueta FROM CotizacionCamposConfig WHERE Activo = 1 ORDER BY Orden";
+                    using (var cmd = new SqlCommand(sql, con))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                campos.Add(reader["NombreEtiqueta"].ToString());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error obteniendo etiquetas para PDF: {ex.Message}");
+        }
+        return campos;
+    }
     // -----------------------------------------------------------------------
     // MÉTODO PRIVADO: Obtiene los colores de SQL Server
     // -----------------------------------------------------------------------

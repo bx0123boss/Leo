@@ -1,4 +1,6 @@
 ﻿@page "/cotizacion"
+@page "/cotizacion/editar/{Id:int}"
+@page "/cotizacion/copiar/{IdCopiar:int}"
 @using PuntoVentaWeb.Models
 @using PuntoVentaWeb.Services
 
@@ -6,6 +8,7 @@
 @inject CotizacionService _cotizacionService
 @inject IJSRuntime JS
 @inject EmailService _emailService
+@inject NavigationManager Navigation
 
 <div class="container-fluid pb-5">
     <div class="card mb-3 border-primary">
@@ -284,8 +287,9 @@
                         <small class="text-muted">Verifique los datos antes de guardar.</small>
                     </div>
 
-                    <button class="btn btn-lg btn-success px-5" @onclick="GuardarEnBaseDatos">
-                        <i class="oi oi-check me-2"></i> Guardar Cotización
+                    <button class="btn btn-lg @(Id.HasValue ? "btn-warning" : "btn-success") px-5" @onclick="GuardarEnBaseDatos">
+                        <i class="oi @(Id.HasValue ? "oi-pencil" : "oi-check") me-2"></i> 
+                        @(Id.HasValue ? "Actualizar Cotización" : "Guardar Cotización")
                     </button>
                 </div>
             </div>
@@ -313,6 +317,8 @@
 }
 
 @code {
+    [Parameter] public int? Id { get; set; }
+    [Parameter] public int? IdCopiar { get; set; }
     private bool datosGeneralesAbiertos = true;
     private string busquedaCliente = "";
     private List<Cliente> listaClientes = new List<Cliente>();
@@ -333,20 +339,60 @@
     private decimal precioManual = 0;
 
     // --- NUEVO: Inicialización del componente ---
-    protected override async Task OnInitializedAsync()
+ protected override async Task OnInitializedAsync()
+{
+    configuracionCampos = await _cotizacionService.ObtenerConfiguracionCampos();
+
+    if (IdCopiar.HasValue) // Verificamos si hay un ID para copiar
     {
-        // 1. Cargamos la configuración de SQL (ej: "Proyecto", "Vigencia")
-        configuracionCampos = await _cotizacionService.ObtenerConfiguracionCampos();
+        // Pasamos IdCopiar.Value (int) en lugar de IdCopiar (int?)
+        var cotizacionExistente = await _cotizacionService.ObtenerCotizacionPorId(IdCopiar.Value);
         
-        // 2. Preparamos la primera cotización vacía con esos campos
+        if (cotizacionExistente != null)    
+        {
+            // Inicializamos para que traiga los campos dinámicos vacíos primero
+            await InicializarCotizacion(); 
+
+            // Clonamos solo los productos
+            nuevaCotizacion.Detalles = cotizacionExistente.Detalles.Select(d => new DetalleCotizacion {
+                ProductoCodigo = d.ProductoCodigo,
+                Descripcion = d.Descripcion,
+                Cantidad = d.Cantidad,
+                PrecioUnitario = d.PrecioUnitario
+            }).ToList();
+        }
+    }
+    else if (Id.HasValue) // MODO EDICIÓN
+    {
+        // Pasamos Id.Value (int) en lugar de Id (int?)
+        var cotExistente = await _cotizacionService.ObtenerCotizacionPorId(Id.Value);
+        
+        if (cotExistente != null)
+        {
+            nuevaCotizacion = cotExistente;
+            if (nuevaCotizacion.ClienteId > 0)
+            {
+                var c = await _clienteService.ObtenerClientePorId(nuevaCotizacion.ClienteId);
+                clienteEmailSeleccionado = c?.Correo ?? "";
+            }
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "No se encontró la cotización.");
+            Navigation.NavigateTo("/cotizacion");
+        }
+    }
+    else // MODO NUEVO
+    {
         await InicializarCotizacion();
     }
+}
 
     // --- NUEVO: Método helper para resetear el formulario con campos dinámicos ---
     private async Task InicializarCotizacion()
     {
         nuevaCotizacion = new Cotizacion();
-        
+
         // Agregamos los items vacíos para que el HTML los pinte
         if (configuracionCampos != null)
         {
@@ -477,40 +523,37 @@
             return;
         }
 
-        if (string.IsNullOrEmpty(nuevaCotizacion.ClienteNombre))
-        {
-            nuevaCotizacion.ClienteNombre = "Público en General";
-        }
-
         try
         {
-            // El servicio ahora se encarga de convertir DatosDinamicos -> string Datos
-            await _cotizacionService.GuardarCotizacion(nuevaCotizacion);
+            if (Id.HasValue)
+            {
+                // LÓGICA DE ACTUALIZACIÓN
+                await _cotizacionService.ActualizarCotizacion(nuevaCotizacion);
+                await JS.InvokeVoidAsync("alert", "¡Cotización Actualizada Exitosamente!");
+            }
+            else
+            {
+                // LÓGICA DE GUARDADO NUEVO
+                await _cotizacionService.GuardarCotizacion(nuevaCotizacion);
+                int nuevoFolio = await _cotizacionService.ObtenerUltimoFolio();
+                nuevaCotizacion.Id = nuevoFolio;
+                await JS.InvokeVoidAsync("alert", "¡Cotización Guardada Exitosamente!");
+            }
 
-            int nuevoFolio = await _cotizacionService.ObtenerUltimoFolio();
-            nuevaCotizacion.Id = nuevoFolio > 0 ? nuevoFolio : 0;
-
-            await JS.InvokeVoidAsync("alert", "¡Cotización Guardada Exitosamente!");
-
+            // Preguntar por envío de correo
             if (!string.IsNullOrEmpty(clienteEmailSeleccionado))
             {
                 bool deseaEnviar = await JS.InvokeAsync<bool>("confirm",
-                    $"El cliente tiene el correo registrado: {clienteEmailSeleccionado}.\n\n¿Deseas enviarle la cotización ahora mismo?");
+                    $"¿Deseas enviar (o re-enviar) la cotización a: {clienteEmailSeleccionado}?");
 
                 if (deseaEnviar)
                 {
-                    await EnviarCorreoAutomatico(nuevoFolio);
+                    await EnviarCorreoAutomatico(nuevaCotizacion.Id);
                 }
             }
 
-            // --- NUEVO: Usamos el método de inicialización para limpiar y recrear los campos ---
-            await InicializarCotizacion();
-            // ----------------------------------------------------------------------------------
-            
-            clienteEmailSeleccionado = "";
-            resultadosBusqueda.Clear();
-            busquedaRealizada = false;
-            datosGeneralesAbiertos = true;
+            // Después de editar o guardar, lo mejor es limpiar o volver al historial
+            Navigation.NavigateTo("/historial");
         }
         catch (Exception ex)
         {

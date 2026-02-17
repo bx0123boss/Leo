@@ -398,7 +398,10 @@ namespace BRUNO
             {
                 foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
             }
-            lblFolio.Text = "VR" + String.Format("{0:0000}", foli);
+            if(Conexion.lugar == "TURBOLLANTAS")
+                lblFolio.Text = "TB" + String.Format("{0:0000}", foli);
+            else
+                lblFolio.Text = "VR" + String.Format("{0:0000}", foli);
             lblFolio.Visible = true;
             label2.Visible = true;
             double IVA = 0;
@@ -506,6 +509,7 @@ namespace BRUNO
                         TicketMediaCarta pdfTicket = new TicketMediaCarta(
                              productos,
                              lblFolio.Text,
+                             descuento,
                              total,
                              lblCliente.Text,
                              idCliente,

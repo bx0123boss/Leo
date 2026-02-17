@@ -3,78 +3,59 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using System;
 using System.Collections.Generic;
+using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing.Printing;
 using System.IO;
-using System.Data.OleDb;
-using System.Data.SqlClient; // Necesario para SqlConnection
 using System.Linq;
 using System.Windows.Forms;
-// Alias para evitar conflicto
+using static QuestPDF.Helpers.Colors;
 using QImage = QuestPDF.Infrastructure.Image;
 
 namespace BRUNO
 {
     public class TicketMediaCarta
     {
-        // Estructura interna para colores
         private class ColoresPdf
         {
-            public string Primario { get; set; } = "#720e1e"; // Guinda Default
-            public string Secundario { get; set; } = "#FFD700"; // Dorado Default
+            public string Primario { get; set; } = "#720e1e";
+            public string Secundario { get; set; } = "#FFD700";
             public int DiasValidez { get; set; } = 15;
         }
 
-        // Datos de la venta
         private List<Producto> _productos;
         private string _folio;
         private double _total;
-
-        private string _cliente;
-        private string _idCliente;
-        private string _direccion;
-        private string _rfc;
-        private string _telefono;
-        private string _correo;
-        private string _formaPago;
-
-        // CAMPOS ADICIONALES
-        private string _datos;
-        private string _observaciones;
-
-        // Datos del Negocio
-        private string _nombreLugar;
-        private string _logoPath;
-        private string[] _datosTicket;
-        private string[] _pieDeTicket;
-
-        // Variables de diseño dinámicas
-        private string _hexPrimario;
-        private string _hexSecundario;
+        private string _cliente, _idCliente, _direccion, _rfc, _telefono, _correo, _formaPago;
+        private string _datos, _observaciones;
+        private string _nombreLugar, _logoPath;
+        private string[] _datosTicket, _pieDeTicket;
+        private string _hexPrimario, _hexSecundario;
+        private double _descuento;
         private int _diasValidez;
 
-        public TicketMediaCarta(List<Producto> productos, string folio, double total, string cliente, string idCliente, string formaPago,
+        public TicketMediaCarta(List<Producto> productos, string folio, double descuento, double total, string cliente, string idCliente, string formaPago,
                                 string datos, string observaciones,
                                 string nombreLugar, string logoPath, string[] datosTicket, string[] pieDeTicket)
         {
             _productos = productos;
             _folio = folio;
+            _descuento = descuento;
             _total = total;
             _cliente = cliente;
             _idCliente = idCliente;
             _formaPago = formaPago;
-
             _datos = datos;
             _observaciones = observaciones;
-
             _nombreLugar = nombreLugar;
             _logoPath = logoPath;
             _datosTicket = datosTicket;
             _pieDeTicket = pieDeTicket;
 
-            // 1. CARGAR DATOS DE CLIENTE (ACCESS)
+            // 1. Cargar datos desde Access
             CargarDatosCliente();
 
-            // 2. CARGAR COLORES (SQL SERVER usando Conexion.CadSQL)
+            // 2. Cargar colores desde SQL Server
             var colores = ObtenerColoresDesdeSQL();
             _hexPrimario = colores.Primario;
             _hexSecundario = colores.Secundario;
@@ -84,77 +65,74 @@ namespace BRUNO
         private void CargarDatosCliente()
         {
             if (string.IsNullOrEmpty(_idCliente) || _idCliente == "0") return;
-
             try
             {
                 using (OleDbConnection con = new OleDbConnection(Conexion.CadCon))
                 {
                     con.Open();
-                    string query = "SELECT Direccion, RFC, Telefono, Correo FROM Clientes WHERE Id = @Id";
-
+                    string query = "SELECT Direccion, RFC, Telefono, Correo FROM Clientes WHERE Id = " + _idCliente;
                     using (OleDbCommand cmd = new OleDbCommand(query, con))
                     {
-                        cmd.Parameters.AddWithValue("@Id", _idCliente);
                         using (OleDbDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.Read())
                             {
-                                _direccion = reader["Direccion"] != DBNull.Value ? reader["Direccion"].ToString() : "";
-                                _rfc = reader["RFC"] != DBNull.Value ? reader["RFC"].ToString() : "";
-                                _telefono = reader["Telefono"] != DBNull.Value ? reader["Telefono"].ToString() : "";
-                                _correo = reader["Correo"] != DBNull.Value ? reader["Correo"].ToString() : "";
+                                _direccion = reader["Direccion"]?.ToString() ?? "";
+                                _rfc = reader["RFC"]?.ToString() ?? "";
+                                _telefono = reader["Telefono"]?.ToString() ?? "";
+                                _correo = reader["Correo"]?.ToString() ?? "";
                             }
                         }
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error cargando datos cliente: " + ex.Message);
-            }
+            catch (Exception ex) { Console.WriteLine("Error Access: " + ex.Message); }
         }
 
-        // --- MÉTODO CORREGIDO: Usa Conexion.CadSQL ---
         private ColoresPdf ObtenerColoresDesdeSQL()
         {
             var colores = new ColoresPdf();
             try
             {
-                // AQUÍ USAMOS TU VARIABLE ESTÁTICA DE CONEXIÓN
-                string connectionString = Conexion.CadSQL;
-
-                if (!string.IsNullOrEmpty(connectionString))
+                using (var conn = new SqlConnection(Conexion.CadSQL))
                 {
-                    using (var conn = new SqlConnection(connectionString))
+                    conn.Open();
+                    string query = "SELECT TOP 1 ColorPrimario, ColorSecundario, DiasValidez FROM ConfiguracionApariencia";
+                    using (var cmd = new SqlCommand(query, conn))
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        conn.Open();
-                        string query = "SELECT TOP 1 ColorPrimario, ColorSecundario, DiasValidez FROM ConfiguracionApariencia";
-                        using (var cmd = new SqlCommand(query, conn))
+                        if (reader.Read())
                         {
-                            using (var reader = cmd.ExecuteReader())
-                            {
-                                if (reader.Read())
-                                {
-                                    var c1 = reader["ColorPrimario"]?.ToString();
-                                    var c2 = reader["ColorSecundario"]?.ToString();
-
-                                    if (!string.IsNullOrEmpty(c1)) colores.Primario = c1;
-                                    if (!string.IsNullOrEmpty(c2)) colores.Secundario = c2;
-                                    if (reader["DiasValidez"] != DBNull.Value)
-                                    {
-                                        colores.DiasValidez = Convert.ToInt32(reader["DiasValidez"]);
-                                    }
-                                }
-                            }
+                            colores.Primario = reader["ColorPrimario"]?.ToString() ?? colores.Primario;
+                            colores.Secundario = reader["ColorSecundario"]?.ToString() ?? colores.Secundario;
+                            if (reader["DiasValidez"] != DBNull.Value)
+                                colores.DiasValidez = Convert.ToInt32(reader["DiasValidez"]);
                         }
                     }
                 }
             }
-            catch (Exception)
-            {
-                // Si falla la conexión a SQL, usamos los defaults (Guinda/Dorado) sin tronar el programa
-            }
+            catch { /* Usa defaults si falla SQL */ }
             return colores;
+        }
+
+        private List<string> ObtenerCamposConfiguradosDesdeSQL()
+        {
+            var campos = new List<string>();
+            try
+            {
+                using (var con = new SqlConnection(Conexion.CadSQL))
+                {
+                    con.Open();
+                    string sql = "SELECT NombreEtiqueta FROM CotizacionCamposConfig WHERE Activo = 1 ORDER BY Orden";
+                    using (var cmd = new SqlCommand(sql, con))
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read()) campos.Add(reader["NombreEtiqueta"].ToString());
+                    }
+                }
+            }
+            catch { }
+            return campos;
         }
 
         public void ImprimirDirectamente(string nombreImpresora)
@@ -162,24 +140,25 @@ namespace BRUNO
             try
             {
                 QuestPDF.Settings.License = LicenseType.Community;
-
-                // Preparamos los colores QuestPDF
                 var colorPrincipal = Color.FromHex(_hexPrimario);
                 var colorSecundario = Color.FromHex(_hexSecundario);
                 var colorGrisClaro = Colors.Grey.Lighten3;
+                // --- Cálculos de Totales ---
+                double total = _productos.Sum(p => p.Total);
+                double subtotal = total/1.16;
+                double iva = (total / 1.16) * 0.16;
+                double totalFinal = total;
+                // ---------------------------
 
                 var documento = Document.Create(container =>
                 {
                     container.Page(page =>
                     {
-                        page.Size(new PageSize(612, 792)); // Carta
-                        page.MarginTop(1, Unit.Centimetre);
-                        page.MarginLeft(1, Unit.Centimetre);
-                        page.MarginRight(1, Unit.Centimetre);
-                        page.MarginBottom(396); // Media hoja
-
+                        // TAMAÑO MEDIA CARTA EXACTO
+                        page.Size(new PageSize(612, 396));
+                        page.Margin(0.7f, Unit.Centimetre);
                         page.PageColor(Colors.White);
-                        page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Arial"));
+                        page.DefaultTextStyle(x => x.FontSize(8).FontFamily("Arial"));
 
                         page.Header().Element(ComposeHeader);
                         page.Content().Element(ComposeContent);
@@ -187,269 +166,186 @@ namespace BRUNO
                     });
                 });
 
-                // --- MÉTODOS LOCALES DE DISEÑO ---
-
                 void ComposeHeader(IContainer container)
                 {
                     container.Column(col =>
                     {
-                        // BARRA SUPERIOR DE COLOR
-                        col.Item().Height(6).Background(colorPrincipal);
-
-                        col.Item().PaddingTop(10).Row(row =>
+                        col.Item().Height(4).Background(colorPrincipal);
+                        col.Item().PaddingTop(5).Row(row =>
                         {
-                            // LOGO
                             if (!string.IsNullOrEmpty(_logoPath) && File.Exists(_logoPath))
-                            {
-                                row.ConstantItem(130).Image(_logoPath).FitArea();
-                            }
+                                row.ConstantItem(100).Image(_logoPath).FitArea();
 
-                            // DATOS EMPRESA
-                            row.RelativeItem().PaddingLeft(15).Column(infoCol =>
+                            row.RelativeItem().PaddingLeft(10).Column(info =>
                             {
-                                infoCol.Item().Text(_nombreLugar.ToUpper()).Bold().FontSize(16).FontColor(colorPrincipal);
-
+                                info.Item().Text(_nombreLugar.ToUpper()).Bold().FontSize(14).FontColor(colorPrincipal);
                                 if (_datosTicket != null)
-                                {
-                                    foreach (var linea in _datosTicket)
-                                    {
-                                        if (!string.IsNullOrWhiteSpace(linea))
-                                            infoCol.Item().Text(linea.Trim()).FontSize(8).FontColor(Colors.Grey.Darken2);
-                                    }
-                                }
-                                // Forma de pago (Si no es Turbollantas)
-                                if (Conexion.lugar != "TURBOLLANTAS")
-                                {
-                                    infoCol.Item().PaddingTop(5).Text($"Forma de pago: {_formaPago}").FontSize(8);
-                                }
+                                    foreach (var l in _datosTicket) info.Item().Text(l.Trim()).FontSize(7);
                             });
 
-                            // CUADRO DE FOLIO Y FECHA
-                            row.ConstantItem(120).Border(1).BorderColor(colorPrincipal).Padding(0).Column(box =>
+                            row.ConstantItem(110).Border(1).BorderColor(colorPrincipal).Column(box =>
                             {
-                                box.Item().Background(colorPrincipal).Padding(2).AlignCenter().Text("COTIZACIÓN/VENTA").Bold().FontColor(Colors.White);
-
-                                box.Item().Padding(4).Column(c =>
-                                {
-                                    c.Item().AlignCenter().Text($"Folio: {_folio}").FontSize(11).Bold().FontColor(Colors.Black);
-                                    c.Item().PaddingTop(2).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
-                                    c.Item().PaddingTop(2).AlignCenter().Text($"{DateTime.Now:dd/MMM/yyyy}").FontSize(8);
-                                    c.Item().AlignCenter().Text($"{DateTime.Now:HH:mm} hrs").FontSize(7).FontColor(Colors.Grey.Darken2);
-
-                                    // Vigencia calculada
-                                    var fechaVigencia = DateTime.Now.AddDays(_diasValidez);
-                                    c.Item().PaddingTop(3).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
-                                    c.Item().PaddingTop(2).AlignCenter().Text("Vigente hasta:").FontSize(6).Bold().FontColor(colorPrincipal);
-                                    c.Item().AlignCenter().Text($"{fechaVigencia:dd/MMM/yyyy}").FontSize(8).Bold();
+                                box.Item().Background(colorPrincipal).Padding(1).AlignCenter().Text("COTIZACIÓN").Bold().FontColor(Colors.White);
+                                box.Item().Padding(2).Column(c => {
+                                    c.Item().AlignCenter().Text($"Folio: {_folio}").Bold();
+                                    c.Item().AlignCenter().Text($"{DateTime.Now:dd/MM/yyyy}").FontSize(7);
                                 });
                             });
                         });
-
-                        // Línea separadora
-                        col.Item().PaddingTop(10).LineHorizontal(2).LineColor(colorSecundario);
+                        col.Item().PaddingTop(5).LineHorizontal(1).LineColor(colorSecundario);
                     });
                 }
 
                 void ComposeContent(IContainer container)
                 {
-                    container.PaddingVertical(10).Column(column =>
+                    container.PaddingVertical(5).Column(column =>
                     {
-                        // --- FILA SUPERIOR: DATOS DEL CLIENTE Y OBSERVACIONES ---
-                        column.Item().PaddingBottom(10).Row(row =>
-                        {
-                            // IZQUIERDA: Datos del Cliente
-                            row.RelativeItem().Column(c =>
-                            {
-                                // Título con pequeña barra lateral
-                                c.Item().Row(titleRow =>
-                                {
-                                    titleRow.ConstantItem(5).Height(15).Background(colorSecundario);
-                                    titleRow.RelativeItem().PaddingLeft(5).Text("DATOS DEL CLIENTE").Bold().FontSize(10).FontColor(colorPrincipal);
-                                });
-
-                                c.Item().PaddingTop(3).PaddingLeft(10).Column(datos =>
-                                {
-                                    var nombreFinal = !string.IsNullOrEmpty(_cliente) ? _cliente : "Público General";
-                                    datos.Item().Text(nombreFinal).Bold().FontSize(11);
-
-                                    if (!string.IsNullOrEmpty(_direccion)) datos.Item().Text(_direccion);
-                                    if (!string.IsNullOrEmpty(_telefono)) datos.Item().Text($"Tel: {_telefono}");
-                                    if (!string.IsNullOrEmpty(_rfc)) datos.Item().Text($"RFC: {_rfc}");
-                                    if (!string.IsNullOrEmpty(_correo)) datos.Item().Text($"Email: {_correo}");
+                        // 1. DATOS CLIENTE (Lógica para TurboLlantas incluida)
+                        column.Item().Row(row => {
+                            row.RelativeItem().Column(c => {
+                                c.Item().Text("DATOS DEL CLIENTE").Bold().FontSize(8).FontColor(colorPrincipal);
+                                c.Item().PaddingLeft(5).Column(d => {
+                                    d.Item().Text(_cliente ?? "Público General").Bold();
+                                    if (Conexion.lugar == "TURBOLLANTAS" || !string.IsNullOrEmpty(_direccion))
+                                        d.Item().Text($"Dirección: {_direccion ?? ""}");
+                                    if (Conexion.lugar == "TURBOLLANTAS" || !string.IsNullOrEmpty(_telefono))
+                                        d.Item().Text($"Teléfono: {_telefono ?? ""}");
+                                    if (Conexion.lugar == "TURBOLLANTAS" || !string.IsNullOrEmpty(_rfc))
+                                        d.Item().Text($"RFC: {_rfc ?? ""}");
                                 });
                             });
+                        });
 
-                            // DERECHA: Observaciones
-                            string notasAMostrar = !string.IsNullOrEmpty(_observaciones) ? _observaciones : "";
-
-                            // Lógica TURBOLLANTAS original preservada
-                            if (!string.IsNullOrEmpty(notasAMostrar) || Conexion.lugar != "TURBOLLANTAS")
+                        // 2. DATOS EXTRA / VEHÍCULO
+                        column.Item().PaddingTop(5).Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text(text =>
+                        {
+                            var lista = !string.IsNullOrEmpty(_datos) ? _datos.Split(';') : Array.Empty<string>();
+                            if (lista.Length > 0)
                             {
-                                row.RelativeItem().PaddingLeft(10).Column(c =>
+                                foreach (var d in lista)
                                 {
-                                    c.Item().Text("OBSERVACIONES").Bold().FontSize(9).FontColor(colorPrincipal);
-                                    c.Item().Background(colorGrisClaro).Padding(5).Text(notasAMostrar).Italic().FontSize(8);
-                                });
+                                    var p = d.Split(':');
+                                    if (p.Length == 2)
+                                    {
+                                        text.Span($"{p[0].Trim()}: ").Bold().FontColor(colorPrincipal);
+                                        text.Span($"{p[1].Trim()}   ");
+                                    }
+                                }
+                            }
+                            else if (Conexion.lugar == "TURBOLLANTAS")
+                            {
+                                foreach (var etiqueta in ObtenerCamposConfiguradosDesdeSQL())
+                                {
+                                    text.Span($"{etiqueta}: ").Bold().FontColor(colorPrincipal);
+                                    text.Span("________________   ");
+                                }
                             }
                         });
 
-                        // --- DATOS EXTRA (Placas, Modelo, etc) ---
-                        if (!string.IsNullOrEmpty(_datos))
+                        // 3. TABLA PRODUCTOS
+                        column.Item().PaddingTop(5).Table(table =>
                         {
-                            column.Item().PaddingBottom(10).Border(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(text =>
-                            {
-                                var listaDatos = _datos.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                                foreach (var dato in listaDatos)
-                                {
-                                    var partes = dato.Split(new[] { ':' }, 2);
-                                    if (partes.Length == 2)
-                                    {
-                                        text.Span($"{partes[0].Trim()}: ").Bold().FontColor(colorPrincipal);
-                                        text.Span($"{partes[1].Trim()}    ");
-                                    }
-                                }
-                            });
-                        }
-
-                        // --- TABLA DE PRODUCTOS ---
-                        column.Item().Table(table =>
-                        {
-                            table.ColumnsDefinition(columns =>
-                            {
-                                columns.ConstantColumn(30); // #
-                                columns.ConstantColumn(40); // Cant
-                                columns.RelativeColumn();   // Desc
-                                columns.ConstantColumn(70); // P.Unit
-                                columns.ConstantColumn(65); // TASA IVA (Estática)
-                                columns.ConstantColumn(50); // DESC (Estática)
-                                columns.ConstantColumn(70); // Importe
+                            table.ColumnsDefinition(cols => {
+                                cols.ConstantColumn(25); cols.ConstantColumn(35);
+                                cols.RelativeColumn(); cols.ConstantColumn(60); cols.ConstantColumn(60);
                             });
 
-                            // Encabezado
-                            table.Header(header =>
-                            {
-                                IContainer HeaderStyle(IContainer c) => c.Background(colorPrincipal).PaddingVertical(3).PaddingHorizontal(2);
-
-                                header.Cell().Element(HeaderStyle).Text("#").FontColor(Colors.White).Bold();
-                                header.Cell().Element(HeaderStyle).AlignCenter().Text("CANT").FontColor(Colors.White).Bold();
-                                header.Cell().Element(HeaderStyle).Text("DESCRIPCIÓN").FontColor(Colors.White).Bold();
-                                header.Cell().Element(HeaderStyle).AlignRight().Text("P.UNIT").FontColor(Colors.White).Bold();
-                                header.Cell().Element(HeaderStyle).AlignRight().Text("TASA IVA %").FontColor(Colors.White).Bold();
-                                header.Cell().Element(HeaderStyle).AlignRight().Text("DESC").FontColor(Colors.White).Bold();
-                                header.Cell().Element(HeaderStyle).AlignRight().Text("IMPORTE").FontColor(Colors.White).Bold();
+                            table.Header(h => {
+                                IContainer Style(IContainer c) => c.Background(colorPrincipal).Padding(2);
+                                h.Cell().Element(Style).Text("#").FontColor(Colors.White);
+                                h.Cell().Element(Style).AlignCenter().Text("CANT").FontColor(Colors.White);
+                                h.Cell().Element(Style).Text("DESCRIPCIÓN").FontColor(Colors.White);
+                                h.Cell().Element(Style).AlignRight().Text("P.UNIT").FontColor(Colors.White);
+                                h.Cell().Element(Style).AlignRight().Text("TOTAL").FontColor(Colors.White);
                             });
 
-                            // Filas
                             for (int i = 0; i < _productos.Count; i++)
                             {
                                 var item = _productos[i];
-                                var bg = i % 2 == 0 ? Colors.White : colorGrisClaro;
-
-                                IContainer CellStyle(IContainer c) => c.Background(bg).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingVertical(2).PaddingHorizontal(2);
-
-                                table.Cell().Element(CellStyle).Text((i + 1).ToString()).FontSize(8).FontColor(Colors.Grey.Darken2);
-                                table.Cell().Element(CellStyle).AlignCenter().Text(item.Cantidad.ToString("0.##")).Bold();
-                                table.Cell().Element(CellStyle).Text(item.Nombre).FontSize(9);
-
-                                table.Cell().Element(CellStyle).AlignRight().Text($"{item.PrecioUnitario:N2}");
-                                table.Cell().Element(CellStyle).AlignRight().Text("16.00%");
-                                table.Cell().Element(CellStyle).AlignRight().Text("$0.00");
-                                table.Cell().Element(CellStyle).AlignRight().Text($"{item.Total:N2}").Bold();
+                                IContainer Style(IContainer c) => c.BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(1);
+                                table.Cell().Element(Style).Text((i + 1).ToString());
+                                table.Cell().Element(Style).AlignCenter().Text(item.Cantidad.ToString("0.##"));
+                                table.Cell().Element(Style).Text(item.Nombre).FontSize(7);
+                                table.Cell().Element(Style).AlignRight().Text($"{item.PrecioUnitario:N2}");
+                                table.Cell().Element(Style).AlignRight().Text($"{item.Total:N2}").Bold();
                             }
+                        });
 
-                            // Footer Totales
-                            table.Footer(footer =>
+                        // 4. TOTALES DESGLOSADOS
+                        column.Item().AlignRight().PaddingTop(5).Row(row =>
+                        {
+                            row.ConstantItem(150).Border(0.5f).BorderColor(colorPrincipal).Column(colTotales =>
                             {
-                                footer.Cell().ColumnSpan(7).PaddingTop(5).AlignRight().Row(row =>
+                                void FilaTotal(string etiqueta, string valor, bool esBold = false, float fontSize = 8, string colorFondo = null)
                                 {
-                                    row.ConstantItem(200).Border(1).BorderColor(colorPrincipal).Padding(5).Column(c =>
+                                    var item = colTotales.Item();
+                                    if (colorFondo != null) item = item.Background(colorFondo);
+
+                                    item.PaddingHorizontal(3).PaddingVertical(1).Row(r =>
                                     {
-                                        c.Item().Row(r =>
-                                        {
-                                            r.RelativeItem().Text("TOTAL:").Bold().FontSize(12).FontColor(colorPrincipal);
-                                            r.RelativeItem().AlignRight().Text($"{_total:C2}").Bold().FontSize(13).FontColor(colorSecundario);
-                                        });
+                                        var estilo = TextStyle.Default.FontSize(fontSize);
+                                        if (esBold) estilo = estilo.Bold();
+                                        if (colorFondo != null) estilo = estilo.FontColor(Colors.White); // Letra blanca si hay fondo
+
+                                        r.RelativeItem().Text(etiqueta).Style(estilo);
+                                        r.RelativeItem().AlignRight().Text(valor).Style(estilo);
                                     });
-                                });
+                                }
+
+                                FilaTotal("SUBTOTAL:", $"{subtotal:N2}");
+                                FilaTotal("DESCUENTO:", $"{_descuento:N2}");
+                                FilaTotal("I.V.A. (16%):", $"{iva:N2}");
+
+                                // Fila de Total con color de fondo para resaltar
+                                FilaTotal("TOTAL:", $"{totalFinal:C2}", true, 10, colorPrincipal);
                             });
                         });
+
+                        // TOTAL FINAL EN TEXTO (OPCIONAL)
+                        // column.Item().AlignRight().Text($"Son: {ConvertirNumeroALetras(totalFinal)}").FontSize(7).Italic();
                     });
                 }
 
                 void ComposeFooter(IContainer container)
                 {
-                    container.Column(col =>
-                    {
-                        col.Item().LineHorizontal(1).LineColor(colorPrincipal);
-
+                    container.Column(c => {
                         if (_pieDeTicket != null)
                         {
-                            col.Item().PaddingTop(2).Column(c =>
+                            foreach (var l in _pieDeTicket)
                             {
-                                foreach (var linea in _pieDeTicket)
-                                {
-                                    if (!string.IsNullOrWhiteSpace(linea))
-                                        c.Item().AlignCenter().Text(linea.Trim()).FontSize(7).Italic().FontColor(Colors.Grey.Darken1);
-                                }
-                            });
+                                if (!string.IsNullOrWhiteSpace(l))
+                                    c.Item().AlignCenter().Text(l.Trim()).Italic().FontSize(6);
+                            }
                         }
 
-                        col.Item().PaddingTop(2).Row(row =>
-                        {
-                            row.RelativeItem().Text($"Generado el {DateTime.Now:g}").FontSize(6).FontColor(Colors.Grey.Lighten1);
-                            row.RelativeItem().AlignRight().Text(x =>
-                            {
-                                x.Span("Página ").FontSize(6);
-                                x.CurrentPageNumber().FontSize(6);
-                                x.Span(" de ").FontSize(6);
-                                x.TotalPages().FontSize(6);
-                            });
+                        c.Item().AlignCenter().Text(x => {
+                            x.DefaultTextStyle(s => s.FontSize(6)); 
+                            x.Span("Pág. ");
+                            x.CurrentPageNumber();
+                            x.Span(" de ");
+                            x.TotalPages();
                         });
                     });
                 }
 
-                // Generación de imágenes e Impresión
-                var imagenesDePaginas = documento.GenerateImages();
+                // IMPRESIÓN
+                var imagenes = documento.GenerateImages();
                 PrintDocument pd = new PrintDocument();
                 pd.PrinterSettings.PrinterName = nombreImpresora;
-
-                if (!pd.PrinterSettings.IsValid)
-                    throw new InvalidPrinterException(pd.PrinterSettings);
-
-                pd.DefaultPageSettings.Landscape = false;
-                int paginaActual = 0;
-
-                pd.PrintPage += (sender, e) =>
-                {
-                    try
+                pd.DefaultPageSettings.PaperSize = new PaperSize("MediaCarta", 612, 396);
+                int pag = 0;
+                pd.PrintPage += (s, e) => {
+                    if (pag < imagenes.Count())
                     {
-                        if (paginaActual < imagenesDePaginas.Count())
-                        {
-                            using (var ms = new MemoryStream(imagenesDePaginas.ElementAt(paginaActual)))
-                            {
-                                using (System.Drawing.Image img = System.Drawing.Image.FromStream(ms))
-                                {
-                                    float anchoImpresion = 612f * 100f / 72f;
-                                    float altoImpresion = 792f * 100f / 72f;
-                                    e.Graphics.DrawImage(img, 0, 0, anchoImpresion, altoImpresion);
-                                }
-                            }
-                            paginaActual++;
-                            e.HasMorePages = (paginaActual < imagenesDePaginas.Count());
-                        }
-                    }
-                    catch (Exception exInt)
-                    {
-                        throw new Exception($"Error renderizando: {exInt.Message}", exInt);
+                        using (var ms = new MemoryStream(imagenes.ElementAt(pag)))
+                        using (var img = System.Drawing.Image.FromStream(ms))
+                            e.Graphics.DrawImage(img, 0, 0, 612f * 100 / 72, 396f * 100 / 72);
+                        pag++; e.HasMorePages = (pag < imagenes.Count());
                     }
                 };
-
                 pd.Print();
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString(), "ERROR QuestPDF", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
     }
 }

@@ -51,7 +51,7 @@
                                 <th>Cliente</th>
                                 <th>Observaciones</th>
                                 <th class="text-end">Total</th>
-                                <th class="text-center" style="width: 180px;">Acciones</th>
+                                <th class="text-center" >Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -78,19 +78,35 @@
                                     <td class="text-end text-success fw-bold">@cot.Total.ToString("C2")</td>
 
                                     <td class="text-center">
-                                        <a href="/cotizacion/@cot.Id" class="btn btn-sm btn-outline-secondary me-1" title="Ver Detalles">
-                                            <i class="oi oi-eye"></i>
-                                        </a>
+                                        <div class="d-flex justify-content-center gap-1 flex-nowrap">
 
-                                        <button class="btn btn-sm btn-outline-danger" title="Descargar PDF" @onclick="() => DescargarPdfDesdeLista(cot.Id)">
-                                            <i class="oi oi-print"></i> PDF
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-primary ms-1"
-                                                title="Enviar por Correo"
-                                                @onclick="() => PrepararEnvioCorreo(cot)">
-                                            <i class="oi oi-envelope-closed"></i>
-                                        </button>
+                                            <a href="/cotizacion/editar/@cot.Id"
+                                               class="btn btn-sm btn-outline-warning"
+                                               title="Editar Cotización">
+                                                <i class="oi oi-pencil"></i>
+                                            </a>
+
+                                            <a href="/cotizacion/@cot.Id"
+                                               class="btn btn-sm btn-outline-secondary"
+                                               title="Ver Detalles">
+                                                <i class="oi oi-eye"></i>
+                                            </a>
+
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                    title="Descargar PDF"
+                                                    @onclick="() => DescargarPdfDesdeLista(cot.Id)">
+                                                <i class="oi oi-print"></i>
+                                            </button>
+
+                                            <button class="btn btn-sm btn-outline-primary"
+                                                    title="Enviar por Correo"
+                                                    @onclick="() => PrepararEnvioCorreo(cot)">
+                                                <i class="oi oi-envelope-closed"></i>
+                                            </button>
+
+                                        </div>
                                     </td>
+
                                 </tr>
                             }
 
