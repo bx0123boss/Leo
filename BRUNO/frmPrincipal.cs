@@ -244,7 +244,31 @@ namespace BRUNO
                 button7.Visible = true;
             }
         }
+        public void DetenerServidorWeb()
+        {
+            try
+            {
+                // 1. Intentar cerrar el proceso guardado en la variable
+                if (_procesoWeb != null && !_procesoWeb.HasExited)
+                {
+                    _procesoWeb.Kill();
+                    _procesoWeb.WaitForExit(1000); // Esperar un momento a que muera
+                }
+            }
+            catch { /* Ignorar si falla */ }
 
+            // 2. SEGURIDAD ADICIONAL (Muy recomendado):
+            // Busca cualquier proceso "huerfano" que se llame PuntoVentaWeb y mátalo.
+            // Esto arregla el problema si la variable _procesoWeb se perdió o es nula.
+            try
+            {
+                foreach (var process in System.Diagnostics.Process.GetProcessesByName("PuntoVentaWeb"))
+                {
+                    process.Kill();
+                }
+            }
+            catch { }
+        }
         private void frmPrincipal_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (_procesoWeb != null && !_procesoWeb.HasExited)

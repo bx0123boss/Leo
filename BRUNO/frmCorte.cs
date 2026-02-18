@@ -148,8 +148,18 @@ namespace BRUNO
             }
             string fechaInicioSQL = fechaDate.ToString("yyyy-MM-dd HH:mm:ss");
             string fechaFinSQL = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            
+            //da = new OleDbDataAdapter("SELECT Categoria, SUM(MontoTotal) as Total FROM VentasContado Where  Fecha >= #" + fechaInicioSQL + "# and Fecha <= #" + fechaFinSQL + "# AND FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus = 'COBRADO') GROUP BY Categoria", conectar);
             ds = new DataSet();
-            da = new OleDbDataAdapter("SELECT Categoria, SUM(MontoTotal) as Total FROM VentasContado Where  Fecha >= #" + fechaInicioSQL + "# and Fecha <= #" + fechaFinSQL + "# AND FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus = 'COBRADO') GROUP BY Categoria", conectar);
+            // Usamos IIf con Is Null y validación de cadena vacía ""
+            string query = "SELECT IIf(Categoria Is Null OR Categoria = '', 'SIN CATEGORIA', Categoria) as Categoria, " +
+                           "SUM(MontoTotal) as Total " +
+                           "FROM VentasContado " +
+                           "Where Fecha >= #" + fechaInicioSQL + "# and Fecha <= #" + fechaFinSQL + "# " +
+                           "AND FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus = 'COBRADO') " +
+                           "GROUP BY IIf(Categoria Is Null OR Categoria = '', 'SIN CATEGORIA', Categoria)";
+
+            da = new OleDbDataAdapter(query, conectar);
             da.Fill(ds, "Id");
             dataGridView6.DataSource = ds.Tables["Id"];
 
@@ -181,10 +191,8 @@ namespace BRUNO
             }
 
             ds = new DataSet();
-            string[] fecha = DateTime.Now.Date.ToString().Split(' ');
-
-            string subcadena = DateTime.Now.Date.Month.ToString() + "/" + DateTime.Now.Date.Day.ToString() + "/" + DateTime.Now.Date.Year.ToString() ;
-            da = new OleDbDataAdapter("select MontoTotal,Utilidad,Id from VentasContado Where Fecha>=#" + subcadena + " 00:00:00# and Fecha <=#" + subcadena + " 23:59:59#;", conectar);
+          
+            da = new OleDbDataAdapter("select MontoTotal,Utilidad,Id from VentasContado Where Fecha>=#" + fechaInicioSQL + "# and Fecha <=#" + fechaFinSQL + "#;", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
 
@@ -199,13 +207,13 @@ namespace BRUNO
 
             }
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from GastosDetallados Where Fecha>=#" + subcadena + " 00:00:00# and Fecha <=#" + subcadena + " 23:59:59#;", conectar);
+            da = new OleDbDataAdapter("select * from GastosDetallados Where Fecha>=#" + fechaInicioSQL + "# and Fecha <=#" + fechaFinSQL + "#;", conectar);
             da.Fill(ds, "Id");
             dataGridView2.DataSource = ds.Tables["Id"];
 
             // 1. Llenar el DataGridView como lo tenías
             ds = new DataSet();
-            da = new OleDbDataAdapter("Select Id,Folio,    Monto / (1 + (16 / 100)) AS [Monto sin IVA], Monto - (Monto / (1 + (16 / 100))) AS [IVA], Monto,Descuento, Fecha, Estatus, Pago from Ventas where Estatus ='COBRADO' AND Fecha>=#" + subcadena + " 00:00:00# and Fecha <=#" + subcadena + " 23:59:59#;", conectar);
+            da = new OleDbDataAdapter("Select Id,Folio,    Monto / (1 + (16 / 100)) AS [Monto sin IVA], Monto - (Monto / (1 + (16 / 100))) AS [IVA], Monto,Descuento, Fecha, Estatus, Pago from Ventas where Estatus ='COBRADO' AND Fecha>=#" + fechaInicioSQL + "# and Fecha <=#" + fechaFinSQL + "#;", conectar);
             da.Fill(ds, "Id");
             dgvFolios.DataSource = ds.Tables["Id"];
 
@@ -376,7 +384,18 @@ namespace BRUNO
 
             ticketPrinter.ImprimirTicket();
             MessageBox.Show("CORTE REALIZADO CON EXITO","EXITO",MessageBoxButtons.OK,MessageBoxIcon.Information);
-            this.Close();
+            foreach (Form form in Application.OpenForms)
+            {
+                if (form is frmPrincipal principal)
+                {
+                    // Ejecutamos el método público para matar el servidor
+                    principal.DetenerServidorWeb();
+                    break;
+                }
+            }
+            // --- NUEVO CÓDIGO FIN ---
+
+            Application.Exit();
         }
 
         private void button2_Click(object sender, EventArgs e)

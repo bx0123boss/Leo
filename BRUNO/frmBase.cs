@@ -1,6 +1,14 @@
-﻿using System;
+﻿using iTextSharp.text;
+using iTextSharp.text.pdf;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
+using Document = iTextSharp.text.Document;
 using Excel = Microsoft.Office.Interop.Excel;
 
 namespace BRUNO
@@ -12,7 +20,7 @@ namespace BRUNO
             // Estilos base del Formulario
             this.BackColor = Color.FromArgb(25, 25, 25);
             this.ForeColor = Color.White;
-            this.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular);
+            this.Font = new System.Drawing.Font("Segoe UI", 9.75F, FontStyle.Regular);
             this.StartPosition = FormStartPosition.CenterScreen;
 
             // Puedes agregar más propiedades comunes aquí
@@ -48,7 +56,7 @@ namespace BRUNO
             DataGridViewCellStyle headerStyle = new DataGridViewCellStyle();
             headerStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             headerStyle.BackColor = Color.FromArgb(60, 60, 60);
-            headerStyle.Font = new Font("Segoe UI Semibold", 12.5F, FontStyle.Bold);
+            headerStyle.Font = new System.Drawing.Font("Segoe UI Semibold", 12.5F, FontStyle.Bold);
             headerStyle.ForeColor = Color.White;
             headerStyle.SelectionBackColor = Color.FromArgb(70, 130, 180);
             headerStyle.SelectionForeColor = Color.White;
@@ -60,7 +68,7 @@ namespace BRUNO
             DataGridViewCellStyle cellStyle = new DataGridViewCellStyle();
             cellStyle.BackColor = Color.FromArgb(35, 35, 35);
             cellStyle.ForeColor = Color.White;
-            cellStyle.Font = new Font("Segoe UI Semibold", 12.5F, FontStyle.Regular);
+            cellStyle.Font = new System.Drawing.Font("Segoe UI Semibold", 12.5F, FontStyle.Regular);
             cellStyle.SelectionBackColor = Color.FromArgb(70, 130, 180);
             cellStyle.SelectionForeColor = Color.White;
             dgv.DefaultCellStyle = cellStyle;
@@ -69,13 +77,14 @@ namespace BRUNO
             DataGridViewCellStyle alternatingCellStyle = new DataGridViewCellStyle();
             alternatingCellStyle.BackColor = Color.FromArgb(55, 55, 55);
             alternatingCellStyle.ForeColor = Color.White;
-            alternatingCellStyle.Font = new Font("Segoe UI Semibold", 12.5F, FontStyle.Regular);
+            alternatingCellStyle.Font = new System.Drawing.Font("Segoe UI Semibold", 12.5F, FontStyle.Regular);
             alternatingCellStyle.SelectionBackColor = Color.FromArgb(70, 130, 180);
             alternatingCellStyle.SelectionForeColor = Color.White;
             dgv.AlternatingRowsDefaultCellStyle = alternatingCellStyle;
 
             // --- NUEVO: AGREGAR MENÚ CONTEXTUAL PARA EXCEL ---
             AgregarMenuContextualExcel(dgv);
+            AgregarMenuContextualPDF(dgv, this.Text);
         }
 
         /// <summary>
@@ -109,7 +118,161 @@ namespace BRUNO
                 dgv.ContextMenuStrip.Items.Add(itemExportar);
             }
         }
+        // Método para agregar la opción al menú contextual (igual que el de Excel)
+        public void AgregarMenuContextualPDF(DataGridView dgv, string tituloReporte)
+        {
+            string nombreArchivoSeguro = tituloReporte;
+            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+            {
+                nombreArchivoSeguro = nombreArchivoSeguro.Replace(c, '_');
+            }
+            //
+            // Si el menú no existe, lo creamos
+            if (dgv.ContextMenuStrip == null)
+            {
+                dgv.ContextMenuStrip = new ContextMenuStrip();
+            }
 
+            // Creamos el item del menú para PDF
+            ToolStripMenuItem itemExportarPdf = new ToolStripMenuItem();
+            itemExportarPdf.Text = "Exportar a PDF";
+            // itemExportarPdf.Image = Properties.Resources.pdf_icon; // Si tienes icono
+
+            // Asignamos el evento Click
+            itemExportarPdf.Click += (s, e) => { ExportarGridAPDF(dgv, tituloReporte); };
+
+            // Agregamos un separador si ya hay items (como el de Excel)
+            if (dgv.ContextMenuStrip.Items.Count > 0)
+            {
+                dgv.ContextMenuStrip.Items.Add(new ToolStripSeparator());
+            }
+
+            dgv.ContextMenuStrip.Items.Add(itemExportarPdf);
+        }
+
+        private void ExportarGridAPDF(DataGridView dgv, string titulo)
+        {
+            if (dgv.Rows.Count == 0)
+            {
+                MessageBox.Show("No hay datos para exportar.", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Limpieza del nombre del archivo
+            string nombreArchivoSeguro = titulo;
+            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+            {
+                nombreArchivoSeguro = nombreArchivoSeguro.Replace(c, '_');
+            }
+
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "PDF Files (*.pdf)|*.pdf";
+            saveFileDialog.FileName = nombreArchivoSeguro + "_" + DateTime.Now.ToString("ddMMyyyy") + ".pdf";
+
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    // 1. Configuración del documento (Carta Horizontal)
+                    Document doc = new Document(iTextSharp.text.PageSize.LETTER.Rotate(), 10, 10, 10, 10);
+                    PdfWriter writer = PdfWriter.GetInstance(doc, new FileStream(saveFileDialog.FileName, FileMode.Create));
+
+                    doc.Open();
+
+                    // 2. Encabezados
+                    iTextSharp.text.Font fuenteTitulo = new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 14, iTextSharp.text.Font.BOLD, BaseColor.BLACK);
+                    Paragraph parrafoTitulo = new Paragraph(titulo, fuenteTitulo);
+                    parrafoTitulo.Alignment = Element.ALIGN_CENTER;
+                    doc.Add(parrafoTitulo);
+
+                    iTextSharp.text.Font fuenteFecha = new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 8, iTextSharp.text.Font.NORMAL, BaseColor.DARK_GRAY);
+                    Paragraph parrafoFecha = new Paragraph("Fecha de emisión: " + DateTime.Now.ToString(), fuenteFecha);
+                    parrafoFecha.Alignment = Element.ALIGN_CENTER;
+                    doc.Add(parrafoFecha);
+
+                    doc.Add(iTextSharp.text.Chunk.NEWLINE);
+
+                    // 3. Tabla
+                    int columnasVisibles = 0;
+                    foreach (DataGridViewColumn col in dgv.Columns) { if (col.Visible) columnasVisibles++; }
+
+                    PdfPTable pdfTable = new PdfPTable(columnasVisibles);
+                    pdfTable.WidthPercentage = 100;
+
+                    iTextSharp.text.Font _standardFont = new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 8, iTextSharp.text.Font.NORMAL, BaseColor.BLACK);
+                    iTextSharp.text.Font _headerFont = new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 9, iTextSharp.text.Font.BOLD, BaseColor.WHITE);
+
+                    // 4. Agregar Encabezados
+                    foreach (DataGridViewColumn col in dgv.Columns)
+                    {
+                        if (col.Visible)
+                        {
+                            PdfPCell clHeader = new PdfPCell(new Phrase(col.HeaderText, _headerFont));
+                            clHeader.BorderWidth = 0;
+                            clHeader.BorderWidthBottom = 0.75f;
+                            clHeader.BackgroundColor = new BaseColor(50, 50, 50);
+                            clHeader.HorizontalAlignment = Element.ALIGN_CENTER;
+                            clHeader.Padding = 5;
+                            pdfTable.AddCell(clHeader);
+                        }
+                    }
+
+                    // 5. Agregar Datos
+                    foreach (DataGridViewRow row in dgv.Rows)
+                    {
+                        if (!row.IsNewRow)
+                        {
+                            foreach (DataGridViewColumn col in dgv.Columns)
+                            {
+                                if (col.Visible)
+                                {
+                                    // CAMBIO CLAVE: Usamos .FormattedValue en lugar de .Value
+                                    // Esto trae el texto tal cual se ve en pantalla (con signos de $ y comas)
+                                    string valor = row.Cells[col.Index].FormattedValue != null ? row.Cells[col.Index].FormattedValue.ToString() : "";
+
+                                    // SI LA COLUMNA NO TIENE FORMATO EN PANTALLA PERO ES DINERO, FORZAMOS EL FORMATO AQUÍ:
+                                    // Descomenta las siguientes líneas si tus grids no tienen formato de moneda visible pero quieres que salga en el PDF:
+                                    /*
+                                    if (!valor.Contains("$") && (col.HeaderText.Contains("Monto") || col.HeaderText.Contains("Precio") || col.HeaderText.Contains("Total")))
+                                    {
+                                        if (decimal.TryParse(row.Cells[col.Index].Value?.ToString(), out decimal d))
+                                            valor = d.ToString("C2");
+                                    }
+                                    */
+
+                                    PdfPCell clData = new PdfPCell(new Phrase(valor, _standardFont));
+                                    clData.BorderWidth = 0;
+                                    clData.BorderWidthBottom = 0.25f;
+                                    clData.BorderColorBottom = BaseColor.LIGHT_GRAY;
+
+                                    // ALINEACIÓN INTELIGENTE
+                                    // Si tiene signo de pesos o es número, a la derecha. Fechas al centro.
+                                    if (valor.Contains("$") || decimal.TryParse(valor, out _))
+                                        clData.HorizontalAlignment = Element.ALIGN_RIGHT;
+                                    else if (DateTime.TryParse(valor, out _))
+                                        clData.HorizontalAlignment = Element.ALIGN_CENTER;
+                                    else
+                                        clData.HorizontalAlignment = Element.ALIGN_LEFT;
+
+                                    pdfTable.AddCell(clData);
+                                }
+                            }
+                        }
+                    }
+
+                    doc.Add(pdfTable);
+                    doc.Close();
+                    writer.Close();
+
+                    MessageBox.Show("PDF generado exitosamente en:\n" + saveFileDialog.FileName, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    try { System.Diagnostics.Process.Start(saveFileDialog.FileName); } catch { }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al exportar PDF: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
         /// <summary>
         /// Lógica para recorrer el Grid y pasarlo a Excel usando Interop.
         /// </summary>
@@ -117,7 +280,7 @@ namespace BRUNO
         {
             if (dgv.Rows.Count == 0)
             {
-                MessageBox.Show("No hay datos para exportar.", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("No hay datos para exportar.", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -208,7 +371,7 @@ namespace BRUNO
         {
             btn.FlatStyle = FlatStyle.Flat;
             btn.FlatAppearance.BorderSize = 0;
-            btn.Font = new Font("Segoe UI Semibold", 11.25F, FontStyle.Bold);
+            btn.Font = new System.Drawing.Font("Segoe UI Semibold", 11.25F, FontStyle.Bold);
             btn.UseVisualStyleBackColor = false; // Importante para que respete el BackColor
         }
 
@@ -301,7 +464,7 @@ namespace BRUNO
             // ***************************************************************
             // * MEJORA: Crear un rectángulo de texto con padding izquierdo
             // ***************************************************************
-            Rectangle textBounds = e.Bounds;
+            System.Drawing.Rectangle textBounds = e.Bounds;
             int padding = 4; // 4 píxeles de margen izquierdo
             textBounds.X += padding;
             textBounds.Width -= padding;
