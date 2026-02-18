@@ -5,11 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Data.OleDb;
 using System.Data.SqlClient;
+using System.Drawing;
 using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using static QuestPDF.Helpers.Colors;
+// Alias para evitar conflictos
 using QImage = QuestPDF.Infrastructure.Image;
 
 namespace BRUNO
@@ -135,17 +136,18 @@ namespace BRUNO
             return campos;
         }
 
+        // --- MÉTODO CORREGIDO Y OPTIMIZADO ---
         public void ImprimirDirectamente(string nombreImpresora)
         {
             try
             {
                 QuestPDF.Settings.License = LicenseType.Community;
-                var colorPrincipal = Color.FromHex(_hexPrimario);
-                var colorSecundario = Color.FromHex(_hexSecundario);
-                var colorGrisClaro = Colors.Grey.Lighten3;
+                var colorPrincipal = QuestPDF.Infrastructure.Color.FromHex(_hexPrimario);
+                var colorSecundario = QuestPDF.Infrastructure.Color.FromHex(_hexSecundario);
+
                 // --- Cálculos de Totales ---
                 double total = _productos.Sum(p => p.Total);
-                double subtotal = total/1.16;
+                double subtotal = total / 1.16;
                 double iva = (total / 1.16) * 0.16;
                 double totalFinal = total;
                 // ---------------------------
@@ -154,9 +156,18 @@ namespace BRUNO
                 {
                     container.Page(page =>
                     {
-                        // TAMAÑO MEDIA CARTA EXACTO
-                        page.Size(new PageSize(612, 396));
-                        page.Margin(0.7f, Unit.Centimetre);
+                        // ESTRATEGIA: Usar Hoja Carta Completa (Vertical)
+                        // Esto evita que la impresora intente rotar el contenido.
+                        page.Size(PageSizes.Letter); // 8.5 x 11 pulgadas
+
+                        page.MarginTop(0.5f, Unit.Centimetre);
+                        page.MarginLeft(0.5f, Unit.Centimetre);
+                        page.MarginRight(0.5f, Unit.Centimetre);
+
+                        // BLOQUEO: Margen inferior gigante (396 puntos = 5.5 pulgadas)
+                        // Esto fuerza a que todo el contenido se dibuje solo en la mitad superior.
+                        page.MarginBottom(396);
+
                         page.PageColor(Colors.White);
                         page.DefaultTextStyle(x => x.FontSize(8).FontFamily("Arial"));
 
@@ -183,28 +194,52 @@ namespace BRUNO
                                     foreach (var l in _datosTicket) info.Item().Text(l.Trim()).FontSize(7);
                             });
 
-                            row.ConstantItem(110).Border(1).BorderColor(colorPrincipal).Column(box =>
+                            // CUADRO DE FOLIO Y FECHA
+                            row.ConstantItem(120).Border(1).BorderColor(colorPrincipal).Padding(0).Column(box =>
                             {
-                                box.Item().Background(colorPrincipal).Padding(1).AlignCenter().Text("COTIZACIÓN").Bold().FontColor(Colors.White);
-                                box.Item().Padding(2).Column(c => {
-                                    c.Item().AlignCenter().Text($"Folio: {_folio}").Bold();
-                                    c.Item().AlignCenter().Text($"{DateTime.Now:dd/MM/yyyy}").FontSize(7);
+                                box.Item().Background(colorPrincipal).Padding(2).AlignCenter().Text("COTIZACIÓN").Bold().FontColor(Colors.White);
+
+                                box.Item().Padding(4).Column(c =>
+                                {
+                                    c.Item().AlignCenter().Text($"Folio: {_folio}").FontSize(11).Bold().FontColor(Colors.Black);
+                                    c.Item().PaddingTop(2).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+                                    c.Item().PaddingTop(2).AlignCenter().Text($"{DateTime.Now:dd/MMM/yyyy}").FontSize(8);
+                                    c.Item().AlignCenter().Text($"{DateTime.Now:HH:mm} hrs").FontSize(7).FontColor(Colors.Grey.Darken2);
+
+                                    // Vigencia calculada
+                                    var fechaVigencia = DateTime.Now.AddDays(_diasValidez);
+                                    c.Item().PaddingTop(3).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+                                    c.Item().PaddingTop(2).AlignCenter().Text("Vigente hasta:").FontSize(6).Bold().FontColor(colorPrincipal);
+                                    c.Item().AlignCenter().Text($"{fechaVigencia:dd/MMM/yyyy}").FontSize(8).Bold();
                                 });
                             });
                         });
-                        col.Item().PaddingTop(5).LineHorizontal(1).LineColor(colorSecundario);
+
+                        // Línea separadora
+                        col.Item().PaddingTop(10).LineHorizontal(2).LineColor(colorSecundario);
                     });
                 }
-
                 void ComposeContent(IContainer container)
                 {
                     container.PaddingVertical(5).Column(column =>
                     {
-                        // 1. DATOS CLIENTE (Lógica para TurboLlantas incluida)
-                        column.Item().Row(row => {
-                            row.RelativeItem().Column(c => {
-                                c.Item().Text("DATOS DEL CLIENTE").Bold().FontSize(8).FontColor(colorPrincipal);
-                                c.Item().PaddingLeft(5).Column(d => {
+                        // --- FILA SUPERIOR: DATOS DEL CLIENTE Y OBSERVACIONES ---
+                        column.Item().PaddingBottom(10).Row(row =>
+                        {
+                            // IZQUIERDA: Datos del Cliente
+                            row.RelativeItem().Column(c =>
+                            {
+                                // Título con pequeña barra lateral
+                                c.Item().Row(titleRow =>
+                                {
+                                    titleRow.ConstantItem(5).Height(15).Background(colorSecundario);
+                                    titleRow.RelativeItem().PaddingLeft(5).Text("DATOS DEL CLIENTE").Bold().FontSize(10).FontColor(colorPrincipal);
+                                });
+
+                                c.Item().PaddingTop(3).PaddingLeft(10).Column(d =>
+                                {
+                                    var nombreFinal = !string.IsNullOrEmpty(_cliente) ? _cliente : "Público General";
+                                    d.Item().Text(nombreFinal).Bold().FontSize(11);
                                     d.Item().Text(_cliente ?? "Público General").Bold();
                                     if (Conexion.lugar == "TURBOLLANTAS" || !string.IsNullOrEmpty(_direccion))
                                         d.Item().Text($"Dirección: {_direccion ?? ""}");
@@ -214,9 +249,21 @@ namespace BRUNO
                                         d.Item().Text($"RFC: {_rfc ?? ""}");
                                 });
                             });
+                            // DERECHA: Observaciones
+                            string notasAMostrar = !string.IsNullOrEmpty(_observaciones) ? _observaciones : "";
+
+                            // Lógica TURBOLLANTAS original preservada
+                            if (!string.IsNullOrEmpty(notasAMostrar) || Conexion.lugar == "TURBOLLANTAS")
+                            {
+                                row.RelativeItem().PaddingLeft(10).Column(c =>
+                                {
+                                    c.Item().Text("OBSERVACIONES").Bold().FontSize(9).FontColor(colorPrincipal);
+                                    c.Item().Background(colorSecundario).Padding(5).Text(notasAMostrar).Italic().FontSize(8);
+                                });
+                            }
                         });
 
-                        // 2. DATOS EXTRA / VEHÍCULO
+                        // 2. DATOS EXTRA
                         column.Item().PaddingTop(5).Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text(text =>
                         {
                             var lista = !string.IsNullOrEmpty(_datos) ? _datos.Split(';') : Array.Empty<string>();
@@ -228,7 +275,7 @@ namespace BRUNO
                                     if (p.Length == 2)
                                     {
                                         text.Span($"{p[0].Trim()}: ").Bold().FontColor(colorPrincipal);
-                                        text.Span($"{p[1].Trim()}   ");
+                                        text.Span($"{p[1].Trim()}    ");
                                     }
                                 }
                             }
@@ -237,7 +284,7 @@ namespace BRUNO
                                 foreach (var etiqueta in ObtenerCamposConfiguradosDesdeSQL())
                                 {
                                     text.Span($"{etiqueta}: ").Bold().FontColor(colorPrincipal);
-                                    text.Span("________________   ");
+                                    text.Span("                           ");
                                 }
                             }
                         });
@@ -245,33 +292,48 @@ namespace BRUNO
                         // 3. TABLA PRODUCTOS
                         column.Item().PaddingTop(5).Table(table =>
                         {
-                            table.ColumnsDefinition(cols => {
-                                cols.ConstantColumn(25); cols.ConstantColumn(35);
-                                cols.RelativeColumn(); cols.ConstantColumn(60); cols.ConstantColumn(60);
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.ConstantColumn(30); // #
+                                columns.ConstantColumn(40); // Cant
+                                columns.RelativeColumn();   // Desc
+                                columns.ConstantColumn(70); // P.Unit
+                                columns.ConstantColumn(65); // TASA IVA (Estática)
+                                columns.ConstantColumn(50); // DESC (Estática)
+                                columns.ConstantColumn(70); // Importe
                             });
+                            table.Header(header =>
+                            {
+                                IContainer HeaderStyle(IContainer c) => c.Background(colorPrincipal).PaddingVertical(3).PaddingHorizontal(2);
 
-                            table.Header(h => {
-                                IContainer Style(IContainer c) => c.Background(colorPrincipal).Padding(2);
-                                h.Cell().Element(Style).Text("#").FontColor(Colors.White);
-                                h.Cell().Element(Style).AlignCenter().Text("CANT").FontColor(Colors.White);
-                                h.Cell().Element(Style).Text("DESCRIPCIÓN").FontColor(Colors.White);
-                                h.Cell().Element(Style).AlignRight().Text("P.UNIT").FontColor(Colors.White);
-                                h.Cell().Element(Style).AlignRight().Text("TOTAL").FontColor(Colors.White);
+                                header.Cell().Element(HeaderStyle).Text("#").FontColor(Colors.White).Bold();
+                                header.Cell().Element(HeaderStyle).AlignCenter().Text("CANT").FontColor(Colors.White).Bold();
+                                header.Cell().Element(HeaderStyle).Text("DESCRIPCIÓN").FontColor(Colors.White).Bold();
+                                header.Cell().Element(HeaderStyle).AlignRight().Text("P.UNIT").FontColor(Colors.White).Bold();
+                                header.Cell().Element(HeaderStyle).AlignRight().Text("TASA IVA %").FontColor(Colors.White).Bold();
+                                header.Cell().Element(HeaderStyle).AlignRight().Text("DESC").FontColor(Colors.White).Bold();
+                                header.Cell().Element(HeaderStyle).AlignRight().Text("IMPORTE").FontColor(Colors.White).Bold();
                             });
-
+                            // Filas
                             for (int i = 0; i < _productos.Count; i++)
                             {
                                 var item = _productos[i];
-                                IContainer Style(IContainer c) => c.BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(1);
-                                table.Cell().Element(Style).Text((i + 1).ToString());
-                                table.Cell().Element(Style).AlignCenter().Text(item.Cantidad.ToString("0.##"));
-                                table.Cell().Element(Style).Text(item.Nombre).FontSize(7);
-                                table.Cell().Element(Style).AlignRight().Text($"{item.PrecioUnitario:N2}");
-                                table.Cell().Element(Style).AlignRight().Text($"{item.Total:N2}").Bold();
+                                var bg = i % 2 == 0 ? Colors.White : colorSecundario;
+
+                                IContainer CellStyle(IContainer c) => c.Background(bg).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingVertical(2).PaddingHorizontal(2);
+
+                                table.Cell().Element(CellStyle).Text((i + 1).ToString()).FontSize(8).FontColor(Colors.Grey.Darken2);
+                                table.Cell().Element(CellStyle).AlignCenter().Text(item.Cantidad.ToString("0.##")).Bold();
+                                table.Cell().Element(CellStyle).Text(item.Nombre).FontSize(9);
+
+                                table.Cell().Element(CellStyle).AlignRight().Text($"{item.PrecioUnitario:N2}");
+                                table.Cell().Element(CellStyle).AlignRight().Text("16.00%");
+                                table.Cell().Element(CellStyle).AlignRight().Text("$0.00");
+                                table.Cell().Element(CellStyle).AlignRight().Text($"{item.Total:N2}").Bold();
                             }
                         });
 
-                        // 4. TOTALES DESGLOSADOS
+                        // 4. TOTALES 
                         column.Item().AlignRight().PaddingTop(5).Row(row =>
                         {
                             row.ConstantItem(150).Border(0.5f).BorderColor(colorPrincipal).Column(colTotales =>
@@ -285,7 +347,7 @@ namespace BRUNO
                                     {
                                         var estilo = TextStyle.Default.FontSize(fontSize);
                                         if (esBold) estilo = estilo.Bold();
-                                        if (colorFondo != null) estilo = estilo.FontColor(Colors.White); // Letra blanca si hay fondo
+                                        if (colorFondo != null) estilo = estilo.FontColor(Colors.White);
 
                                         r.RelativeItem().Text(etiqueta).Style(estilo);
                                         r.RelativeItem().AlignRight().Text(valor).Style(estilo);
@@ -295,14 +357,9 @@ namespace BRUNO
                                 FilaTotal("SUBTOTAL:", $"{subtotal:N2}");
                                 FilaTotal("DESCUENTO:", $"{_descuento:N2}");
                                 FilaTotal("I.V.A. (16%):", $"{iva:N2}");
-
-                                // Fila de Total con color de fondo para resaltar
                                 FilaTotal("TOTAL:", $"{totalFinal:C2}", true, 10, colorPrincipal);
                             });
                         });
-
-                        // TOTAL FINAL EN TEXTO (OPCIONAL)
-                        // column.Item().AlignRight().Text($"Son: {ConvertirNumeroALetras(totalFinal)}").FontSize(7).Italic();
                     });
                 }
 
@@ -319,7 +376,7 @@ namespace BRUNO
                         }
 
                         c.Item().AlignCenter().Text(x => {
-                            x.DefaultTextStyle(s => s.FontSize(6)); 
+                            x.DefaultTextStyle(s => s.FontSize(6));
                             x.Span("Pág. ");
                             x.CurrentPageNumber();
                             x.Span(" de ");
@@ -328,24 +385,42 @@ namespace BRUNO
                     });
                 }
 
-                // IMPRESIÓN
-                var imagenes = documento.GenerateImages();
+                // CONFIGURACIÓN DE ALTA CALIDAD
+                var configuracionImagen = new QuestPDF.Infrastructure.ImageGenerationSettings
+                {
+                    RasterDpi = 300, // 300 DPI para texto nítido
+                    ImageCompressionQuality = ImageCompressionQuality.Best
+                };
+
+                // OPTIMIZACIÓN: Generar lista UNA sola vez antes de entrar al loop de impresión
+                var imagenes = documento.GenerateImages(configuracionImagen).ToList();
+
                 PrintDocument pd = new PrintDocument();
                 pd.PrinterSettings.PrinterName = nombreImpresora;
-                pd.DefaultPageSettings.PaperSize = new PaperSize("MediaCarta", 612, 396);
+
+                // CONFIGURACIÓN CLAVE: Papel Carta Vertical (Estándar)
+                // 8.5" x 11" en centésimas de pulgada = 850 x 1100
+                pd.DefaultPageSettings.PaperSize = new PaperSize("Carta", 850, 1100);
+                pd.DefaultPageSettings.Landscape = false; // Vertical
+                pd.DefaultPageSettings.Margins = new Margins(0, 0, 0, 0);
+                pd.OriginAtMargins = true;
+
                 int pag = 0;
                 pd.PrintPage += (s, e) => {
-                    if (pag < imagenes.Count())
+                    if (pag < imagenes.Count)
                     {
-                        using (var ms = new MemoryStream(imagenes.ElementAt(pag)))
+                        using (var ms = new MemoryStream(imagenes[pag]))
                         using (var img = System.Drawing.Image.FromStream(ms))
-                            e.Graphics.DrawImage(img, 0, 0, 612f * 100 / 72, 396f * 100 / 72);
-                        pag++; e.HasMorePages = (pag < imagenes.Count());
+                        {
+                            e.Graphics.DrawImage(img, 0, 0, 850, 1100);
+                        }
+                        pag++;
+                        e.HasMorePages = (pag < imagenes.Count);
                     }
                 };
                 pd.Print();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { MessageBox.Show("Error al imprimir: " + ex.Message); }
         }
     }
 }
