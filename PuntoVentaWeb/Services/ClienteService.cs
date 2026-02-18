@@ -2,7 +2,6 @@
 
 using PuntoVentaWeb.Models;
 using System.Data.Odbc;      // Para Access
-using System.Data.SqlClient; // Para SQL Server (por si migras en el futuro)
 
 public class ClienteService
 {

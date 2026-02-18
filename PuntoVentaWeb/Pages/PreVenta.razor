@@ -1,0 +1,437 @@
+﻿@page "/preventa"
+@using System.Drawing
+@using System.IO
+@using QRCoder
+@using BlazorBarcodeScanner.ZXing.JS
+@using PuntoVentaWeb.Models
+@using PuntoVentaWeb.Services
+@inject CotizacionService _cotizacionService
+@inject IJSRuntime JSRuntime
+
+<div class="container-fluid p-2" style="max-width: 600px;">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="m-0 text-primary"><i class="oi oi-cart"></i> Pre-Venta</h3>
+        <span class="badge bg-primary fs-5">@Carrito.Sum(x => x.Cantidad) Arts</span>
+    </div>
+
+    <div class="card mb-3 shadow-sm border-0 bg-light">
+        <div class="card-body p-2">
+
+            @* SECCIÓN DE LA CÁMARA *@
+            @if (MostrarCamara)
+            {
+                <div class="camera-container mb-3">
+                    <BlazorBarcodeScanner.ZXing.JS.BarcodeReader Title="Escaneando..."
+                                                                 StartCameraAutomatically="true"
+                                                                 OnBarcodeReceived="AlEscanearCamara" />
+
+                    <button class="btn btn-danger mt-2 w-100" @onclick="() => MostrarCamara = false">
+                        Detener Cámara
+                    </button>
+                </div>
+            }
+
+            <style>
+                /* Asegura que el video se vea correctamente y no colapse */
+                .camera-container video {
+                    width: 100% !important;
+                    height: auto !important;
+                    border-radius: 8px;
+                    background: #000;
+                }
+
+                /* Ajuste para que la lista de sugerencias flote sobre el contenido */
+                .sugerencias-container {
+                    z-index: 1050;
+                    top: 100%;
+                    left: 0;
+                }
+            </style>
+
+            @* CAMPO DE ENTRADA Y LÓGICA DE SUGERENCIAS *@
+            <div class="position-relative">
+                <div class="input-group input-group-lg">
+                    <button class="btn btn-outline-dark" @onclick="() => MostrarCamara = !MostrarCamara">
+                        📷
+                    </button>
+                    <input type="text"
+                           class="form-control"
+                           placeholder="Código o Nombre..."
+                           @bind="TextoBusqueda"
+                           @bind:event="oninput"
+                           @onkeyup="ManejarKeyUp" />
+                    <button class="btn btn-primary" @onclick="BuscarYAgregar">
+                        🔍
+                    </button>
+                </div>
+
+                @* Lista Desplegable de Sugerencias (Tiempo Real) *@
+                @if (mostrarSugerencias && listaSugerencias != null && listaSugerencias.Count > 0)
+                {
+                    <div class="list-group position-absolute shadow w-100 sugerencias-container"
+                         style="max-height: 250px; overflow-y: auto;">
+                        @foreach (var p in listaSugerencias)
+                        {
+                            <button type="button"
+                                    class="list-group-item list-group-item-action"
+                                    @onclick="() => SeleccionarProducto(p)">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1 text-primary fw-bold">@p.Nombre</h6>
+                                    <span class="badge bg-success">$@p.Precioventa.ToString("N2")</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">ID: @p.Id</small>
+                                    <small class="text-muted">Stock: @p.Existencia</small>
+                                </div>
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+
+            @if (BusquedaSinResultados)
+            {
+                <div class="text-danger small mt-1">No se encontró el producto.</div>
+            }
+        </div>
+    </div>
+    @if (Carrito.Any())
+    {
+        <div class="list-group shadow-sm mb-5">
+            @foreach (var item in Carrito)
+            {
+                <div class="list-group-item d-flex justify-content-between align-items-center p-2">
+                    <div style="width: 55%;">
+                        <div class="fw-bold text-truncate">@item.Descripcion</div>
+                        <div class="text-muted small">@item.ProductoCodigo | $@item.PrecioUnitario.ToString("0.00")</div>
+                    </div>
+
+                    <div class="d-flex align-items-center bg-light rounded px-1">
+                        <button class="btn btn-sm text-secondary fw-bold"
+                                @onclick="() => CambiarCantidad(item, -1)">
+                            -
+                        </button>
+
+                        <input type="number"
+                               class="form-control form-control-sm border-0 bg-transparent text-center fw-bold p-0"
+                               style="width: 70px; outline: none; box-shadow: none;"
+                               @bind="item.Cantidad"
+                               @bind:event="oninput"
+                               step="any"
+                               min="0.001" />
+
+                        <button class="btn btn-sm text-secondary fw-bold"
+                                @onclick="() => CambiarCantidad(item, 1)">
+                            +
+                        </button>
+                    </div>
+
+                    <div class="ms-2 text-end" style="min-width: 60px;">
+                        <div class="fw-bold">$@item.Importe.ToString("0")</div>
+                        <small class="text-danger" style="cursor:pointer;" @onclick="() => EliminarItem(item)">Borrar</small>
+                    </div>
+                </div>
+            }
+            <div class="list-group-item bg-dark text-white text-end fs-4">
+                Total: <strong>$@Carrito.Sum(x => x.Importe).ToString("N2")</strong>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center text-muted py-5 opacity-50">
+            <i class="oi oi-basket display-1"></i>
+            <p class="mt-3">Tu carrito está vacío.</p>
+        </div>
+    }
+
+    @if (Carrito.Any())
+    {
+        <div class="fixed-bottom p-3 bg-white border-top shadow-lg">
+            <button class="btn btn-success btn-lg w-100 py-3 fw-bold" @onclick="FinalizarPreVentaQR" disabled="@Procesando">
+                @if (Procesando)
+                {
+                    <span>Guardando...</span>
+                }
+                else
+                {
+                    <span>GENERAR TICKET DIGITAL</span>
+                }
+            </button>
+        </div>
+    }
+
+</div>
+@if (MostrarModalQR)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.85); z-index: 1050;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+
+                <h2 class="fw-bold text-primary mb-3">Escanea en Caja</h2>
+
+                @if (!string.IsNullOrEmpty(ImagenQR))
+                {
+                    <div class="bg-white p-2 d-inline-block rounded mb-3">
+                        <img src="@ImagenQR" class="img-fluid" style="width: 250px; height: 250px;" />
+                    </div>
+                }
+
+                <h3 class="fw-bold">$@TotalFinal.ToString("N2")</h3>
+                <p class="text-muted small">Muestra este código al cajero</p>
+
+                <button class="btn btn-info w-100 mb-2 p-3 fw-bold text-white" @onclick="ImprimirTicket">
+                    🖨️ IMPRIMIR TICKET
+                </button>
+
+                <button class="btn btn-secondary w-100 p-3" @onclick="CerrarModalQR">
+                    Nueva Venta
+                </button>
+            </div>
+        </div>
+    </div>
+}
+@code {
+    // --- ESTADO ---
+    private List<DetalleCotizacion> Carrito = new();
+    private string TextoBusqueda = "";
+    private bool MostrarCamara = false;
+    private bool BusquedaSinResultados = false;
+    private bool Procesando = false;
+
+    // --- ESTADO QR ---
+    private bool MostrarModalQR = false;
+    private string ImagenQR = "";
+    private int FolioGenerado = 0;
+    private decimal TotalFinal = 0;
+
+    // Nuevas variables para sugerencias
+    private List<Producto> listaSugerencias = new();
+    private bool mostrarSugerencias = false;
+
+    private async Task ManejarKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await BuscarYAgregar(); // Si da enter, intenta agregar el primero o lo que haya escrito
+        }
+        else
+        {
+            await BuscarProductoEnTiempoReal();
+        }
+    }
+    private async Task BuscarProductoEnTiempoReal()
+    {
+        if (TextoBusqueda.Length > 2) // Buscar solo si hay más de 2 letras
+        {
+            listaSugerencias = await _cotizacionService.BuscarProductos(TextoBusqueda);
+            mostrarSugerencias = true;
+            BusquedaSinResultados = !listaSugerencias.Any();
+        }
+        else
+        {
+            listaSugerencias.Clear();
+            mostrarSugerencias = false;
+            BusquedaSinResultados = false;
+        }
+    }
+    private async void AlEscanearCamara(BarcodeReceivedEventArgs args)
+    {
+        await JSRuntime.InvokeVoidAsync("vibrar", 200); // Vibra 200ms al detectar
+        TextoBusqueda = args.BarcodeText;
+        await BuscarYAgregar();
+        StateHasChanged();
+    }
+
+    private async Task ManejarEnter(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await BuscarYAgregar();
+        }
+    }
+    private void SeleccionarProducto(Producto p)
+    {
+        AgregarAlCarrito(p); // Usa tu método actual de agregar
+
+        // Limpieza de interfaz
+        TextoBusqueda = "";
+        listaSugerencias.Clear();
+        mostrarSugerencias = false;
+        MostrarCamara = false; // Por si estaba abierta la cámara
+    }
+    // --- LÓGICA DE NEGOCIO ---
+
+    private async Task BuscarYAgregar()
+    {
+        if (string.IsNullOrWhiteSpace(TextoBusqueda)) return;
+
+        BusquedaSinResultados = false;
+
+        var productosEncontrados = await _cotizacionService.BuscarProductos(TextoBusqueda);
+
+        if (productosEncontrados != null && productosEncontrados.Any())
+        {
+            var prod = productosEncontrados.First();
+            AgregarAlCarrito(prod);
+            TextoBusqueda = "";
+        }
+        else
+        {
+            BusquedaSinResultados = true;
+        }
+    }
+
+    private void AgregarAlCarrito(Producto prod)
+    {
+        // Verificar si ya existe en el carrito local
+        var itemExistente = Carrito.FirstOrDefault(d => d.ProductoCodigo == prod.Id);
+
+        if (itemExistente != null)
+        {
+            // CORRECCIÓN: Solo aumentamos la cantidad.
+            // El 'Importe' se recalcula solo en la clase DetalleCotizacion.
+            itemExistente.Cantidad++;
+        }
+        else
+        {
+            // CORRECCIÓN: No asignamos 'Importe' porque es ReadOnly
+            var nuevoItem = new DetalleCotizacion
+            {
+                ProductoCodigo = prod.Id,
+                Descripcion = prod.Nombre,
+                PrecioUnitario = prod.Precioventa,
+                Cantidad = 1
+            };
+            Carrito.Add(nuevoItem);
+        }
+    }
+
+    // CAMBIO: delta ahora es decimal para soportar 1.5, 0.5, etc.
+    private void CambiarCantidad(DetalleCotizacion item, decimal delta)
+    {
+        item.Cantidad += delta;
+
+        // Validación: Si es menor o igual a 0, lo borramos
+        if (item.Cantidad <= 0)
+        {
+            Carrito.Remove(item);
+        }
+    }
+
+    private void EliminarItem(DetalleCotizacion item)
+    {
+        Carrito.Remove(item);
+    }
+
+    // --- FINALIZACIÓN Y GUARDADO ---
+
+    private async Task FinalizarPreVenta()
+    {
+        if (!Carrito.Any()) return;
+        Procesando = true;
+
+        try
+        {
+            // CORRECCIÓN: El total se calcula usando la propiedad calculada
+            var cotizacion = new Cotizacion
+            {
+                Fecha = DateTime.Now,
+                ClienteNombre = "Pre-Venta Móvil",
+                ClienteId = 0,
+                Observaciones = "Generado desde PreVenta Web",
+                Detalles = Carrito,
+                Total = Carrito.Sum(x => x.Importe)
+            };
+
+            await _cotizacionService.GuardarCotizacion(cotizacion);
+
+            FolioGenerado = await _cotizacionService.ObtenerUltimoFolio();
+            TotalFinal = cotizacion.Total;
+
+            GenerarImagenQR($"PRE:{FolioGenerado}");
+
+            MostrarModalQR = true;
+            Carrito.Clear();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error al guardar preventa: " + ex.Message);
+        }
+        finally
+        {
+            Procesando = false;
+        }
+    }
+    private void FinalizarPreVentaQR()
+    {
+        if (!Carrito.Any()) return;
+        Procesando = true;
+
+        try
+        {
+            // 1. Construimos la cadena concatenada
+            // Formato: PRE:Id1:Cant1;Id2:Cant2;...
+            var sb = new System.Text.StringBuilder();
+            sb.Append("PRE:"); // Prefijo para identificar que es preventa
+
+            foreach (var item in Carrito)
+            {
+                // Aseguramos que la cantidad use punto decimal si es necesario, sin comas
+                string cantidadStr = item.Cantidad.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+                // Formato: IdProducto:Cantidad
+                sb.Append($"{item.ProductoCodigo}:{cantidadStr};");
+            }
+
+            // Quitamos el último punto y coma para que quede limpio
+            string cadenaQR = sb.ToString().TrimEnd(';');
+
+            // 2. Calculamos el total solo para mostrarlo en el modal (visual)
+            TotalFinal = Carrito.Sum(x => x.Importe);
+
+            // Folio es 0 porque no se guarda en BD
+            FolioGenerado = 0;
+
+            // 3. Generamos el QR con la cadena larga
+            GenerarImagenQR(cadenaQR);
+
+            MostrarModalQR = true;
+            Carrito.Clear();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error al generar QR: " + ex.Message);
+        }
+        finally
+        {
+            Procesando = false;
+        }
+    }
+    private void GenerarImagenQR(string contenido)
+    {
+        using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+        {
+            QRCodeData qrCodeData = qrGenerator.CreateQrCode(contenido, QRCodeGenerator.ECCLevel.Q);
+            PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
+            byte[] qrCodeImage = qrCode.GetGraphic(20);
+            ImagenQR = "data:image/png;base64," + Convert.ToBase64String(qrCodeImage);
+        }
+    }
+
+    private void CerrarModalQR()
+    {
+        MostrarModalQR = false;
+        ImagenQR = "";
+        FolioGenerado = 0;
+    }
+    private async Task ImprimirTicket()
+    {
+        if (!string.IsNullOrEmpty(ImagenQR))
+        {
+            // Llamamos a la función JS que creamos en el _Layout
+            await JSRuntime.InvokeVoidAsync("imprimirTicketQR", ImagenQR, TotalFinal.ToString("C2"));
+        }
+    }
+}

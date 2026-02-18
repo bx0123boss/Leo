@@ -3,7 +3,6 @@
 using PuntoVentaWeb.Models;
 using System.Data;
 using System.Data.Odbc;
-using System.Data.OleDb;
 using System.Data.SqlClient;
 public class CotizacionService
 {
