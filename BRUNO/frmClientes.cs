@@ -155,6 +155,7 @@ namespace BRUNO
             agregar.txtRFC.Text = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
             agregar.txtCorreo.Text = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
             agregar.textBox1.Text = dataGridView1[8, dataGridView1.CurrentRow.Index].Value.ToString();
+            agregar.txtCP.Text = dataGridView1[11, dataGridView1.CurrentRow.Index].Value.ToString();
             agregar.txtAdeudo.Enabled = false;
             agregar.Show();
             this.Close();

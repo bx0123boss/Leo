@@ -26,8 +26,8 @@ public class ClienteService
 
                 // 1. INSERTAR DATOS
                 string query = @"INSERT INTO Clientes 
-                            (Nombre, Telefono, Direccion, Referencia, RFC, Correo, Adeudo, Limite, UltimoPago, Estatus) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                            (Nombre, Telefono, Direccion, Referencia, RFC, Correo, Adeudo, Limite, UltimoPago, Estatus, CP) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
                 using (var cmd = new OdbcCommand(query, con))
                 {
@@ -41,6 +41,7 @@ public class ClienteService
                     cmd.Parameters.AddWithValue("?", cliente.Limite);
                     cmd.Parameters.AddWithValue("?", DateTime.Now);
                     cmd.Parameters.AddWithValue("?", "Activo");
+                    cmd.Parameters.AddWithValue("?", cliente.CP);
 
                     await cmd.ExecuteNonQueryAsync();
 
@@ -79,7 +80,7 @@ public class ClienteService
             {
                 await con.OpenAsync();
 
-                string query = @"SELECT TOP 50 Id, Nombre, RFC, Direccion, Telefono, Correo, Limite, Estatus, Referencia
+                string query = @"SELECT TOP 50 Id, Nombre, RFC, Direccion, CP, Telefono, Correo, Limite, Estatus, Referencia
                                  FROM Clientes 
                                  WHERE Nombre LIKE ? OR RFC LIKE ?
                                  ORDER BY Nombre";
@@ -119,7 +120,7 @@ public class ClienteService
             {
                 await con.OpenAsync();
                 // En Access a veces no hay campo 'FechaRegistro', usamos ID descendente como aproximación
-                string query = "SELECT TOP 20 Id, Nombre, RFC, Direccion, Telefono, Correo, Limite, Estatus, Referencia FROM Clientes ORDER BY Id DESC";
+                string query = "SELECT TOP 20 Id, Nombre, RFC, Direccion,CP, Telefono, Correo, Limite, Estatus, Referencia FROM Clientes ORDER BY Id DESC";
 
                 using (var cmd = new OdbcCommand(query, con))
                 {
@@ -150,7 +151,7 @@ public class ClienteService
             {
                 await con.OpenAsync();
 
-                string query = @"SELECT Id, Nombre, RFC, Direccion, Telefono, Correo, Limite, Estatus, Referencia 
+                string query = @"SELECT Id, Nombre, RFC, Direccion, CP, Telefono, Correo, Limite, Estatus, Referencia 
                                  FROM Clientes 
                                  WHERE Id = ?";
 
@@ -188,7 +189,8 @@ public class ClienteService
             Correo = HasColumn(reader, "Correo") && reader["Correo"] != DBNull.Value ? reader["Correo"].ToString() : "",
             Referencia = HasColumn(reader, "Referencia") && reader["Referencia"] != DBNull.Value ? reader["Referencia"].ToString() : "",
             Limite = HasColumn(reader, "Limite") && reader["Limite"] != DBNull.Value ? Convert.ToDecimal(reader["Limite"]) : 0,
-            Estatus = HasColumn(reader, "Estatus") && reader["Estatus"] != DBNull.Value ? reader["Estatus"].ToString() : "Activo"
+            Estatus = HasColumn(reader, "Estatus") && reader["Estatus"] != DBNull.Value ? reader["Estatus"].ToString() : "Activo",
+            CP = HasColumn(reader, "CP") && reader["CP"] != DBNull.Value ? reader["CP"].ToString() : "00000"
         };
     }
 

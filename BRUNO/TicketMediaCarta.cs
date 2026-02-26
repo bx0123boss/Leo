@@ -27,7 +27,7 @@ namespace BRUNO
         private List<Producto> _productos;
         private string _folio;
         private double _total;
-        private string _cliente, _idCliente, _direccion, _rfc, _telefono, _correo, _formaPago;
+        private string _cliente, _idCliente, _direccion, _rfc, _telefono, _correo,_CP, _formaPago;
         private string _datos, _observaciones;
         private string _nombreLugar, _logoPath;
         private string[] _datosTicket, _pieDeTicket;
@@ -71,7 +71,7 @@ namespace BRUNO
                 using (OleDbConnection con = new OleDbConnection(Conexion.CadCon))
                 {
                     con.Open();
-                    string query = "SELECT Direccion, RFC, Telefono, Correo FROM Clientes WHERE Id = " + _idCliente;
+                    string query = "SELECT Direccion, RFC, Telefono, Correo, CP FROM Clientes WHERE Id = " + _idCliente;
                     using (OleDbCommand cmd = new OleDbCommand(query, con))
                     {
                         using (OleDbDataReader reader = cmd.ExecuteReader())
@@ -82,6 +82,7 @@ namespace BRUNO
                                 _rfc = reader["RFC"]?.ToString() ?? "";
                                 _telefono = reader["Telefono"]?.ToString() ?? "";
                                 _correo = reader["Correo"]?.ToString() ?? "";
+                                _CP = reader["CP"]?.ToString() ?? "";
                             }
                         }
                     }
@@ -203,8 +204,8 @@ namespace BRUNO
                                 {
                                     c.Item().AlignCenter().Text($"Folio: {_folio}").FontSize(11).Bold().FontColor(Colors.Black);
                                     c.Item().PaddingTop(2).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
-                                    c.Item().PaddingTop(2).AlignCenter().Text($"{DateTime.Now:dd/MMM/yyyy}").FontSize(8);
-                                    c.Item().AlignCenter().Text($"{DateTime.Now:HH:mm} hrs").FontSize(7).FontColor(Colors.Grey.Darken2);
+                                    c.Item().PaddingTop(2).AlignCenter().Text($"{DateTime.Now:dd/MMM/yyyy} - {DateTime.Now:HH:mm} hrs").FontSize(8);
+                                    
 
                                     // Vigencia calculada
                                     var fechaVigencia = DateTime.Now.AddDays(_diasValidez);
@@ -240,9 +241,8 @@ namespace BRUNO
                                 {
                                     var nombreFinal = !string.IsNullOrEmpty(_cliente) ? _cliente : "Público General";
                                     d.Item().Text(nombreFinal).Bold().FontSize(11);
-                                    d.Item().Text(_cliente ?? "Público General").Bold();
                                     if (Conexion.lugar == "TURBOLLANTAS" || !string.IsNullOrEmpty(_direccion))
-                                        d.Item().Text($"Dirección: {_direccion ?? ""}");
+                                        d.Item().Text($"Dirección: {_direccion ?? "                                        "} CP: {_CP ?? ""}");
                                     if (Conexion.lugar == "TURBOLLANTAS" || !string.IsNullOrEmpty(_telefono))
                                         d.Item().Text($"Teléfono: {_telefono ?? ""}");
                                     if (Conexion.lugar == "TURBOLLANTAS" || !string.IsNullOrEmpty(_rfc))

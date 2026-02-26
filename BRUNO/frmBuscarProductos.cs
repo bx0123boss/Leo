@@ -38,15 +38,17 @@ namespace BRUNO
             EstilizarTextBox(this.textBox1);
             EstilizarTextBox(this.textBox2);
 
-
-          this.KeyPreview = true;
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
+            this.KeyPreview = true;
             conectar.Open();
             if (textBox1.Text != "")
             {
                 if (textBox1.Text == "")
                 {
                     ds = new DataSet();
-                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario;", conectar);
+                    da = new OleDbDataAdapter("select top 100 Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario;", conectar);
                     da.Fill(ds, "Id");
                     dataGridView1.DataSource = ds.Tables["Id"];
                     dataGridView1.Columns[5].Visible = false;
@@ -55,7 +57,7 @@ namespace BRUNO
                 else
                 {
                     ds = new DataSet();
-                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
+                    da = new OleDbDataAdapter("select top 100 Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
                     da.Fill(ds, "Id");
                     dataGridView1.DataSource = ds.Tables["Id"];
                     dataGridView1.Columns[5].Visible = false;

@@ -95,7 +95,7 @@ namespace BRUNO
 
         private void frmCorte_Load(object sender, EventArgs e)
         {
-            if (usuario=="Invitado")
+            if (usuario == "Invitado")
             {
                 //button2.Hide();
                 label9.Hide();
@@ -107,6 +107,7 @@ namespace BRUNO
                 label11.Hide();
                 lblBruta.Hide();
             }
+
             ds = new DataSet();
             conectar.Open();
             da = new OleDbDataAdapter("select * from Corte where Pago='01=EFECTIVO';", conectar);
@@ -121,7 +122,7 @@ namespace BRUNO
                 porcentaje = Convert.ToDecimal(reader[0].ToString());
             }
             lblComision.Text = $"{porcentaje:F2}% Comisión:";
-            
+
             cmd = new OleDbCommand("select * from Fech where Id=1;", conectar);
             reader = cmd.ExecuteReader();
             if (reader.Read())
@@ -129,6 +130,7 @@ namespace BRUNO
                 int caja = Convert.ToInt32(Convert.ToString(reader[1].ToString()));
                 fechaApertura = Convert.ToString(reader[2].ToString());
             }
+
             ds = new DataSet();
             da = new OleDbDataAdapter("select * from Corte where Pago='04=TARJETA DE CREDITO' or Pago='28=TARJETA DE DEBITO';", conectar);
             da.Fill(ds, "Id");
@@ -148,8 +150,7 @@ namespace BRUNO
             }
             string fechaInicioSQL = fechaDate.ToString("yyyy-MM-dd HH:mm:ss");
             string fechaFinSQL = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            
-            //da = new OleDbDataAdapter("SELECT Categoria, SUM(MontoTotal) as Total FROM VentasContado Where  Fecha >= #" + fechaInicioSQL + "# and Fecha <= #" + fechaFinSQL + "# AND FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus = 'COBRADO') GROUP BY Categoria", conectar);
+
             ds = new DataSet();
             // Usamos IIf con Is Null y validación de cadena vacía ""
             string query = "SELECT IIf(Categoria Is Null OR Categoria = '', 'SIN CATEGORIA', Categoria) as Categoria, " +
@@ -163,26 +164,49 @@ namespace BRUNO
             da.Fill(ds, "Id");
             dataGridView6.DataSource = ds.Tables["Id"];
 
+            // ======================================================================
+            // 1. CÁLCULO DE EFECTIVO EN CORTE (dgvCorte)
+            // ======================================================================
             for (int i = 0; i < dgvCorte.RowCount; i++)
             {
-                if (Convert.ToDouble(dgvCorte[2, i].Value.ToString()) < 0)
-                {
-                    menos += Convert.ToSingle(dgvCorte[2, i].Value.ToString(), CultureInfo.CreateSpecificCulture("es-ES"));
+                if (dgvCorte.Rows[i].IsNewRow) continue;
 
+                if (dgvCorte[2, i].Value != null && dgvCorte[2, i].Value != DBNull.Value)
+                {
+                    double valorNumerico = Convert.ToDouble(dgvCorte[2, i].Value);
+                    if (valorNumerico < 0)
+                        menos += Convert.ToSingle(valorNumerico);
+                    else if (valorNumerico > 0)
+                        mas += Convert.ToSingle(valorNumerico);
                 }
-                else if (Convert.ToDouble(dgvCorte[2, i].Value.ToString()) > 0)
-                    mas += Convert.ToSingle(dgvCorte[2, i].Value.ToString(), CultureInfo.CreateSpecificCulture("es-ES"));
             }
 
+            // ======================================================================
+            // 2. CÁLCULO DE TARJETAS (dataGridView3)
+            // ======================================================================
             for (int i = 0; i < dataGridView3.RowCount; i++)
             {
-                tarjeta += Convert.ToSingle(dataGridView3[2, i].Value.ToString(), CultureInfo.CreateSpecificCulture("es-ES"));
+                if (dataGridView3.Rows[i].IsNewRow) continue;
+
+                if (dataGridView3[2, i].Value != null && dataGridView3[2, i].Value != DBNull.Value)
+                {
+                    tarjeta += Convert.ToSingle(dataGridView3[2, i].Value);
+                }
             }
 
+            // ======================================================================
+            // 3. CÁLCULO DE TRANSFERENCIAS (dataGridView4)
+            // ======================================================================
             for (int i = 0; i < dataGridView4.RowCount; i++)
             {
-                trans += Convert.ToSingle(dataGridView4[2, i].Value.ToString(), CultureInfo.CreateSpecificCulture("es-ES"));
+                if (dataGridView4.Rows[i].IsNewRow) continue;
+
+                if (dataGridView4[2, i].Value != null && dataGridView4[2, i].Value != DBNull.Value)
+                {
+                    trans += Convert.ToSingle(dataGridView4[2, i].Value);
+                }
             }
+
             cmd = new OleDbCommand("select Numero from Folios where Folio='Corte';", conectar);
             reader = cmd.ExecuteReader();
             if (reader.Read())
@@ -191,86 +215,108 @@ namespace BRUNO
             }
 
             ds = new DataSet();
-          
             da = new OleDbDataAdapter("select MontoTotal,Utilidad,Id from VentasContado Where Fecha>=#" + fechaInicioSQL + "# and Fecha <=#" + fechaFinSQL + "#;", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
 
+            // ======================================================================
+            // 4. CÁLCULO DE UTILIDADES (dataGridView1)
+            // ======================================================================
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
-                if (Convert.ToDouble(dataGridView1[1, i].Value.ToString()) > 0)
-                {
-                    total += Convert.ToDouble(dataGridView1[0, i].Value.ToString());
-                    if(Convert.ToDouble(dataGridView1[1, i].Value.ToString())>0)
-                    utilidad += Convert.ToDouble(dataGridView1[1, i].Value.ToString());
-                }
+                if (dataGridView1.Rows[i].IsNewRow) continue;
 
+                if (dataGridView1[1, i].Value != null && dataGridView1[1, i].Value != DBNull.Value &&
+                    dataGridView1[0, i].Value != null && dataGridView1[0, i].Value != DBNull.Value)
+                {
+                    double valorUtilidad = Convert.ToDouble(dataGridView1[1, i].Value);
+                    double valorMonto = Convert.ToDouble(dataGridView1[0, i].Value);
+
+                    if (valorUtilidad > 0)
+                    {
+                        total += valorMonto;
+                        utilidad += valorUtilidad;
+                    }
+                }
             }
+
             ds = new DataSet();
             da = new OleDbDataAdapter("select * from GastosDetallados Where Fecha>=#" + fechaInicioSQL + "# and Fecha <=#" + fechaFinSQL + "#;", conectar);
             da.Fill(ds, "Id");
             dataGridView2.DataSource = ds.Tables["Id"];
 
-            // 1. Llenar el DataGridView como lo tenías
+            // ======================================================================
+            // 5. CÁLCULO DE GASTOS (dataGridView2)
+            // ======================================================================
+            for (int i = 0; i < dataGridView2.RowCount; i++)
+            {
+                if (dataGridView2.Rows[i].IsNewRow) continue;
+
+                if (dataGridView2[2, i].Value != null && dataGridView2[2, i].Value != DBNull.Value)
+                {
+                    gastos += Convert.ToDouble(dataGridView2[2, i].Value);
+                }
+            }
+
+            // 1. Llenar el DataGridView de Folios
             ds = new DataSet();
-            da = new OleDbDataAdapter("Select Id,Folio,    Monto / (1 + (16 / 100)) AS [Monto sin IVA], Monto - (Monto / (1 + (16 / 100))) AS [IVA], Monto,Descuento, Fecha, Estatus, Pago from Ventas where Estatus ='COBRADO' AND Fecha>=#" + fechaInicioSQL + "# and Fecha <=#" + fechaFinSQL + "#;", conectar);
+            da = new OleDbDataAdapter("Select Id,Folio, Monto / (1 + (16 / 100)) AS [Monto sin IVA], Monto - (Monto / (1 + (16 / 100))) AS [IVA], Monto,Descuento, Fecha, Estatus, Pago from Ventas where Estatus ='COBRADO' AND Fecha>=#" + fechaInicioSQL + "# and Fecha <=#" + fechaFinSQL + "#;", conectar);
             da.Fill(ds, "Id");
             dgvFolios.DataSource = ds.Tables["Id"];
-
-            // 2. Ocultar la columna que no quieres mostrar (si es necesario)
             dgvFolios.Columns[0].Visible = false;
 
-            // 3. Agregar la columna CheckBox (si no está en el DataSource)
+            // Agregar la columna CheckBox
             DataGridViewCheckBoxColumn checkColumn = new DataGridViewCheckBoxColumn();
             checkColumn.Name = "Seleccionar";
             checkColumn.HeaderText = "Seleccionar";
             checkColumn.Width = 80;
-            checkColumn.ReadOnly = false;  // Solo esta columna será editable
+            checkColumn.ReadOnly = false;
             dgvFolios.Columns.Insert(0, checkColumn);
 
-            // 4. Marcar todos los CheckBoxes como true inicialmente
+            // Marcar todos los CheckBoxes como true
             foreach (DataGridViewRow row in dgvFolios.Rows)
             {
                 row.Cells["Seleccionar"].Value = true;
             }
 
-            // 5. Hacer que TODAS las demás columnas sean de solo lectura
+            // Hacer que TODAS las demás columnas sean de solo lectura
             foreach (DataGridViewColumn column in dgvFolios.Columns)
             {
-                if (column.Name != "Seleccionar") // Excluir solo el CheckBox
+                if (column.Name != "Seleccionar")
                 {
                     column.ReadOnly = true;
                 }
             }
 
-            for (int i = 0; i < dataGridView2.RowCount; i++)
-            {
-                    gastos += Convert.ToDouble(dataGridView2[2, i].Value.ToString());                
-            }
-            lblCorte.Text =  $"{mas:C}";
+            // ASIGNACIÓN DE TEXTOS A LAS ETIQUETAS
+            lblCorte.Text = $"{mas:C}";
             lblECaja.Text = $"{mas + menos:C}";
             lblBruta.Text = $"{utilidad - gastos:C}";
             lblGastos.Text = $"{gastos:C}";
+
             inversion = total - utilidad;
             lblInversion.Text = $"{inversion:C}";
             lblUtilidad.Text = $"{utilidad:C}";
             lblEntrada.Text = $"{mas + tarjeta + trans:C}";
             lblSalida.Text = $"{menos * -1:C}";
             lblCredito.Text = $"{tarjeta:F2}";
-            decimal factorPorcentaje = porcentaje / 100m; // Convertir a factor (0.027)
-            decimal factorRestante = 1m - factorPorcentaje; // Factor restante (0.973)
+
+            decimal factorPorcentaje = porcentaje / 100m;
+            decimal factorRestante = 1m - factorPorcentaje;
             lblCredito.Text = $"{(decimal)tarjeta * factorRestante:F2}";
             lbl5por.Text = $"{(decimal)tarjeta * factorPorcentaje:F2}";
             lblTrans.Text = $"{trans:C}";
-            // Usar decimal para cálculos financieros
+
             decimal monto = Convert.ToDecimal(tarjeta + mas + menos + trans);
-            decimal tasaIVA = 0.16m; // 16% en formato decimal
-            // Calcular monto sin IVA e IVA
+            decimal tasaIVA = 0.16m;
             decimal montoSinIVA = monto / (1 + tasaIVA);
             decimal iva = monto - montoSinIVA;
-            lblNoIva.Text = $"{montoSinIVA:C2}"; 
-            lblIVA.Text = $"{iva:C2}"; 
+
+            lblNoIva.Text = $"{montoSinIVA:C2}";
+            lblIVA.Text = $"{iva:C2}";
             lblTotal.Text = $"{monto:C2}";
+
+            // ESTILIZACIÓN DE GRIDS
             EstilizarDataGridView(this.dgvFolios);
             EstilizarDataGridView(this.dgvCorte);
             EstilizarDataGridView(this.dataGridView5);

@@ -125,11 +125,10 @@
             // 
             // Producto
             // 
-            this.Producto.FillWeight = 50F;
+            this.Producto.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
             this.Producto.HeaderText = "Producto";
             this.Producto.Name = "Producto";
             this.Producto.ReadOnly = true;
-            this.Producto.Width = 480;
             // 
             // Precio
             // 
@@ -182,7 +181,8 @@
             this.Comentario.Width = 120;
             // 
             // btnEliminar
-            // 
+            // 
+            this.btnEliminar.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
             this.btnEliminar.HeaderText = "Eliminar";
             this.btnEliminar.Name = "btnEliminar";
             this.btnEliminar.Resizable = System.Windows.Forms.DataGridViewTriState.True;

@@ -97,7 +97,6 @@
         using var stream = new MemoryStream(pdfBytes);
         using var streamRef = new DotNetStreamReference(stream);
 
-        // 3. Llamar a la función JS que pusimos en _Layout.cshtml
         await JS.InvokeVoidAsync("downloadFileFromStream", $"Cotizacion_{cotizacion.Id}.pdf", streamRef);
     }
 }

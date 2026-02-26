@@ -13,7 +13,7 @@ public class Cliente
     public string Telefono { get; set; }
 
     public string Direccion { get; set; }
-
+    public string CP { get; set; }
     public string Referencia { get; set; }
 
     [Required(ErrorMessage = "El RFC es obligatorio")]

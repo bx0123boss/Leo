@@ -49,6 +49,10 @@
                 <label class="form-label">Dirección</label>
                 <InputTextArea class="form-control" @bind-Value="cliente.Direccion" rows="2" />
             </div>
+            <div class="mb-3">
+                <label class="form-label">CP</label>
+                <InputTextArea class="form-control" @bind-Value="cliente.CP" rows="2" />
+            </div>
 
             <div class="mb-3">
                 <label class="form-label">Referencia (Ubicación u Observaciones)</label>
@@ -78,7 +82,8 @@
     {
         Limite = 0,
         RFC = "XAXX010101000",
-        Estatus = "Activo" // Aseguramos un estatus por defecto
+        Estatus = "Activo",
+        CP = ""
     };
 
     private async Task Guardar()
@@ -98,7 +103,8 @@
                 {
                     RFC = "XAXX010101000",
                     Limite = 0,
-                    Estatus = "Activo"
+                    Estatus = "Activo",
+                    CP = "00000"
                 };
             }
             else

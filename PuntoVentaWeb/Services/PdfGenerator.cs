@@ -124,9 +124,10 @@ public class PdfGenerator
                             datos.Item().Text(nombreFinal).Bold().FontSize(11);
                             if (cliente != null || config.NombreLugar == "TURBOLLANTAS")
                             {
-                                datos.Item().Text($"Dirección: {cliente?.Direccion ?? ""}");
+                                datos.Item().Text($"Dirección: {cliente?.Direccion ?? "                                        "} CP: {cliente?.CP ?? ""}");
                                 datos.Item().Text($"Teléfono: {cliente?.Telefono ?? ""}");
                                 datos.Item().Text($"RFC: {cliente?.RFC ?? ""}");
+                                
                             }
                         });
                     });

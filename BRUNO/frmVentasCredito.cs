@@ -1,19 +1,12 @@
 ﻿using LibPrintTicket;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Data.OleDb;
 using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmVentasCredito : Form
+    public partial class frmVentasCredito : frmBase
     {
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
@@ -30,9 +23,34 @@ namespace BRUNO
         {
             InitializeComponent();
             conectar.Open();
+            AplicarEstilos();
         }
 
-       
+        private void AplicarEstilos()
+        {
+            cmbPago.SelectedIndex = 0;
+
+            if (Conexion.lugar == "SANJUAN" && usuario == "Admin")
+            {
+                dataGridView1.Columns[2].ReadOnly = false;
+            }
+            EstilizarDataGridView(this.dataGridView1);
+
+            // Botones
+            EstilizarBotonPrimario(this.button2);     // Botón Cobrar
+            EstilizarBotonPrimario(this.button4);     // Botón Buscar Cliente
+            EstilizarBotonAdvertencia(this.button3);  // Botón Buscar Producto
+            EstilizarBotonAdvertencia(this.button5);  // Botón X (Cerrar)
+            EstilizarBotonPeligro(this.button1);      // Botón Eliminar
+
+            // Entradas de texto y opciones
+            EstilizarComboBox(this.cmbPago);
+            EstilizarTextBox(this.txtDescuento);
+            EstilizarTextBox(this.txtAbono);         
+            EstilizarTextBox(this.textBox1);         
+
+        }
+
         private void button4_Click(object sender, EventArgs e)
         {
             using (frmBuscaCliente cliente = new frmBuscaCliente())
@@ -59,17 +77,9 @@ namespace BRUNO
                 if (buscar.ShowDialog() == DialogResult.OK)
                 {
                     dataGridView1.Rows.Add("1", buscar.producto, buscar.precio, buscar.monto, buscar.existencia, buscar.ID, origen);
-
+                    CalcularTotales();
                 }
             }
-            total = 0;
-            for (int i = 0; i < dataGridView1.RowCount; i++)
-            {
-                total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-            }
-            lblTotal.Text = String.Format("{0:0.00}", total);
-            lblFinal.Text = String.Format("{0:0.00}", total);
-            
         }
 
         private void dataGridView1_KeyPress(object sender, KeyPressEventArgs e)
@@ -79,14 +89,11 @@ namespace BRUNO
 
         private void button1_Click(object sender, EventArgs e)
         {
-            total = 0;
-            dataGridView1.Rows.RemoveAt(dataGridView1.CurrentRow.Index);
-            for (int i = 0; i < dataGridView1.RowCount; i++)
+            if (dataGridView1.CurrentRow != null)
             {
-                total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
+                dataGridView1.Rows.RemoveAt(dataGridView1.CurrentRow.Index);
+                CalcularTotales();
             }
-            lblTotal.Text = String.Format("{0:0.00}", total);
-            lblFinal.Text = String.Format("{0:0.00}", total);
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -210,7 +217,6 @@ namespace BRUNO
                         ticket.AddTotal("Total", (total - descuento) + "");
                         ticket.AddTotal("Abono", txtAbono.Text);
                         ticket.AddTotal("Restante", lblFinal.Text);
-                        //jalar pie de ticket
                         for (int i = 0; i < Conexion.pieDeTicket.Length; i++)
                         {
                             ticket.AddFooterLine(Conexion.pieDeTicket[i]);
@@ -243,48 +249,6 @@ namespace BRUNO
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
-            //if (e.KeyChar == Convert.ToChar(Keys.Enter))
-            //{
-            //    if (textBox1.Text == "")
-            //    {
-            //    }
-            //    else
-            //    {
-                   
-            //        cmd = new OleDbCommand("select count(*) from Inventario where Id='" + textBox1.Text + "';", conectar);
-            //        int valor = int.Parse(cmd.ExecuteScalar().ToString());
-            //        if (valor == 1)
-            //        {
-            //            total = Convert.ToDouble(lblTotal.Text);
-            //            cmd = new OleDbCommand("select * from Inventario where Id='" + textBox1.Text + "';", conectar);
-            //            OleDbDataReader reader = cmd.ExecuteReader();
-            //            if (reader.Read())
-            //            {
-            //                int existen = Convert.ToInt32(Convert.ToString(reader[4].ToString()));
-            //                if (existen > 0)
-            //                {
-            //                    dataGridView1.Rows.Add("1", Convert.ToString(reader[1].ToString()), Math.Truncate(Convert.ToDouble(Convert.ToString(reader[3].ToString())) * 1.1), Math.Truncate(Convert.ToDouble(Convert.ToString(reader[3].ToString())) * 1.1), Convert.ToString(reader[4].ToString()), Convert.ToString(reader[0].ToString()), origen);
-            //                }
-            //                else
-            //                {
-            //                    MessageBox.Show("El producto no cuenta con existencias, verifique el almacen", "Alto", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            //                }
-            //            }
-            //            total += Math.Truncate( Convert.ToDouble(Convert.ToString(reader[3].ToString()))*1.1);
-            //            lblTotal.Text = String.Format("{0:0.00}", total);
-            //            lblFinal.Text = String.Format("{0:0.00}", total);
-            //            textBox1.Text = "";
-            //        }
-            //        else
-            //        {
-            //            MessageBox.Show("El producto no existe, verifique en " + origen + "", "Alto", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            //            textBox1.Clear();
-            //            textBox1.Focus();
-            //        }
-            //    }
-            //}
-
-
             if (e.KeyChar == Convert.ToChar(Keys.Enter))
             {
                 if (textBox1.Text == "")
@@ -292,7 +256,6 @@ namespace BRUNO
                 }
                 else
                 {
-
                     cmd = new OleDbCommand("select count(*) from Inventario where Id='" + textBox1.Text + "';", conectar);
                     int valor = int.Parse(cmd.ExecuteScalar().ToString());
                     if (valor == 1)
@@ -302,9 +265,6 @@ namespace BRUNO
                         OleDbDataReader reader = cmd.ExecuteReader();
                         if (reader.Read())
                         {
-                            //int existen = Convert.ToInt32(Convert.ToString(reader[4].ToString()));
-                            //if (existen > 0)
-                            //{
                             using (frmPrecio buscar = new frmPrecio())
                             {
                                 if (buscar.ShowDialog() == DialogResult.OK)
@@ -321,16 +281,7 @@ namespace BRUNO
                                     }
                                 }
                             }
-                            //}
-                            //else
-                            //{
-                            //    MessageBox.Show("El producto no cuenta con existencias, verifique el almacen", "Alto", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            //}
                         }
-                        total += Convert.ToDouble(Convert.ToString(reader[3].ToString()));
-                        lblTotal.Text = String.Format("{0:0.00}", total);
-                        lblFinal.Text = String.Format("{0:0.00}", total);
-                        textBox1.Text = "";
                     }
                     else
                     {
@@ -338,32 +289,25 @@ namespace BRUNO
                         using (frmBuscarProductos buscar = new frmBuscarProductos())
                         {
                             buscar.textBox1.Text = textBox1.Text;
-                            //if (buscar.ShowDialog() == DialogResult.OK)
                                 dataGridView1.Rows.Add("1", buscar.producto, buscar.precio, buscar.monto, buscar.existencia, buscar.ID, origen, buscar.IVA, buscar.compra);
                             
                         }
-                        total = 0;
-                        for (int i = 0; i < dataGridView1.RowCount; i++)
-                        {
-                            total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-                        }
-                        lblTotal.Text = String.Format("{0:0.00}", total);
-                        lblFinal.Text = String.Format("{0:0.00}", total);
                         textBox1.Text = "";
-                        //}
-                        //}
                     }
+                    CalcularTotales();
                 }
             }
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
+            CalcularTotales();
             txtDescuento.Focus();
         }
 
         private void radioButton2_CheckedChanged(object sender, EventArgs e)
         {
+            CalcularTotales(); 
             txtDescuento.Focus();
         }
 
@@ -371,33 +315,7 @@ namespace BRUNO
         {
             if (e.KeyChar == Convert.ToChar(Keys.Enter))
             {
-                if (radioButton1.Checked)
-                {
-                    total = 0;
-                    for (int i = 0; i < dataGridView1.RowCount; i++)
-                    {
-                        total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-                    }
-                    descuento = ((Convert.ToDouble(txtDescuento.Text) / 100)) * total;
-                    total = total - descuento;
-                    Math.Round(total, 2);
-                    MessageBox.Show("DESCUENTO REALIZADO POR LA CANTIDAD DE: $" + descuento, "DESCUENTO", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    lblTotal.Text = String.Format("{0:0.00}", total);
-                    lblFinal.Text = String.Format("{0:0.00}", total);
-                }
-                else if (radioButton2.Checked)
-                {
-                    total = 0;
-                    for (int i = 0; i < dataGridView1.RowCount; i++)
-                    {
-                        total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
-                    }
-                    descuento = Convert.ToDouble(txtDescuento.Text);
-                    total = total - descuento;
-                    MessageBox.Show("DESCUENTO REALIZADO POR LA CANTIDAD DE: $" + descuento, "DESCUENTO", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    lblTotal.Text = String.Format("{0:0.00}", total);
-                    lblFinal.Text = String.Format("{0:0.00}", total);
-                }
+                CalcularTotales();
             }
         }
 
@@ -409,120 +327,63 @@ namespace BRUNO
                 {
                     txtAbono.Text = "0";
                 }
-                lblFinal.Text = "" + Math.Round((Convert.ToDouble(lblTotal.Text) - Convert.ToDouble(txtAbono.Text)),2);
-                lblFinal.Text = String.Format("{0:0.00}", lblFinal.Text);
+                CalcularTotales();
             }
-
-        }
-
-        private void label8_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void txtDescuento_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
-        private void label6_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void lblLimite_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void lblFinal_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label7_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label5_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void lblFolio_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label4_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void txtAbono_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void lblTotal_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void lblCliente_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void lblAdeudo_Click(object sender, EventArgs e)
-        {
 
         }
 
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            total = 0;
-            double cantidad = Convert.ToDouble(dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString());
-            double precio = Convert.ToDouble(dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString());
-            double monto = cantidad * precio;
-            dataGridView1.Rows[e.RowIndex].Cells[3].Value = monto;
-            for (int i = 0; i < dataGridView1.RowCount; i++)
+            if (dataGridView1.Rows[e.RowIndex].Cells[0].Value != null &&
+                dataGridView1.Rows[e.RowIndex].Cells[2].Value != null)
             {
-                total += Convert.ToDouble(dataGridView1[3, i].Value.ToString());
+                double cantidad = Convert.ToDouble(dataGridView1.Rows[e.RowIndex].Cells[0].Value);
+                double precio = Convert.ToDouble(dataGridView1.Rows[e.RowIndex].Cells[2].Value);
+                double monto = cantidad * precio;
+
+                dataGridView1.Rows[e.RowIndex].Cells[3].Value = monto;
             }
-            lblTotal.Text = String.Format("{0:0.00}", total);
-            lblFinal.Text = String.Format("{0:0.00}", total);
+            CalcularTotales();
         }
 
         private void button5_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+        private void CalcularTotales()
+        {
+            double subtotal = 0;
+
+            for (int i = 0; i < dataGridView1.RowCount; i++)
+            {
+                if (dataGridView1.Rows[i].Cells[3].Value != null)
+                {
+                    subtotal += Convert.ToDouble(dataGridView1.Rows[i].Cells[3].Value);
+                }
+            }
+
+            double valorDescuento = 0;
+            if (double.TryParse(txtDescuento.Text, out double descInput))
+            {
+                if (radioButton1.Checked) // Porcentaje
+                    valorDescuento = subtotal * (descInput / 100.0);
+                else if (radioButton2.Checked) // Directo
+                    valorDescuento = descInput;
+            }
+
+            double totalConDescuento = subtotal - valorDescuento;
+
+            double valorAbono = 0;
+            if (double.TryParse(txtAbono.Text, out double abonoInput))
+            {
+                valorAbono = abonoInput;
+            }
+
+            double saldoRestante = totalConDescuento - valorAbono;
+
+            this.descuento = valorDescuento;
+            lblTotal.Text = subtotal.ToString("0.00");
+            lblFinal.Text = saldoRestante.ToString("0.00");
         }
     }
 }

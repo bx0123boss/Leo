@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmPolizas : Form
+    public partial class frmPolizas : frmBase
     {
         private DataSet ds;
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
@@ -29,15 +29,7 @@ namespace BRUNO
         {
             ds = new DataSet();
             conectar.Open();
-            if (idProveedor==0)
-            {
-                da = new OleDbDataAdapter("select * from Poliza;", conectar);    
-            }
-            else
-            {
-                da = new OleDbDataAdapter("select * from Poliza where idProv='"+idProveedor+"';", conectar);
-
-            }
+            da = new OleDbDataAdapter("Select * from Poliza where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59#;", conectar);
 
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
@@ -45,7 +37,12 @@ namespace BRUNO
             {
                 button3.Hide();
             }
-            //dataGridView1.Columns[0].Visible = false;
+            EstilizarDataGridView(dataGridView1);
+            EstilizarTextBox(textBox1);
+            EstilizarBotonPrimario(button1);
+            EstilizarBotonPrimario(button2);
+            EstilizarBotonAdvertencia(button3);
+            
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -63,7 +60,6 @@ namespace BRUNO
                 da = new OleDbDataAdapter("select * from Poliza ORDER BY Folio;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
-                //dataGridView1.Columns[0].Visible = false;
             }
             else
             {
@@ -72,7 +68,6 @@ namespace BRUNO
                 da = new OleDbDataAdapter("select * from Poliza where Folio LIKE '%" + textBox1.Text + "%' ORDER BY Folio ;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
-                //dataGridView1.Columns[0].Visible = false;
             }
         }
 
@@ -82,7 +77,6 @@ namespace BRUNO
             da = new OleDbDataAdapter("Select * from Poliza where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59#;", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
-            //dataGridView1.Columns[0].Visible = false;
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -97,7 +91,6 @@ namespace BRUNO
             poli.lblMonto.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
             double extra =Convert.ToDouble(dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString());
             poli.lblExtra.Text = extra.ToString("#,#.00", CultureInfo.InvariantCulture);
-            //double total = (Convert.ToDouble(poli.lblMonto.Text) + Convert.ToDouble(poli.lblExtra.Text));
             poli.lblTotal.Text = dataGridView1[9, dataGridView1.CurrentRow.Index].Value.ToString();
             poli.lblIVA.Text = dataGridView1[8, dataGridView1.CurrentRow.Index].Value.ToString();
             poli.Show();
