@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmReporteVentasCredito : Form
+    public partial class frmReporteVentasCredito : frmBase
     {
         private DataSet ds;
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
@@ -37,6 +37,12 @@ namespace BRUNO
                 dataGridView1.CurrentCell = dataGridView1.Rows[0].Cells[1]; // Selecciona la celda en la columna 1 (ajusta según tu caso)
                 dataGridView1.Rows[0].Selected = true; // Opcional: Resalta toda la fila
             }
+            EstilizarTextBox(textBox1);
+            EstilizarBotonPrimario(button1);
+            EstilizarDataGridView(dataGridView1);
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -53,7 +59,7 @@ namespace BRUNO
                 {
                     detalles.button1.Hide();
                 }
-                detalles.adeudo = Convert.ToDouble(dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString());
+                //detalles.adeudo = Convert.ToDouble(dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString());
                 detalles.usuario = usuario;
                 detalles.Show();
                 this.Close();

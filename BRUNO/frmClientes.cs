@@ -122,24 +122,35 @@ namespace BRUNO
 
         private void button7_Click(object sender, EventArgs e)
         {
-            
-
-
-            frmHistorialAbonos histo = new frmHistorialAbonos();
-            histo.lblID.Text = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-            histo.lblNombre.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-            histo.Show();
-            this.Hide();
+            if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
+            {
+                frmHistorialAbonos histo = new frmHistorialAbonos();
+                histo.lblID.Text = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
+                histo.lblNombre.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+                histo.Show();
+                this.Hide();
+            }
+            else
+            {
+                MessageBox.Show("Por favor, seleccione un registro de la lista.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void button4_Click(object sender, EventArgs e)
         {
-            frmAbonoCliente abonar = new frmAbonoCliente();
-            abonar.txtAdeudo.Text = dataGridView1[7, dataGridView1.CurrentRow.Index].Value.ToString();
-            abonar.lblID.Text = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-            abonar.lblCliente.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-            abonar.Show();
-            this.Close();
+            if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
+            {
+                frmAbonoCliente abonar = new frmAbonoCliente();
+                abonar.txtAdeudo.Text = dataGridView1[7, dataGridView1.CurrentRow.Index].Value.ToString();
+                abonar.lblID.Text = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
+                abonar.lblCliente.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+                abonar.Show();
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("Por favor, seleccione un registro de la lista.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -163,12 +174,19 @@ namespace BRUNO
 
         private void button5_Click(object sender, EventArgs e)
         {
-            frmHistorialCompras histo = new frmHistorialCompras();            
-            histo.lblID.Text = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-            histo.lblNombre.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-            histo.adeudo = Convert.ToDouble(dataGridView1[7, dataGridView1.CurrentRow.Index].Value.ToString());
-            histo.Show();
-            this.Close();
+            if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
+            {
+                frmHistorialCompras histo = new frmHistorialCompras();
+                histo.lblID.Text = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
+                histo.lblNombre.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+                histo.adeudo = Convert.ToDouble(dataGridView1[7, dataGridView1.CurrentRow.Index].Value.ToString());
+                histo.Show();
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("Por favor, seleccione un registro de la lista.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void button6_Click(object sender, EventArgs e)

@@ -11,17 +11,35 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmApartados : Form
+    public partial class frmApartados : frmBase // Heredamos de frmBase
     {
         private DataSet ds;
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
+        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         OleDbDataAdapter da;
         public String usuario = "";
 
         public frmApartados()
         {
             InitializeComponent();
+            AplicarEstilos();
+        }
+
+        private void AplicarEstilos()
+        {
+            EstilizarDataGridView(this.dataGridView1);
+
+            // Botones
+            EstilizarBotonPrimario(this.button1);     // Abono
+            EstilizarBotonPrimario(this.button2);     // Detalles
+            EstilizarBotonAdvertencia(this.button3);  // Pendientes
+
+            // TextBoxes
+            EstilizarTextBox(this.textBox1);
+            EstilizarTextBox(this.textBox2);
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
         }
 
         private void frmApartados_Load(object sender, EventArgs e)
@@ -106,18 +124,26 @@ namespace BRUNO
         {
             try
             {
-            frmAbonoApartado abono = new frmAbonoApartado();
-            abono.txtAdeudo.Text = dataGridView1[7, dataGridView1.CurrentRow.Index].Value.ToString();
-            abono.idCliente =Convert.ToInt32(dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString());
-            abono.lblID.Text = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-            abono.abonado = Convert.ToDouble(dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString());
-            abono.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
-            abono.Show();
-            this.Close();
+                // Validación para evitar que truene si no hay fila seleccionada
+                if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
+                {
+                    frmAbonoApartado abono = new frmAbonoApartado();
+                    abono.txtAdeudo.Text = dataGridView1[7, dataGridView1.CurrentRow.Index].Value.ToString();
+                    abono.idCliente = Convert.ToInt32(dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString());
+                    abono.lblID.Text = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
+                    abono.abonado = Convert.ToDouble(dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString());
+                    abono.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
+                    abono.Show();
+                    this.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Por favor, seleccione un apartado de la lista.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
             catch (Exception ex)
             {
-                
+                MessageBox.Show("Ocurrió un error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -125,20 +151,27 @@ namespace BRUNO
         {
             try
             {
-
-                frmApartadoDetallado detalles = new frmApartadoDetallado();
-                detalles.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
-                detalles.lblFecha.Text = dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString();
-                detalles.lblMonto.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-                detalles.lblAbonado.Text = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
-                detalles.lblRestante.Text = dataGridView1[7, dataGridView1.CurrentRow.Index].Value.ToString();
-                detalles.usuario = usuario;
-                detalles.Show();
-                this.Close();
+                // Validación para evitar que truene si no hay fila seleccionada
+                if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
+                {
+                    frmApartadoDetallado detalles = new frmApartadoDetallado();
+                    detalles.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
+                    detalles.lblFecha.Text = dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString();
+                    detalles.lblMonto.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+                    detalles.lblAbonado.Text = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
+                    detalles.lblRestante.Text = dataGridView1[7, dataGridView1.CurrentRow.Index].Value.ToString();
+                    detalles.usuario = usuario;
+                    detalles.Show();
+                    this.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Por favor, seleccione un apartado de la lista.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
             catch (Exception ex)
             {
-                
+                MessageBox.Show("Ocurrió un error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -147,11 +180,6 @@ namespace BRUNO
             frmListaPendientes lista = new frmListaPendientes();
             lista.Show();
             this.Close();
-        }
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }
