@@ -321,11 +321,6 @@ namespace BRUNO
             }
         }
 
-        static double CalcularImpuesto(double baseValue, double percentage)
-        {
-            return baseValue * (percentage / 100.0);
-        }
-
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             if (checkBox1.Checked)

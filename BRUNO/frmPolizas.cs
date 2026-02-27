@@ -29,7 +29,10 @@ namespace BRUNO
         {
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("Select * from Poliza where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59#;", conectar);
+            if(idProveedor!=0 )
+                da = new OleDbDataAdapter("Select * from Poliza where IdProv = '"+idProveedor+"'", conectar);
+            else
+                da = new OleDbDataAdapter("Select * from Poliza where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59#;", conectar);
 
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];

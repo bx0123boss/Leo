@@ -170,7 +170,6 @@
             this.label3.Size = new System.Drawing.Size(198, 24);
             this.label3.TabIndex = 37;
             this.label3.Text = "Buscar por Nombre:";
-            this.label3.Click += new System.EventHandler(this.label3_Click_1);
             // 
             // textBox1
             // 

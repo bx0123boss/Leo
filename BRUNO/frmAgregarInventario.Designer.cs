@@ -58,17 +58,6 @@
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.txtEspecial = new System.Windows.Forms.TextBox();
             this.label20 = new System.Windows.Forms.Label();
-            this.label21 = new System.Windows.Forms.Label();
-            this.cmbProveedor = new System.Windows.Forms.ComboBox();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.txtMaquila = new System.Windows.Forms.TextBox();
-            this.label19 = new System.Windows.Forms.Label();
-            this.txtKilataje = new System.Windows.Forms.TextBox();
-            this.label18 = new System.Windows.Forms.Label();
-            this.txtPeso = new System.Windows.Forms.TextBox();
-            this.label17 = new System.Windows.Forms.Label();
-            this.label16 = new System.Windows.Forms.Label();
-            this.cmbSub = new System.Windows.Forms.ComboBox();
             this.label15 = new System.Windows.Forms.Label();
             this.cmbCategoria = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -83,8 +72,6 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
-            this.label22 = new System.Windows.Forms.Label();
-            this.lblOroFino = new System.Windows.Forms.Label();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -320,17 +307,6 @@
             this.groupBox1.Controls.Add(this.comboBox1);
             this.groupBox1.Controls.Add(this.txtEspecial);
             this.groupBox1.Controls.Add(this.label20);
-            this.groupBox1.Controls.Add(this.label21);
-            this.groupBox1.Controls.Add(this.cmbProveedor);
-            this.groupBox1.Controls.Add(this.checkBox1);
-            this.groupBox1.Controls.Add(this.txtMaquila);
-            this.groupBox1.Controls.Add(this.label19);
-            this.groupBox1.Controls.Add(this.txtKilataje);
-            this.groupBox1.Controls.Add(this.label18);
-            this.groupBox1.Controls.Add(this.txtPeso);
-            this.groupBox1.Controls.Add(this.label17);
-            this.groupBox1.Controls.Add(this.label16);
-            this.groupBox1.Controls.Add(this.cmbSub);
             this.groupBox1.Controls.Add(this.label15);
             this.groupBox1.Controls.Add(this.cmbCategoria);
             this.groupBox1.Controls.Add(this.txtLimite);
@@ -347,13 +323,12 @@
             this.groupBox1.Enabled = false;
             this.groupBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold);
             this.groupBox1.ForeColor = System.Drawing.Color.White;
-            this.groupBox1.Location = new System.Drawing.Point(25, 57);
+            this.groupBox1.Location = new System.Drawing.Point(25, 51);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(548, 362);
+            this.groupBox1.Size = new System.Drawing.Size(548, 360);
             this.groupBox1.TabIndex = 30;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Agregar Producto Nuevo";
-            this.groupBox1.Enter += new System.EventHandler(this.groupBox1_Enter);
             // 
             // label24
             // 
@@ -423,125 +398,6 @@
             this.label20.TabIndex = 53;
             this.label20.Text = "Precio de Compra:";
             // 
-            // label21
-            // 
-            this.label21.AutoSize = true;
-            this.label21.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label21.ForeColor = System.Drawing.Color.White;
-            this.label21.Location = new System.Drawing.Point(47, 361);
-            this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(91, 18);
-            this.label21.TabIndex = 52;
-            this.label21.Text = "Proveedor:";
-            this.label21.Visible = false;
-            this.label21.Click += new System.EventHandler(this.label21_Click);
-            // 
-            // cmbProveedor
-            // 
-            this.cmbProveedor.FormattingEnabled = true;
-            this.cmbProveedor.ItemHeight = 20;
-            this.cmbProveedor.Location = new System.Drawing.Point(142, 367);
-            this.cmbProveedor.Name = "cmbProveedor";
-            this.cmbProveedor.Size = new System.Drawing.Size(381, 28);
-            this.cmbProveedor.TabIndex = 29;
-            this.cmbProveedor.Visible = false;
-            this.cmbProveedor.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(402, 394);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(15, 14);
-            this.checkBox1.TabIndex = 49;
-            this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.Visible = false;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
-            // 
-            // txtMaquila
-            // 
-            this.txtMaquila.Location = new System.Drawing.Point(146, 417);
-            this.txtMaquila.Name = "txtMaquila";
-            this.txtMaquila.Size = new System.Drawing.Size(315, 26);
-            this.txtMaquila.TabIndex = 33;
-            this.txtMaquila.Visible = false;
-            this.txtMaquila.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtMaquila_KeyPress);
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label19.ForeColor = System.Drawing.Color.White;
-            this.label19.Location = new System.Drawing.Point(62, 421);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(71, 18);
-            this.label19.TabIndex = 48;
-            this.label19.Text = "Maquila:";
-            this.label19.Visible = false;
-            // 
-            // txtKilataje
-            // 
-            this.txtKilataje.Location = new System.Drawing.Point(146, 385);
-            this.txtKilataje.Name = "txtKilataje";
-            this.txtKilataje.Size = new System.Drawing.Size(379, 26);
-            this.txtKilataje.TabIndex = 32;
-            this.txtKilataje.Visible = false;
-            // 
-            // label18
-            // 
-            this.label18.AutoSize = true;
-            this.label18.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label18.ForeColor = System.Drawing.Color.White;
-            this.label18.Location = new System.Drawing.Point(72, 389);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(68, 18);
-            this.label18.TabIndex = 46;
-            this.label18.Text = "Kilataje:";
-            this.label18.Visible = false;
-            // 
-            // txtPeso
-            // 
-            this.txtPeso.Location = new System.Drawing.Point(144, 363);
-            this.txtPeso.Name = "txtPeso";
-            this.txtPeso.Size = new System.Drawing.Size(381, 26);
-            this.txtPeso.TabIndex = 31;
-            this.txtPeso.Visible = false;
-            // 
-            // label17
-            // 
-            this.label17.AutoSize = true;
-            this.label17.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label17.ForeColor = System.Drawing.Color.White;
-            this.label17.Location = new System.Drawing.Point(86, 357);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(52, 18);
-            this.label17.TabIndex = 44;
-            this.label17.Text = "Peso:";
-            this.label17.Visible = false;
-            // 
-            // label16
-            // 
-            this.label16.AutoSize = true;
-            this.label16.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label16.ForeColor = System.Drawing.Color.White;
-            this.label16.Location = new System.Drawing.Point(23, 371);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(115, 18);
-            this.label16.TabIndex = 42;
-            this.label16.Text = "SubCategoria:";
-            this.label16.Visible = false;
-            // 
-            // cmbSub
-            // 
-            this.cmbSub.FormattingEnabled = true;
-            this.cmbSub.ItemHeight = 20;
-            this.cmbSub.Location = new System.Drawing.Point(150, 357);
-            this.cmbSub.Name = "cmbSub";
-            this.cmbSub.Size = new System.Drawing.Size(381, 28);
-            this.cmbSub.TabIndex = 28;
-            this.cmbSub.Visible = false;
-            this.cmbSub.SelectedIndexChanged += new System.EventHandler(this.cmbSub_SelectedIndexChanged);
-            // 
             // label15
             // 
             this.label15.AutoSize = true;
@@ -565,7 +421,6 @@
             this.cmbCategoria.Name = "cmbCategoria";
             this.cmbCategoria.Size = new System.Drawing.Size(379, 28);
             this.cmbCategoria.TabIndex = 5;
-            this.cmbCategoria.SelectedIndexChanged += new System.EventHandler(this.cmbCategoria_SelectedIndexChanged);
             // 
             // label2
             // 
@@ -599,7 +454,6 @@
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Datos del producto";
             this.groupBox3.Visible = false;
-            this.groupBox3.Enter += new System.EventHandler(this.groupBox3_Enter);
             // 
             // lblLimite
             // 
@@ -711,38 +565,12 @@
             this.label12.TabIndex = 13;
             this.label12.Text = "Nombre:";
             // 
-            // label22
-            // 
-            this.label22.AutoSize = true;
-            this.label22.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label22.ForeColor = System.Drawing.Color.White;
-            this.label22.Location = new System.Drawing.Point(541, 401);
-            this.label22.Name = "label22";
-            this.label22.Size = new System.Drawing.Size(80, 18);
-            this.label22.TabIndex = 34;
-            this.label22.Text = "Oro Fino:";
-            this.label22.Visible = false;
-            // 
-            // lblOroFino
-            // 
-            this.lblOroFino.AutoSize = true;
-            this.lblOroFino.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblOroFino.ForeColor = System.Drawing.Color.White;
-            this.lblOroFino.Location = new System.Drawing.Point(616, 401);
-            this.lblOroFino.Name = "lblOroFino";
-            this.lblOroFino.Size = new System.Drawing.Size(80, 18);
-            this.lblOroFino.TabIndex = 35;
-            this.lblOroFino.Text = "Oro Fino:";
-            this.lblOroFino.Visible = false;
-            // 
             // frmAgregarInventario
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(590, 424);
-            this.Controls.Add(this.lblOroFino);
-            this.Controls.Add(this.label22);
+            this.ClientSize = new System.Drawing.Size(1094, 567);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.lblOrigen);
             this.Controls.Add(this.txtID);
@@ -805,19 +633,6 @@
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.ComboBox cmbCategoria;
-        private System.Windows.Forms.Label label16;
-        private System.Windows.Forms.ComboBox cmbSub;
-        private System.Windows.Forms.TextBox txtPeso;
-        private System.Windows.Forms.Label label17;
-        private System.Windows.Forms.TextBox txtMaquila;
-        private System.Windows.Forms.Label label19;
-        private System.Windows.Forms.TextBox txtKilataje;
-        private System.Windows.Forms.Label label18;
-        private System.Windows.Forms.CheckBox checkBox1;
-        private System.Windows.Forms.Label label21;
-        private System.Windows.Forms.ComboBox cmbProveedor;
-        private System.Windows.Forms.Label label22;
-        private System.Windows.Forms.Label lblOroFino;
         private System.Windows.Forms.TextBox txtEspecial;
         private System.Windows.Forms.Label label20;
         private System.Windows.Forms.Label label23;

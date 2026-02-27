@@ -138,12 +138,6 @@
     <Compile Include="frmAbonosFolio.Designer.cs">
       <DependentUpon>frmAbonosFolio.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmAccesorios.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmAccesorios.Designer.cs">
-      <DependentUpon>frmAccesorios.cs</DependentUpon>
-    </Compile>
     <Compile Include="frmAdeudoProveedor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -179,12 +173,6 @@
     </Compile>
     <Compile Include="frmAgregarDinasti.Designer.cs">
       <DependentUpon>frmAgregarDinasti.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmAgregarExpediente.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmAgregarExpediente.Designer.cs">
-      <DependentUpon>frmAgregarExpediente.cs</DependentUpon>
     </Compile>
     <Compile Include="frmAgregarGasto.cs">
       <SubType>Form</SubType>
@@ -387,30 +375,6 @@
     <Compile Include="frmDetallesPoliza.Designer.cs">
       <DependentUpon>frmDetallesPoliza.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmDinasti.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmDinasti.Designer.cs">
-      <DependentUpon>frmDinasti.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmEditarAccesorios.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmEditarAccesorios.Designer.cs">
-      <DependentUpon>frmEditarAccesorios.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmEditarLineas.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmEditarLineas.Designer.cs">
-      <DependentUpon>frmEditarLineas.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmEditarOro.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmEditarOro.Designer.cs">
-      <DependentUpon>frmEditarOro.cs</DependentUpon>
-    </Compile>
     <Compile Include="frmEditarProducto.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -429,12 +393,6 @@
     <Compile Include="frmEntradas.Designer.cs">
       <DependentUpon>frmEntradas.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmExpedientes.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmExpedientes.Designer.cs">
-      <DependentUpon>frmExpedientes.cs</DependentUpon>
-    </Compile>
     <Compile Include="frmFisico.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -452,12 +410,6 @@
     </Compile>
     <Compile Include="frmGastos.Designer.cs">
       <DependentUpon>frmGastos.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmHistoralAbonosApartados.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmHistoralAbonosApartados.Designer.cs">
-      <DependentUpon>frmHistoralAbonosApartados.cs</DependentUpon>
     </Compile>
     <Compile Include="frmHistorialAbonos.cs">
       <SubType>Form</SubType>
@@ -488,12 +440,6 @@
     </Compile>
     <Compile Include="frmInventariosFisicos.Designer.cs">
       <DependentUpon>frmInventariosFisicos.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmJoyeria.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmJoyeria.Designer.cs">
-      <DependentUpon>frmJoyeria.cs</DependentUpon>
     </Compile>
     <Compile Include="frmKardex.cs">
       <SubType>Form</SubType>
@@ -585,12 +531,6 @@
     <Compile Include="frmCorte.Designer.cs">
       <DependentUpon>frmCorte.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmPrincipal2.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmPrincipal2.Designer.cs">
-      <DependentUpon>frmPrincipal2.cs</DependentUpon>
-    </Compile>
     <Compile Include="frmProductoMasVendido.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -668,12 +608,6 @@
     </Compile>
     <Compile Include="frmTipoCorte.Designer.cs">
       <DependentUpon>frmTipoCorte.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmTipoInventario.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmTipoInventario.Designer.cs">
-      <DependentUpon>frmTipoInventario.cs</DependentUpon>
     </Compile>
     <Compile Include="frmTipoVenta.cs">
       <SubType>Form</SubType>
@@ -756,9 +690,6 @@
     <EmbeddedResource Include="frmAbonosFolio.resx">
       <DependentUpon>frmAbonosFolio.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmAccesorios.resx">
-      <DependentUpon>frmAccesorios.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="frmAdeudoProveedor.resx">
       <DependentUpon>frmAdeudoProveedor.cs</DependentUpon>
     </EmbeddedResource>
@@ -776,9 +707,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmAgregarDinasti.resx">
       <DependentUpon>frmAgregarDinasti.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmAgregarExpediente.resx">
-      <DependentUpon>frmAgregarExpediente.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmAgregarGasto.resx">
       <DependentUpon>frmAgregarGasto.cs</DependentUpon>
@@ -880,18 +808,6 @@
     <EmbeddedResource Include="frmDetallesPoliza.resx">
       <DependentUpon>frmDetallesPoliza.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmDinasti.resx">
-      <DependentUpon>frmDinasti.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmEditarAccesorios.resx">
-      <DependentUpon>frmEditarAccesorios.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmEditarLineas.resx">
-      <DependentUpon>frmEditarLineas.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmEditarOro.resx">
-      <DependentUpon>frmEditarOro.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="frmEditarProducto.resx">
       <DependentUpon>frmEditarProducto.cs</DependentUpon>
     </EmbeddedResource>
@@ -901,9 +817,6 @@
     <EmbeddedResource Include="frmEntradas.resx">
       <DependentUpon>frmEntradas.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmExpedientes.resx">
-      <DependentUpon>frmExpedientes.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="frmFisico.resx">
       <DependentUpon>frmFisico.cs</DependentUpon>
     </EmbeddedResource>
@@ -912,9 +825,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmGastos.resx">
       <DependentUpon>frmGastos.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmHistoralAbonosApartados.resx">
-      <DependentUpon>frmHistoralAbonosApartados.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmHistorialAbonos.resx">
       <DependentUpon>frmHistorialAbonos.cs</DependentUpon>
@@ -930,9 +840,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmInventariosFisicos.resx">
       <DependentUpon>frmInventariosFisicos.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmJoyeria.resx">
-      <DependentUpon>frmJoyeria.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmKardex.resx">
       <DependentUpon>frmKardex.cs</DependentUpon>
@@ -980,9 +887,6 @@
     <EmbeddedResource Include="frmCorte.resx">
       <DependentUpon>frmCorte.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmPrincipal2.resx">
-      <DependentUpon>frmPrincipal2.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="frmProductoMasVendido.resx">
       <DependentUpon>frmProductoMasVendido.cs</DependentUpon>
     </EmbeddedResource>
@@ -1021,9 +925,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmTipoCorte.resx">
       <DependentUpon>frmTipoCorte.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmTipoInventario.resx">
-      <DependentUpon>frmTipoInventario.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmTipoVenta.resx">
       <DependentUpon>frmTipoVenta.cs</DependentUpon>
@@ -1100,6 +1001,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Joyeria JS.ico" />
+    <None Include="Resources\LOGO.png" />
     <None Include="Resources\2-2-key-png-hd.png" />
     <None Include="Resources\compaq.png" />
     <None Include="Resources\SATJULIA.jpg" />

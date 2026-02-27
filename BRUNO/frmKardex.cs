@@ -1,25 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.OleDb;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmKardex : Form
+    public partial class frmKardex : frmBase // Hereda de frmBase para obtener los estilos
     {
         private DataSet ds;
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         OleDbDataAdapter da;
         public String idProducto = "";
+
         public frmKardex()
         {
             InitializeComponent();
+            AplicarEstilos();
+        }
+
+        private void AplicarEstilos()
+        {
+            EstilizarDataGridView(this.dataGridView2);
+            EstilizarBotonPrimario(this.button1);
         }
 
         private void frmKardex_Load(object sender, EventArgs e)
@@ -31,6 +33,9 @@ namespace BRUNO
             dataGridView2.DataSource = ds.Tables["Id"];
             dataGridView2.Columns[1].Visible = false;
             dataGridView2.Columns[0].Visible = false;
+            this.dataGridView2.ReadOnly = true;
+            this.dataGridView2.AllowUserToAddRows = false;
+            this.dataGridView2.AllowUserToDeleteRows = false;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -41,7 +46,6 @@ namespace BRUNO
             dataGridView2.DataSource = ds.Tables["Id"];
             dataGridView2.Columns[1].Visible = false;
             dataGridView2.Columns[0].Visible = false;
-            //
         }
     }
 }

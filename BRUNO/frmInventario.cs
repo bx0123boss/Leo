@@ -254,29 +254,7 @@ namespace BRUNO
         {
             try
             {
-                if (dataGridView2[6, dataGridView2.CurrentRow.Index].Value.ToString() == "JOYERIA")
-                {
-                    frmEditarOro oro = new frmEditarOro();
-                    oro.usuario = usuario;
-                    oro.txtID.Text = dataGridView2[0, dataGridView2.CurrentRow.Index].Value.ToString();
-                    oro.txtProducto.Text = dataGridView2[1, dataGridView2.CurrentRow.Index].Value.ToString();
-                    oro.txtCompra.Text = dataGridView2[2, dataGridView2.CurrentRow.Index].Value.ToString();
-                    oro.lugar = "INVENT";
-                    oro.txtVenta.Text = dataGridView2[3, dataGridView2.CurrentRow.Index].Value.ToString();
-                    oro.txtLimite.Text = dataGridView2[5, dataGridView2.CurrentRow.Index].Value.ToString();
-                    oro.cmbCategoria.Text = dataGridView2[6, dataGridView2.CurrentRow.Index].Value.ToString();
-                    oro.cmbSub.Text = dataGridView2[7, dataGridView2.CurrentRow.Index].Value.ToString();
-                    oro.cmbProveedor.Text = dataGridView2[12, dataGridView2.CurrentRow.Index].Value.ToString();
-                    oro.txtPeso.Text = dataGridView2[9, dataGridView2.CurrentRow.Index].Value.ToString();
-                    oro.txtKilataje.Text = dataGridView2[10, dataGridView2.CurrentRow.Index].Value.ToString();
-                    oro.txtMaquila.Text = dataGridView2[11, dataGridView2.CurrentRow.Index].Value.ToString();
-                    oro.textBox1.Text = dataGridView2[13, dataGridView2.CurrentRow.Index].Value.ToString();
-                    oro.Show();
-                    this.Close();
-                }
-                else
-                {
-
+               
                     frmEditarProducto editar = new frmEditarProducto();
                     editar.usuario = usuario;
                     editar.inventario = "INVENT";
@@ -298,7 +276,6 @@ namespace BRUNO
                     editar.cmbUnidad.Text = dataGridView2[10, dataGridView2.CurrentRow.Index].Value.ToString();
                     editar.Show();
                     this.Close();
-                }
             }
             catch (Exception ex)
             {
@@ -603,18 +580,6 @@ namespace BRUNO
             // 3. Ajustar Ancho
             ws.Columns.AutoFit();
         }
-        private void label3_Click_1(object sender, EventArgs e)
-        {
-            
-        }
-
-        private void button5_Click(object sender, EventArgs e)
-        {
-            frmAccesorios acc = new frmAccesorios();
-            acc.Show();
-            this.Close();
-        }
-
 
         private void button6_Click(object sender, EventArgs e)
         {

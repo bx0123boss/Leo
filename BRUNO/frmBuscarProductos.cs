@@ -126,54 +126,6 @@ namespace BRUNO
             }
         }
 
-       
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-            //if (textBox1.Text == "")
-            //{
-            //    ds = new DataSet();
-            //    da = new OleDbDataAdapter("select * from Inventario ORDER BY Nombre;", conectar);
-            //    da.Fill(ds, "Id");
-            //    dataGridView1.DataSource = ds.Tables["Id"];
-            //    dataGridView1.Columns[0].Visible = false;
-            //    dataGridView1.Columns[2].Visible = false;
-            //}
-            //else
-            //{
-
-            //    ds = new DataSet();
-            //    da = new OleDbDataAdapter("select * from Inventario where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
-            //    da.Fill(ds, "Id");
-            //    dataGridView1.DataSource = ds.Tables["Id"];
-            //    dataGridView1.Columns[0].Visible = false;
-            //    dataGridView1.Columns[2].Visible = false;
-            //}
-        }
-
-        private void textBox2_TextChanged(object sender, EventArgs e)
-        {
-            //if (textBox2.Text == "")
-            //{
-            //    ds = new DataSet();
-            //    da = new OleDbDataAdapter("select * from Inventario ORDER BY Nombre;", conectar);
-            //    da.Fill(ds, "Id");
-            //    dataGridView1.DataSource = ds.Tables["Id"];
-            //    dataGridView1.Columns[0].Visible = false;
-            //    dataGridView1.Columns[2].Visible = false;
-            //}
-            //else
-            //{
-
-            //    ds = new DataSet();
-            //    da = new OleDbDataAdapter("select * from Inventario where Id LIKE '%" + textBox2.Text + "%' ORDER BY Nombre ;", conectar);
-            //    da.Fill(ds, "Id");
-            //    dataGridView1.DataSource = ds.Tables["Id"];
-            //    dataGridView1.Columns[0].Visible = false;
-            //    dataGridView1.Columns[2].Visible = false;
-            //}
-        }
-
         private void textBox2_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == Convert.ToChar(Keys.Enter))

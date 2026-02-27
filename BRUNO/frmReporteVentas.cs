@@ -35,6 +35,9 @@ namespace BRUNO
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
             // Seleccionar el primer registro si hay filas en el DataGridView
             if (dataGridView1.Rows.Count > 0)
             {
@@ -51,40 +54,45 @@ namespace BRUNO
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
         }
-
         private void button1_Click(object sender, EventArgs e)
         {
             try
             {
-                frmVentaDetallada detalles = new frmVentaDetallada();
-                detalles.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
-                double monto = Convert.ToDouble(dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString());
-                detalles.lblDescuento.Text = $"{monto:C}";
-
-                detalles.lblPago.Text = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
-                detalles.lblFecha.Text = dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString();
-                if (dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString() == "CANCELADO")
+                if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
                 {
-                    detalles.button1.Visible = false;
-                    detalles.button2.Visible = false;
+                    frmVentaDetallada detalles = new frmVentaDetallada();
+                    detalles.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
+                    double monto = Convert.ToDouble(dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString());
+                    detalles.lblDescuento.Text = $"{monto:C}";
+
+                    detalles.lblPago.Text = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
+                    detalles.lblFecha.Text = dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString();
+                    if (dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString() == "CANCELADO")
+                    {
+                        detalles.button1.Visible = false;
+                        detalles.button2.Visible = false;
+                    }
+                    else
+                    {
+                        detalles.button1.Visible = true;
+                        detalles.button2.Visible = true;
+                    }
+                    decimal montoTotal = Convert.ToDecimal(dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString());
+                    detalles.lblMonto.Text = $"{montoTotal:C}";
+                    detalles.monto = montoTotal;
+                    detalles.usuario = usuario;
+                    detalles.Show();
+                    this.Close();
                 }
                 else
                 {
-                    detalles.button1.Visible = true;
-                    detalles.button2.Visible = true;
+                    MessageBox.Show("Por favor, seleccione un registro de la lista.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
-                decimal montoTotal = Convert.ToDecimal(dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString());
-                detalles.lblMonto.Text = $"{montoTotal:C}";
-                detalles.monto = montoTotal;
-                detalles.usuario = usuario;
-                detalles.Show();
-                this.Close();
             }
             catch (Exception ex)
             {
-
+                MessageBox.Show("Error: " + ex.Message);
             }
-
         }
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)

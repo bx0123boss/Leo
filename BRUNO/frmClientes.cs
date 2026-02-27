@@ -45,7 +45,9 @@ namespace BRUNO
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
-
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
             double total=0;
             if (usuario == "Invitado")
             {
@@ -155,21 +157,28 @@ namespace BRUNO
 
         private void button2_Click(object sender, EventArgs e)
         {
-            frmAgregarClientes agregar = new frmAgregarClientes();
-            agregar.Text = "Editar";
-            agregar.button1.Text = "Editar";
-            agregar.lblID.Text = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-            agregar.txtNombre.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-            agregar.txtTelefono.Text = dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString();
-            agregar.txtDireccion.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
-            agregar.txtReferencia.Text = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
-            agregar.txtRFC.Text = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
-            agregar.txtCorreo.Text = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
-            agregar.textBox1.Text = dataGridView1[8, dataGridView1.CurrentRow.Index].Value.ToString();
-            agregar.txtCP.Text = dataGridView1[11, dataGridView1.CurrentRow.Index].Value.ToString();
-            agregar.txtAdeudo.Enabled = false;
-            agregar.Show();
-            this.Close();
+            if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
+            {
+                frmAgregarClientes agregar = new frmAgregarClientes();
+                agregar.Text = "Editar";
+                agregar.button1.Text = "Editar";
+                agregar.lblID.Text = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
+                agregar.txtNombre.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+                agregar.txtTelefono.Text = dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString();
+                agregar.txtDireccion.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
+                agregar.txtReferencia.Text = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
+                agregar.txtRFC.Text = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
+                agregar.txtCorreo.Text = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
+                agregar.textBox1.Text = dataGridView1[8, dataGridView1.CurrentRow.Index].Value.ToString();
+                agregar.txtCP.Text = dataGridView1[11, dataGridView1.CurrentRow.Index].Value.ToString();
+                agregar.txtAdeudo.Enabled = false;
+                agregar.Show();
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("Por favor, seleccione un apartado de la lista.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void button5_Click(object sender, EventArgs e)
@@ -219,9 +228,6 @@ namespace BRUNO
 
         private void button8_Click(object sender, EventArgs e)
         {
-            frmExpedientes expe = new frmExpedientes();            
-            expe.Show();
-            this.Close();
         }
         }
     }

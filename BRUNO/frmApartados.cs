@@ -51,6 +51,9 @@ namespace BRUNO
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
             dataGridView1.Columns[4].Visible = false;
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
             double total = 0;
             if (usuario == "Admin")
             {

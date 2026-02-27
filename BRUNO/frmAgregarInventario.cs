@@ -17,7 +17,6 @@ namespace BRUNO
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
         OleDbCommand cmd;
-        double entre24, Kilataje, Resultado, Maquila, Total, Peso, PrecioCompra, Treinta, por2, Diez; 
 
         public frmAgregarInventario()
         {
@@ -163,11 +162,6 @@ namespace BRUNO
                         txtVenta.Clear();
                         txtCantidad.Clear();
                         txtID.Clear();
-                        txtPeso.Clear();
-                        checkBox1.Checked = false;
-                        txtKilataje.Clear();
-                        txtMaquila.Clear();
-                        cmbSub.Text = "";
                         comboBox1.Text = "";
                         txtID.Focus();
                         txtEspecial.Clear();
@@ -192,82 +186,6 @@ namespace BRUNO
                 e.Handled = true;
             }
         }
-
-        private void cmbSub_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void cmbCategoria_SelectedIndexChanged(object sender, EventArgs e)
-        {
-           
-        }
-
-        private void txtMaquila_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == Convert.ToChar(Keys.Enter))
-            {
-                if (cmbProveedor.Text == "GRUPO VILLALPANDO SA DE CV")
-                {
-                    //PrecioOro = 762;
-                    Kilataje = Convert.ToDouble(txtKilataje.Text);
-                    Resultado = entre24 * Kilataje;
-                    Maquila = Convert.ToDouble(txtMaquila.Text);
-                    Total = Resultado + Maquila;
-                    Peso = Convert.ToDouble(txtPeso.Text);
-                    PrecioCompra = Total * Peso;
-                    txtCompra.Text = PrecioCompra + "";
-                    Treinta = PrecioCompra * 1.3;
-                    por2 = Treinta * 2;
-                    Diez = por2 * 1.1;
-                    txtVenta.Text = Diez + "";
-                    //MessageBox.Show(entre24 + "\n" + Kilataje + "\n" + Resultado + "\n" + Maquila + "\n" + Total + "\n" + Peso + "\n" + PrecioCompra + "\n" + Treinta + "\n" + por2 + "\n" + Diez);
-                }
-                else
-                {
-                    PrecioCompra = Convert.ToDouble(txtCompra.Text);
-                    por2 = PrecioCompra * 2;
-                    Diez = por2 * 1.1;
-                    txtVenta.Text = Diez+"";
-                }
-            }            
-        }
-
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-            if (checkBox1.Checked)
-            {
-                txtMaquila.Text = "N/A";
-                txtMaquila.Enabled = false;
-            }
-            else
-            {
-                txtMaquila.Text = "";
-                txtMaquila.Enabled = true;
-            }
-
-        }
-
-        private void textBox3_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label20_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label21_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
         private void txtCompra_KeyPress(object sender, KeyPressEventArgs e)
         {
             CultureInfo cc = System.Threading.Thread.CurrentThread.CurrentCulture;
@@ -284,16 +202,6 @@ namespace BRUNO
                 e.Handled = false;
             else
                 e.Handled = true;
-        }
-
-        private void groupBox3_Enter(object sender, EventArgs e)
-        {
-
-        }
-
-        private void groupBox1_Enter(object sender, EventArgs e)
-        {
-
         }
 
         private void txtCantidad_KeyPress(object sender, KeyPressEventArgs e)

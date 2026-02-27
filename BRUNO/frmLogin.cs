@@ -1,44 +1,65 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.OleDb;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmLogin : Form
+    public partial class frmLogin : frmBase // Heredamos de frmBase para el diseño unificado
     {
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         OleDbCommand cmd;
+
         public frmLogin()
         {
             InitializeComponent();
+            this.DoubleBuffered = true;
+            AplicarEstilos();
+        }
+
+        private void AplicarEstilos()
+        {
+            // Aplicamos los estilos modernos que programaste en frmBase
+            EstilizarComboBox(this.txtUsuario);
+            EstilizarTextBox(this.txtContraseña);
+            EstilizarBotonPrimario(this.button1); // Botón "Ingresar"
+
+            // Botón de activación de producto se mantiene en rojo para alerta
+            button2.FlatStyle = FlatStyle.Flat;
+            button2.FlatAppearance.BorderSize = 0;
+
+            // Aseguramos transparencia para no arruinar la imagen de fondo
+            label1.BackColor = Color.Transparent;
+            label2.BackColor = Color.Transparent;
+            pictureBox1.BackColor = Color.Transparent;
+            pictureBox2.BackColor = Color.FromArgb(255, 255, 255, 255);
         }
 
         private void frmLogin_Load(object sender, EventArgs e)
         {
-            //this.BackgroundImage = Image.FromFile(@"E:\Users\Brandon\Desktop\JS\Bruno\BRUNO\abstract_aurora_gold-wallpaper-1920x1200.jpg");
-            //this.BackgroundImage = Image.FromFile(@"E:\Users\Brandon\Desktop\JS\Bruno\BRUNO\DOREDOGRECAS.jpg");
-            try 
+            try
             {
-                this.BackgroundImage = Image.FromFile("C:\\Jaeger Soft\\w1.jpg");
-                //Pass the filepath and filename to the StreamWriter Constructor
+                // Validación segura: Solo carga si el archivo realmente existe
+                string rutaImagen = @"C:\Jaeger Soft\w1.jpg";
+                if (File.Exists(rutaImagen))
+                {
+                    this.BackgroundImage = Image.FromFile(rutaImagen);
+                }
+
+                // Generación de log de acceso
                 StreamWriter sw = new StreamWriter(@"MODIFICACION.txt");
-                //Write a line of text
                 sw.WriteLine(DateTime.Now.ToShortDateString() + " ");
-                //Write a second line of text
                 sw.WriteLine(DateTime.Now.ToShortTimeString());
-                //Close the file
-                sw.Close();}
-            catch(Exception ex)
-            {Console.WriteLine("Exception: " + ex.Message);
+                sw.Close();
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception: " + ex.Message);
+            }
+
             conectar.Open();
             DataTable dt = new DataTable();
             cmd = new OleDbCommand("Select Id,Usuario from Usuarios;", conectar);
@@ -47,60 +68,47 @@ namespace BRUNO
             txtUsuario.DisplayMember = "Usuario";
             txtUsuario.ValueMember = "Id";
             txtUsuario.DataSource = dt;
-            txtUsuario.Text = "";
-            cmd = new OleDbCommand("select * from Fech where Id=2;", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                int caja = Convert.ToInt32(Convert.ToString(reader[1].ToString()));
-                if (caja == 0)
-                {
-                    button2.Visible = true;
-                    txtContraseña.Enabled = false;
-                    button1.Enabled = false;
-                    txtUsuario.Enabled = false;
-                }
-                else if (caja == 1)
-                {
+            txtUsuario.SelectedIndex = -1; // Para que inicie en blanco
 
-                    string[] fecha = reader[2].ToString().Split(' ');
-                    DateTime fecha1 = Convert.ToDateTime(fecha[0]);
-                    if (fecha1 > DateTime.Now)
-                    {
+            ValidarCajaYLicencia(); // Movemos esto a un método para limpiar el código
 
-                    }
-                    else
-                    {
-                        cmd = new OleDbCommand("UPDATE Fech set Caja='0', Fecha='" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' where Id=2;", conectar);
-                        cmd.ExecuteNonQuery();
-                        button2.Visible = true;
-                        txtContraseña.Enabled = false;
-                        button1.Enabled = false;
-                        txtUsuario.Enabled = false;
-
-                    }
-                     
-                }
-                else if (caja == 2)
-                {
-                    string[] fecha = reader[2].ToString().Split(' ');
-                    DateTime fecha1 = Convert.ToDateTime(fecha[0]);
-                    if (fecha1 > DateTime.Now)
-                    {
-
-                    }
-                    else
-                    {
-                        MessageBox.Show("Se requiere mantenimiento del sistema, contacte a soporte tecnico para auxiliarle", "¡Atención!",MessageBoxButtons.OK,MessageBoxIcon.Hand);
-                    }
-                }
-
-            }
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            txtUsuario.Focus();
+        }
+
+        // Nuevo evento: Permitir pasar del Usuario a la Contraseña presionando Enter
+        private void txtUsuario_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                e.Handled = true;
+                txtContraseña.Focus();
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
+            EjecutarLogin();
+        }
+
+        private void txtContraseña_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                e.Handled = true;
+                EjecutarLogin();
+            }
+        }
+
+        private void EjecutarLogin()
+        {
+            if (string.IsNullOrEmpty(txtUsuario.Text) || string.IsNullOrEmpty(txtContraseña.Text))
+            {
+                MessageBox.Show("Por favor, ingresa el usuario y la contraseña.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Validar caja #1
             cmd = new OleDbCommand("select * from Fech where Id=1;", conectar);
             OleDbDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
@@ -108,21 +116,19 @@ namespace BRUNO
                 int caja = Convert.ToInt32(Convert.ToString(reader[1].ToString()));
                 if (caja == 0)
                 {
-
                     cmd = new OleDbCommand("UPDATE Fech set Caja='1', Fecha='" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' where Id=1;", conectar);
                     cmd.ExecuteNonQuery();
                 }
             }
+            reader.Close();
 
+            // Validar Credenciales
             cmd = new OleDbCommand("select * from Usuarios where Usuario='" + txtUsuario.Text + "' and Contraseña='" + txtContraseña.Text + "';", conectar);
             reader = cmd.ExecuteReader();
             if (reader.Read())
             {
-                string TIPO;
-                if (reader[3].ToString() == "ADMINISTRADOR")
-                    TIPO = "Admin";
-                else
-                    TIPO = "Invitado";
+                string TIPO = reader[3].ToString() == "ADMINISTRADOR" ? "Admin" : "Invitado";
+
                 frmPrincipal principal = new frmPrincipal();
                 principal.idUsuario = reader[0].ToString();
                 principal.usuario = TIPO;
@@ -131,59 +137,55 @@ namespace BRUNO
                 this.Hide();
             }
             else
-                MessageBox.Show("Contraseña incorrecta, favor de verificar", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-               
-
-        }
-
-        private void pictureBox2_Click(object sender, EventArgs e)
-        {
-            if (txtUsuario.Text == ":v" && txtContraseña.Text == "")
             {
-                frmPrincipal principal = new frmPrincipal();
-                principal.usuario = "Admin";
-                principal.Show();
-                this.Hide();
+                MessageBox.Show("Contraseña incorrecta, favor de verificar.", "Acceso Denegado", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                txtContraseña.Clear();
+                txtContraseña.Focus();
             }
+            reader.Close();
         }
 
-        private void txtContraseña_KeyPress(object sender, KeyPressEventArgs e)
+        private void ValidarCajaYLicencia()
         {
-
-            if (e.KeyChar == Convert.ToChar(Keys.Enter))
+            cmd = new OleDbCommand("select * from Fech where Id=2;", conectar);
+            OleDbDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
             {
-                cmd = new OleDbCommand("select * from Fech where Id=1;", conectar);
-                OleDbDataReader reader = cmd.ExecuteReader();
-                if (reader.Read())
+                int caja = Convert.ToInt32(Convert.ToString(reader[1].ToString()));
+                if (caja == 0)
                 {
-                    int caja = Convert.ToInt32(Convert.ToString(reader[1].ToString()));
-                    if (caja == 0)
+                    BloquearLogin();
+                }
+                else if (caja == 1)
+                {
+                    string[] fecha = reader[2].ToString().Split(' ');
+                    DateTime fecha1 = Convert.ToDateTime(fecha[0]);
+                    if (fecha1 <= DateTime.Now)
                     {
-
-                        cmd = new OleDbCommand("UPDATE Fech set Caja='1', Fecha='" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' where Id=1;", conectar);
+                        cmd = new OleDbCommand("UPDATE Fech set Caja='0', Fecha='" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' where Id=2;", conectar);
                         cmd.ExecuteNonQuery();
+                        BloquearLogin();
                     }
                 }
-                cmd = new OleDbCommand("select * from Usuarios where Usuario='" + txtUsuario.Text + "' and Contraseña='" + txtContraseña.Text + "';", conectar);
-                reader = cmd.ExecuteReader();
-                if (reader.Read())
+                else if (caja == 2)
                 {
-                    string TIPO;
-                    if (reader[3].ToString() == "ADMINISTRADOR")
-                        TIPO = "Admin";
-                    else
-                        TIPO = "Invitado";
-                    frmPrincipal principal = new frmPrincipal();
-                    principal.idUsuario = reader[0].ToString();
-                    principal.usuario = TIPO;
-                    principal.NombreUsuario = txtUsuario.Text;
-                    principal.Show();
-                    this.Hide();
+                    string[] fecha = reader[2].ToString().Split(' ');
+                    DateTime fecha1 = Convert.ToDateTime(fecha[0]);
+                    if (fecha1 <= DateTime.Now)
+                    {
+                        MessageBox.Show("Se requiere mantenimiento del sistema, contacte a soporte tecnico para auxiliarle", "¡Atención!", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+                    }
                 }
-                else
-                    MessageBox.Show("Contraseña incorrecta, favor de verificar", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-               
             }
+            reader.Close();
+        }
+
+        private void BloquearLogin()
+        {
+            button2.Visible = true;
+            txtContraseña.Enabled = false;
+            button1.Enabled = false;
+            txtUsuario.Enabled = false;
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -196,22 +198,32 @@ namespace BRUNO
                     txtContraseña.Enabled = true;
                     txtUsuario.Enabled = true;
                     button1.Enabled = true;
+                    txtUsuario.Focus();
                 }
+            }
+        }
+
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+            // Backdoor
+            if (txtUsuario.Text == ":v" && txtContraseña.Text == "")
+            {
+                frmPrincipal principal = new frmPrincipal();
+                principal.usuario = "Admin";
+                principal.Show();
+                this.Hide();
             }
         }
 
         private void label1_Click(object sender, EventArgs e)
         {
+            // Método temporal de impresión
             List<Producto> productos = new List<Producto>
             {
                 new Producto { Nombre = "Arroz con leche y salsa ", Cantidad = 1, PrecioUnitario = 10.50, Total = 12.18, Comentario="Con todo" },
-                new Producto { Nombre = "Pollo horneado", Cantidad = 2, PrecioUnitario = 10.50, Total = 12.18, Comentario="Sin todo" },
-                new Producto { Nombre = "Pizza de peperoni", Cantidad = 3, PrecioUnitario = 10.50, Total = 12.18, Comentario="Con todo y con todo" },
-                new Producto { Nombre = "Peperoni de pizza", Cantidad = 2, PrecioUnitario = 10.50, Total = 12.18, Comentario="Con todo y sin nada" },
+                new Producto { Nombre = "Pollo horneado", Cantidad = 2, PrecioUnitario = 10.50, Total = 12.18, Comentario="Sin todo" }
             };
-            string mesa = "MESA 3";
-            string mesero = "Brandon";
-            TicketPrinter ticketPrinter = new TicketPrinter(productos, mesa, mesero);
+            TicketPrinter ticketPrinter = new TicketPrinter(productos, "MESA 3", "Brandon");
             ticketPrinter.ImprimirComanda();
         }
     }

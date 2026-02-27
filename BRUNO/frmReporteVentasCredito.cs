@@ -49,20 +49,27 @@ namespace BRUNO
         {
             try
             {
-                frmVentaDetalladaCredito detalles = new frmVentaDetalladaCredito();
-                detalles.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
-                detalles.lblFecha.Text = dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString();
-                detalles.button1.Visible = true;
-                detalles.id = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
-                detalles.lblMonto.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-                if (dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString()=="CANCELADO")
+                if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
                 {
-                    detalles.button1.Hide();
+                    frmVentaDetalladaCredito detalles = new frmVentaDetalladaCredito();
+                    detalles.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
+                    detalles.lblFecha.Text = dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString();
+                    detalles.button1.Visible = true;
+                    detalles.id = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
+                    detalles.lblMonto.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+                    if (dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString() == "CANCELADO")
+                    {
+                        detalles.button1.Hide();
+                    }
+                    //detalles.adeudo = Convert.ToDouble(dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString());
+                    detalles.usuario = usuario;
+                    detalles.Show();
+                    this.Close();
                 }
-                //detalles.adeudo = Convert.ToDouble(dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString());
-                detalles.usuario = usuario;
-                detalles.Show();
-                this.Close();
+                else
+                {
+                    MessageBox.Show("Por favor, seleccione un registro de la lista.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
             catch(Exception Ex)
             {
@@ -77,6 +84,9 @@ namespace BRUNO
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
         }
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
