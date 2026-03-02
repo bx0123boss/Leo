@@ -15,17 +15,6 @@ namespace BRUNO
         public string NombreUsuario = "";
         public string idUsuario = "";
 
-        // Truco para eliminar el 100% del parpadeo con la imagen de fondo
-        protected override CreateParams CreateParams
-        {
-            get
-            {
-                CreateParams cp = base.CreateParams;
-                cp.ExStyle |= 0x02000000;  // Activa WS_EX_COMPOSITED
-                return cp;
-            }
-        }
-
         public frmPrincipal()
         {
             InitializeComponent();
@@ -239,13 +228,17 @@ namespace BRUNO
                 MessageBox.Show("Servidor inactivo.\n\nContacte a soporte técnico para actualizar su sistema o verificar la instalación.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
-
         private bool ArrancarServidorWeb()
         {
             try
             {
                 string rutaWebExe = @"C:\Jaeger Soft\ModuloWeb\PuntoVentaWeb.exe";
-                if (!File.Exists(rutaWebExe)) return false;
+                if (!File.Exists(rutaWebExe))
+                {
+                    MessageBox.Show("Error iniciando servidor web");
+                    // Opcional: Loguear error
+                    return false; // El archivo no existe
+                }
 
                 ProcessStartInfo info = new ProcessStartInfo();
                 info.FileName = rutaWebExe;
@@ -255,12 +248,18 @@ namespace BRUNO
                 info.WorkingDirectory = Path.GetDirectoryName(rutaWebExe);
 
                 _procesoWeb = Process.Start(info);
-                return _procesoWeb != null;
+
+                // Si _procesoWeb no es nulo, significa que Windows lanzó el EXE
+                if (_procesoWeb != null)
+                {
+                    return true;
+                }
+                return false;
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error iniciando web: " + ex.Message);
-                return false;
+                return false; // Falló por excepción
             }
         }
 

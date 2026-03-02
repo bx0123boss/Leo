@@ -399,8 +399,8 @@ namespace BRUNO
             {
                 try
                 {
-                    if (Conexion.lugar == "TURBOLLANTAS")
-                    {
+                    if (Conexion.lugar == "TURBO LLANTAS")
+                    {   
                         DialogResult respuesta = MessageBox.Show(
                                 "¿Deseas imprimir el Ticket?",
                                 "IMPRESIÓN",

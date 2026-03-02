@@ -120,5 +120,12 @@ namespace BRUNO
 
             
         }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            frmVentasPorProducto veta = new frmVentasPorProducto();
+            veta.Show();
+            this.Close();
+        }
     }
 }

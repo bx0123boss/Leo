@@ -122,28 +122,24 @@ public class PdfGenerator
                         {
                             var nombreFinal = cliente?.Nombre ?? cotizacion.ClienteNombre ?? "Público General";
                             datos.Item().Text(nombreFinal).Bold().FontSize(11);
-                            if (cliente != null || config.NombreLugar == "TURBOLLANTAS")
+                            if (cliente != null || config.NombreLugar == "TURBO LLANTAS")
                             {
                                 datos.Item().Text($"Dirección: {cliente?.Direccion ?? "                                        "} CP: {cliente?.CP ?? ""}");
                                 datos.Item().Text($"Teléfono: {cliente?.Telefono ?? ""}");
-                                datos.Item().Text($"RFC: {cliente?.RFC ?? ""}");
+                                datos.Item().Text($"RFC: {cliente?.RFC ?? "                                        "} Correo: {cliente?.Correo ?? ""}");
                                 
                             }
                         });
                     });
 
-                    // DERECHA: Observaciones (¡LÓGICA RECUPERADA!)
-                    // Se muestra si hay texto O si es TURBOLLANTAS (aunque esté vacío)
-                    if (!string.IsNullOrEmpty(cotizacion.Observaciones) || (config != null && config.NombreLugar == "TURBOLLANTAS"))
+                    if (!string.IsNullOrEmpty(cotizacion.Observaciones) || (config != null && config.NombreLugar == "TURBO LLANTAS"))
                     {
                         row.RelativeItem().PaddingLeft(10).Column(c =>
                         {
                             c.Item().Text("OBSERVACIONES").Bold().FontSize(9).FontColor(colorPrincipal);
 
-                            // Usamos un cuadro gris claro para destacar la nota
                             c.Item().Background(colorGrisClaro).Padding(5).Column(nota =>
                             {
-                                // Si es null (caso turbollantas vacío), ponemos string.Empty
                                 var textoNota = cotizacion.Observaciones ?? "";
                                 nota.Item().Text(textoNota).Italic().FontSize(8);
                             });
@@ -152,7 +148,7 @@ public class PdfGenerator
                 });
 
                 // --- DATOS EXTRA (Placas, Modelo, etc.)
-                if (!string.IsNullOrEmpty(cotizacion.Datos) || config.NombreLugar == "TURBOLLANTAS")
+                if (!string.IsNullOrEmpty(cotizacion.Datos) || config.NombreLugar == "TURBO LLANTAS")
                 {
                     // Los ponemos en un bloque separado antes de la tabla con borde del color principal
                     column.Item().PaddingBottom(10).Border(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(text =>

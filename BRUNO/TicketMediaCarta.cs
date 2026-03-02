@@ -241,19 +241,18 @@ namespace BRUNO
                                 {
                                     var nombreFinal = !string.IsNullOrEmpty(_cliente) ? _cliente : "Público General";
                                     d.Item().Text(nombreFinal).Bold().FontSize(11);
-                                    if (Conexion.lugar == "TURBOLLANTAS" || !string.IsNullOrEmpty(_direccion))
+                                    if (Conexion.lugar == "TURBO LLANTAS" || !string.IsNullOrEmpty(_direccion))
                                         d.Item().Text($"Dirección: {_direccion ?? "                                        "} CP: {_CP ?? ""}");
-                                    if (Conexion.lugar == "TURBOLLANTAS" || !string.IsNullOrEmpty(_telefono))
+                                    if (Conexion.lugar == "TURBO LLANTAS" || !string.IsNullOrEmpty(_telefono))
                                         d.Item().Text($"Teléfono: {_telefono ?? ""}");
-                                    if (Conexion.lugar == "TURBOLLANTAS" || !string.IsNullOrEmpty(_rfc))
-                                        d.Item().Text($"RFC: {_rfc ?? ""}");
+                                    if (Conexion.lugar == "TURBO LLANTAS" || !string.IsNullOrEmpty(_rfc))
+                                        d.Item().Text($"RFC: {_rfc ?? "                                        "} Correo: {_correo}");
                                 });
                             });
                             // DERECHA: Observaciones
                             string notasAMostrar = !string.IsNullOrEmpty(_observaciones) ? _observaciones : "";
 
-                            // Lógica TURBOLLANTAS original preservada
-                            if (!string.IsNullOrEmpty(notasAMostrar) || Conexion.lugar == "TURBOLLANTAS")
+                            if (!string.IsNullOrEmpty(notasAMostrar) || Conexion.lugar == "TURBO LLANTAS")
                             {
                                 row.RelativeItem().PaddingLeft(10).Column(c =>
                                 {
@@ -279,7 +278,7 @@ namespace BRUNO
                                     }
                                 }
                             }
-                            else if (Conexion.lugar == "TURBOLLANTAS")
+                            else if (Conexion.lugar == "TURBO LLANTAS")
                             {
                                 foreach (var etiqueta in ObtenerCamposConfiguradosDesdeSQL())
                                 {
@@ -294,7 +293,6 @@ namespace BRUNO
                         {
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.ConstantColumn(30); // #
                                 columns.ConstantColumn(40); // Cant
                                 columns.RelativeColumn();   // Desc
                                 columns.ConstantColumn(70); // P.Unit
@@ -306,7 +304,6 @@ namespace BRUNO
                             {
                                 IContainer HeaderStyle(IContainer c) => c.Background(colorPrincipal).PaddingVertical(3).PaddingHorizontal(2);
 
-                                header.Cell().Element(HeaderStyle).Text("#").FontColor(Colors.White).Bold();
                                 header.Cell().Element(HeaderStyle).AlignCenter().Text("CANT").FontColor(Colors.White).Bold();
                                 header.Cell().Element(HeaderStyle).Text("DESCRIPCIÓN").FontColor(Colors.White).Bold();
                                 header.Cell().Element(HeaderStyle).AlignRight().Text("P.UNIT").FontColor(Colors.White).Bold();
@@ -322,7 +319,6 @@ namespace BRUNO
 
                                 IContainer CellStyle(IContainer c) => c.Background(bg).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingVertical(2).PaddingHorizontal(2);
 
-                                table.Cell().Element(CellStyle).Text((i + 1).ToString()).FontSize(8).FontColor(Colors.Grey.Darken2);
                                 table.Cell().Element(CellStyle).AlignCenter().Text(item.Cantidad.ToString("0.##")).Bold();
                                 table.Cell().Element(CellStyle).Text(item.Nombre).FontSize(9);
 

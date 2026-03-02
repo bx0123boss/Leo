@@ -16,7 +16,7 @@ namespace BRUNO
         bool selec = false;
         private DataSet ds;
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
+        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         OleDbDataAdapter da;
         public string producto { get; set; }
         public string precio { get; set; }
@@ -27,10 +27,12 @@ namespace BRUNO
         public string compra { get; set; }
         public bool compras = false;
         public int poliza = 0;
+
         public frmBuscarProductos()
         {
             InitializeComponent();
         }
+
         private void frmBuscarProductos_Load(object sender, EventArgs e)
         {
             EstilizarDataGridView(this.dataGridView1);
@@ -43,81 +45,66 @@ namespace BRUNO
             this.dataGridView1.AllowUserToDeleteRows = false;
             this.KeyPreview = true;
             conectar.Open();
+
             if (textBox1.Text != "")
             {
-                if (textBox1.Text == "")
-                {
-                    ds = new DataSet();
-                    da = new OleDbDataAdapter("select top 100 Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario;", conectar);
-                    da.Fill(ds, "Id");
-                    dataGridView1.DataSource = ds.Tables["Id"];
-                    dataGridView1.Columns[5].Visible = false;
-                    dataGridView1.Columns[6].Visible = false;
-                }
-                else
-                {
-                    ds = new DataSet();
-                    da = new OleDbDataAdapter("select top 100 Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
-                    da.Fill(ds, "Id");
-                    dataGridView1.DataSource = ds.Tables["Id"];
-                    dataGridView1.Columns[5].Visible = false;
-                    dataGridView1.Columns[6].Visible = false;
-                }
-
+                ds = new DataSet();
+                da = new OleDbDataAdapter("select top 100 Id,Nombre,PrecioVenta,PrecioVentaMayoreo,Existencia,Especial,IVA from Inventario where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
+                da.Fill(ds, "Id");
+                dataGridView1.DataSource = ds.Tables["Id"];
+                OcultarColumnasInternas();
+            }
+            else
+            {
+                ds = new DataSet();
+                da = new OleDbDataAdapter("select top 100 Id,Nombre,PrecioVenta, PrecioVentaMayoreo,Existencia,Especial,IVA from Inventario;", conectar);
+                da.Fill(ds, "Id");
+                dataGridView1.DataSource = ds.Tables["Id"];
+                OcultarColumnasInternas();
             }
             textBox2.Focus();
         }
+
+        // Método auxiliar para ocultar columnas por NOMBRE y no por número de índice
+        private void OcultarColumnasInternas()
+        {
+            if (dataGridView1.Columns.Contains("Especial"))
+                dataGridView1.Columns["Especial"].Visible = false;
+
+            if (dataGridView1.Columns.Contains("IVA"))
+                dataGridView1.Columns["IVA"].Visible = false;
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             if (selec)
             {
+                var filaActual = dataGridView1.Rows[dataGridView1.CurrentRow.Index];
+
                 if (compras)
                 {
-                    double preci = Convert.ToDouble(dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString());
-                    producto = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+                    double preci = Convert.ToDouble(filaActual.Cells["PrecioVenta"].Value.ToString());
+                    producto = filaActual.Cells["Nombre"].Value.ToString();
                     precio = String.Format("{0:0.00}", preci);
                     monto = String.Format("{0:0.00}", preci);
-                    existencia = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
-                    ID = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-                    IVA = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
-                    compra = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
+                    existencia = filaActual.Cells["Existencia"].Value.ToString();
+                    ID = filaActual.Cells["Id"].Value.ToString();
+                    IVA = filaActual.Cells["IVA"].Value.ToString();
+                    compra = filaActual.Cells["Especial"].Value.ToString();
                     this.DialogResult = System.Windows.Forms.DialogResult.OK;
                 }
                 else
                 {
-                    using (frmPrecio buscar = new frmPrecio())
-                    {
-                        /*
-                        if (buscar.ShowDialog() == DialogResult.OK)
-                        {
-                             //SIN TIPO DE PRECIO
-                            if (buscar.tipo == "GEN")
-                            {*/
-                                double preci = Convert.ToDouble(dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString());
-                                producto = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-                                precio = String.Format("{0:0.00}", preci);
-                                monto = String.Format("{0:0.00}", preci);
-                                existencia = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
-                                ID = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-                                IVA = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
-                                compra = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
-                                this.DialogResult = System.Windows.Forms.DialogResult.OK;
-                            }
-                        /*
-                            else if (buscar.tipo == "MAY")
-                            {
-                                double preci = Convert.ToDouble(dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString());
-                                producto = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-                                precio = String.Format("{0:0.00}", preci);
-                                monto = String.Format("{0:0.00}", preci);
-                                existencia = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
-                                ID = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-                                IVA = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
-                                compra = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
-                                this.DialogResult = System.Windows.Forms.DialogResult.OK;
-                            }
-                        }
-                    }*/
+                    // Asignación mediante el nombre de la columna para evitar errores si el SQL cambia de orden
+                    double preci = Convert.ToDouble(filaActual.Cells["PrecioVenta"].Value.ToString());
+                    producto = filaActual.Cells["Nombre"].Value.ToString();
+                    precio = String.Format("{0:0.00}", preci);
+                    monto = String.Format("{0:0.00}", preci);
+                    existencia = filaActual.Cells["Existencia"].Value.ToString();
+                    ID = filaActual.Cells["Id"].Value.ToString();
+                    IVA = filaActual.Cells["IVA"].Value.ToString();
+                    compra = filaActual.Cells["Especial"].Value.ToString();
+                    this.DialogResult = System.Windows.Forms.DialogResult.OK;
                 }
             }
             else
@@ -133,20 +120,18 @@ namespace BRUNO
                 if (textBox2.Text == "")
                 {
                     ds = new DataSet();
-                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario ;", conectar);
+                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVenta, PrecioVentaMayoreo,Existencia,Especial,IVA from Inventario ;", conectar);
                     da.Fill(ds, "Id");
                     dataGridView1.DataSource = ds.Tables["Id"];
-                    dataGridView1.Columns[5].Visible = false;
-                    dataGridView1.Columns[6].Visible = false;
+                    OcultarColumnasInternas();
                 }
                 else
                 {
                     ds = new DataSet();
-                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario where Id LIKE '%" + textBox2.Text + "%' ORDER BY Nombre ;", conectar);
+                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVenta, PrecioVentaMayoreo,Existencia,Especial,IVA from Inventario where Id LIKE '%" + textBox2.Text + "%' ORDER BY Nombre ;", conectar);
                     da.Fill(ds, "Id");
                     dataGridView1.DataSource = ds.Tables["Id"];
-                    dataGridView1.Columns[5].Visible = false;
-                    dataGridView1.Columns[6].Visible = false;
+                    OcultarColumnasInternas();
                 }
             }
         }
@@ -158,20 +143,18 @@ namespace BRUNO
                 if (textBox1.Text == "")
                 {
                     ds = new DataSet();
-                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario;", conectar);
+                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVenta,PrecioVentaMayoreo,Existencia,Especial,IVA from Inventario;", conectar);
                     da.Fill(ds, "Id");
                     dataGridView1.DataSource = ds.Tables["Id"];
-                    dataGridView1.Columns[5].Visible = false;
-                    dataGridView1.Columns[6].Visible = false;
+                    OcultarColumnasInternas();
                 }
                 else
                 {
                     ds = new DataSet();
-                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVentaMayoreo,PrecioVenta,Existencia,Especial,IVA from Inventario where Nombre LIKE '%" + textBox1.Text + "%'ORDER BY Nombre ;", conectar);
+                    da = new OleDbDataAdapter("select Id,Nombre,PrecioVenta, PrecioVentaMayoreo,Existencia,Especial,IVA from Inventario where Nombre LIKE '%" + textBox1.Text + "%'ORDER BY Nombre ;", conectar);
                     da.Fill(ds, "Id");
                     dataGridView1.DataSource = ds.Tables["Id"];
-                    dataGridView1.Columns[5].Visible = false;
-                    dataGridView1.Columns[6].Visible = false;
+                    OcultarColumnasInternas();
                 }
             }
         }
@@ -181,59 +164,38 @@ namespace BRUNO
             if (e.KeyData == Keys.Enter)
             {
                 if (selec)
-                {                                    
-                if (compras)
                 {
-                    double preci = Convert.ToDouble(dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString());
-                    producto = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-                    precio = String.Format("{0:0.00}", preci);
-                    monto = String.Format("{0:0.00}", preci);
-                    existencia = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
-                    ID = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-                    IVA = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
-                    compra = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
-                    this.DialogResult = System.Windows.Forms.DialogResult.OK;
-                }
-                else
-                {
-                        using (frmPrecio buscar = new frmPrecio())
-                        {/*
-                            if (buscar.ShowDialog() == DialogResult.OK)
-                            {
-                               
-                                if (buscar.tipo == "GEN")
-                                {*/
-                                    try
-                                    {
-                                        double preci = Convert.ToDouble(dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString());
-                                        producto = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-                                        precio = String.Format("{0:0.00}", preci);
-                                        monto = String.Format("{0:0.00}", preci);
-                                        existencia = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
-                                        ID = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-                                        IVA = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
-                                        compra = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
-                                        this.DialogResult = System.Windows.Forms.DialogResult.OK;
-                                    }
-                                    catch (Exception ex)
-                                    {
+                    var filaActual = dataGridView1.Rows[dataGridView1.CurrentRow.Index];
 
-                                    }
-                              /*  }
-                                else if (buscar.tipo == "MAY")
-                                {
-                                    double preci = Convert.ToDouble(dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString());
-                                    producto = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-                                    precio = String.Format("{0:0.00}", preci);
-                                    monto = String.Format("{0:0.00}", preci);
-                                    existencia = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
-                                    ID = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-                                    IVA = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
-                                    compra = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
-                                    this.DialogResult = System.Windows.Forms.DialogResult.OK;
-                                }
-                               
-                            }*/
+                    if (compras)
+                    {
+                        double preci = Convert.ToDouble(filaActual.Cells["PrecioVenta"].Value.ToString());
+                        producto = filaActual.Cells["Nombre"].Value.ToString();
+                        precio = String.Format("{0:0.00}", preci);
+                        monto = String.Format("{0:0.00}", preci);
+                        existencia = filaActual.Cells["Existencia"].Value.ToString();
+                        ID = filaActual.Cells["Id"].Value.ToString();
+                        IVA = filaActual.Cells["IVA"].Value.ToString();
+                        compra = filaActual.Cells["Especial"].Value.ToString();
+                        this.DialogResult = System.Windows.Forms.DialogResult.OK;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            double preci = Convert.ToDouble(filaActual.Cells["PrecioVenta"].Value.ToString());
+                            producto = filaActual.Cells["Nombre"].Value.ToString();
+                            precio = String.Format("{0:0.00}", preci);
+                            monto = String.Format("{0:0.00}", preci);
+                            existencia = filaActual.Cells["Existencia"].Value.ToString();
+                            ID = filaActual.Cells["Id"].Value.ToString();
+                            IVA = filaActual.Cells["IVA"].Value.ToString();
+                            compra = filaActual.Cells["Especial"].Value.ToString();
+                            this.DialogResult = System.Windows.Forms.DialogResult.OK;
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Error al extraer producto: " + ex.Message);
                         }
                     }
                 }

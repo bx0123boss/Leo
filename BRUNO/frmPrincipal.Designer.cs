@@ -69,9 +69,10 @@
             this.pnlMenu.Controls.Add(this.button4);
             this.pnlMenu.Controls.Add(this.button6);
             this.pnlMenu.Controls.Add(this.button8);
-            this.pnlMenu.Location = new System.Drawing.Point(50, 40);
+            this.pnlMenu.Location = new System.Drawing.Point(58, 52);
+            this.pnlMenu.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.pnlMenu.Name = "pnlMenu";
-            this.pnlMenu.Size = new System.Drawing.Size(1080, 600);
+            this.pnlMenu.Size = new System.Drawing.Size(1260, 785);
             this.pnlMenu.TabIndex = 0;
             // 
             // BtnCobrar
@@ -80,9 +81,10 @@
             this.BtnCobrar.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.BtnCobrar.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnCobrar.ForeColor = System.Drawing.Color.White;
-            this.BtnCobrar.Location = new System.Drawing.Point(40, 40);
+            this.BtnCobrar.Location = new System.Drawing.Point(47, 52);
+            this.BtnCobrar.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.BtnCobrar.Name = "BtnCobrar";
-            this.BtnCobrar.Size = new System.Drawing.Size(220, 90);
+            this.BtnCobrar.Size = new System.Drawing.Size(257, 118);
             this.BtnCobrar.TabIndex = 0;
             this.BtnCobrar.Text = "VENTAS";
             this.BtnCobrar.UseVisualStyleBackColor = true;
@@ -94,9 +96,10 @@
             this.BtnApartados.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.BtnApartados.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnApartados.ForeColor = System.Drawing.Color.White;
-            this.BtnApartados.Location = new System.Drawing.Point(280, 40);
+            this.BtnApartados.Location = new System.Drawing.Point(327, 52);
+            this.BtnApartados.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.BtnApartados.Name = "BtnApartados";
-            this.BtnApartados.Size = new System.Drawing.Size(220, 90);
+            this.BtnApartados.Size = new System.Drawing.Size(257, 118);
             this.BtnApartados.TabIndex = 1;
             this.BtnApartados.Text = "APARTADOS";
             this.BtnApartados.UseVisualStyleBackColor = true;
@@ -108,9 +111,10 @@
             this.BtnDevoluciones.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.BtnDevoluciones.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnDevoluciones.ForeColor = System.Drawing.Color.White;
-            this.BtnDevoluciones.Location = new System.Drawing.Point(40, 160);
+            this.BtnDevoluciones.Location = new System.Drawing.Point(47, 209);
+            this.BtnDevoluciones.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.BtnDevoluciones.Name = "BtnDevoluciones";
-            this.BtnDevoluciones.Size = new System.Drawing.Size(220, 90);
+            this.BtnDevoluciones.Size = new System.Drawing.Size(257, 118);
             this.BtnDevoluciones.TabIndex = 2;
             this.BtnDevoluciones.Text = "REPORTE DE VENTAS";
             this.BtnDevoluciones.UseVisualStyleBackColor = true;
@@ -122,9 +126,10 @@
             this.BtnRetiro.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.BtnRetiro.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnRetiro.ForeColor = System.Drawing.Color.White;
-            this.BtnRetiro.Location = new System.Drawing.Point(40, 280);
+            this.BtnRetiro.Location = new System.Drawing.Point(47, 366);
+            this.BtnRetiro.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.BtnRetiro.Name = "BtnRetiro";
-            this.BtnRetiro.Size = new System.Drawing.Size(220, 90);
+            this.BtnRetiro.Size = new System.Drawing.Size(257, 118);
             this.BtnRetiro.TabIndex = 4;
             this.BtnRetiro.Text = "RETIRO DE EFECTIVO";
             this.BtnRetiro.UseVisualStyleBackColor = true;
@@ -136,9 +141,10 @@
             this.BtnDeposito.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.BtnDeposito.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnDeposito.ForeColor = System.Drawing.Color.White;
-            this.BtnDeposito.Location = new System.Drawing.Point(280, 280);
+            this.BtnDeposito.Location = new System.Drawing.Point(327, 366);
+            this.BtnDeposito.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.BtnDeposito.Name = "BtnDeposito";
-            this.BtnDeposito.Size = new System.Drawing.Size(220, 90);
+            this.BtnDeposito.Size = new System.Drawing.Size(257, 118);
             this.BtnDeposito.TabIndex = 5;
             this.BtnDeposito.Text = "DEPOSITO EFECTIVO";
             this.BtnDeposito.UseVisualStyleBackColor = true;
@@ -150,9 +156,10 @@
             this.BtnInventario.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.BtnInventario.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnInventario.ForeColor = System.Drawing.Color.White;
-            this.BtnInventario.Location = new System.Drawing.Point(40, 400);
+            this.BtnInventario.Location = new System.Drawing.Point(47, 523);
+            this.BtnInventario.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.BtnInventario.Name = "BtnInventario";
-            this.BtnInventario.Size = new System.Drawing.Size(220, 90);
+            this.BtnInventario.Size = new System.Drawing.Size(257, 118);
             this.BtnInventario.TabIndex = 6;
             this.BtnInventario.Text = "INVENTARIO";
             this.BtnInventario.UseVisualStyleBackColor = true;
@@ -164,9 +171,10 @@
             this.button1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.button1.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button1.ForeColor = System.Drawing.Color.White;
-            this.button1.Location = new System.Drawing.Point(280, 400);
+            this.button1.Location = new System.Drawing.Point(327, 523);
+            this.button1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(220, 90);
+            this.button1.Size = new System.Drawing.Size(257, 118);
             this.button1.TabIndex = 7;
             this.button1.Text = "CORTE";
             this.button1.UseVisualStyleBackColor = true;
@@ -178,9 +186,10 @@
             this.BtnClientes.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.BtnClientes.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnClientes.ForeColor = System.Drawing.Color.White;
-            this.BtnClientes.Location = new System.Drawing.Point(280, 160);
+            this.BtnClientes.Location = new System.Drawing.Point(327, 209);
+            this.BtnClientes.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.BtnClientes.Name = "BtnClientes";
-            this.BtnClientes.Size = new System.Drawing.Size(220, 90);
+            this.BtnClientes.Size = new System.Drawing.Size(257, 118);
             this.BtnClientes.TabIndex = 9;
             this.BtnClientes.Text = "CLIENTES";
             this.BtnClientes.UseVisualStyleBackColor = true;
@@ -189,9 +198,10 @@
             // pictureBox1
             // 
             this.pictureBox1.BackColor = System.Drawing.Color.Transparent;
-            this.pictureBox1.Location = new System.Drawing.Point(540, 310);
+            this.pictureBox1.Location = new System.Drawing.Point(630, 405);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(460, 250);
+            this.pictureBox1.Size = new System.Drawing.Size(537, 327);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 11;
             this.pictureBox1.TabStop = false;
@@ -204,9 +214,10 @@
             this.BtnCotizar.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.BtnCotizar.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnCotizar.ForeColor = System.Drawing.Color.White;
-            this.BtnCotizar.Location = new System.Drawing.Point(540, 40);
+            this.BtnCotizar.Location = new System.Drawing.Point(630, 52);
+            this.BtnCotizar.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.BtnCotizar.Name = "BtnCotizar";
-            this.BtnCotizar.Size = new System.Drawing.Size(220, 90);
+            this.BtnCotizar.Size = new System.Drawing.Size(257, 118);
             this.BtnCotizar.TabIndex = 10;
             this.BtnCotizar.Text = "PROVEEDORES";
             this.BtnCotizar.UseVisualStyleBackColor = false;
@@ -218,27 +229,14 @@
             this.button4.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.button4.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button4.ForeColor = System.Drawing.Color.White;
-            this.button4.Location = new System.Drawing.Point(540, 160);
+            this.button4.Location = new System.Drawing.Point(630, 209);
+            this.button4.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(220, 90);
+            this.button4.Size = new System.Drawing.Size(257, 118);
             this.button4.TabIndex = 15;
             this.button4.Text = "USUARIOS";
             this.button4.UseVisualStyleBackColor = true;
             this.button4.Click += new System.EventHandler(this.button4_Click_1);
-            // 
-            // button8
-            // 
-            this.button8.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("button8.BackgroundImage")));
-            this.button8.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.button8.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button8.ForeColor = System.Drawing.Color.White;
-            this.button8.Location = new System.Drawing.Point(780, 40);
-            this.button8.Name = "button8";
-            this.button8.Size = new System.Drawing.Size(220, 90);
-            this.button8.TabIndex = 21;
-            this.button8.Text = "COTIZACIONES";
-            this.button8.UseVisualStyleBackColor = true;
-            this.button8.Click += new System.EventHandler(this.button8_Click);
             // 
             // button6
             // 
@@ -246,13 +244,29 @@
             this.button6.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.button6.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button6.ForeColor = System.Drawing.Color.White;
-            this.button6.Location = new System.Drawing.Point(780, 160);
+            this.button6.Location = new System.Drawing.Point(910, 209);
+            this.button6.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(220, 90);
+            this.button6.Size = new System.Drawing.Size(257, 118);
             this.button6.TabIndex = 20;
             this.button6.Text = "TICKET";
             this.button6.UseVisualStyleBackColor = true;
             this.button6.Click += new System.EventHandler(this.button6_Click);
+            // 
+            // button8
+            // 
+            this.button8.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("button8.BackgroundImage")));
+            this.button8.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.button8.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button8.ForeColor = System.Drawing.Color.White;
+            this.button8.Location = new System.Drawing.Point(910, 52);
+            this.button8.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button8.Name = "button8";
+            this.button8.Size = new System.Drawing.Size(257, 118);
+            this.button8.TabIndex = 21;
+            this.button8.Text = "COTIZACIONES";
+            this.button8.UseVisualStyleBackColor = true;
+            this.button8.Click += new System.EventHandler(this.button8_Click);
             // 
             // button2
             // 
@@ -260,9 +274,10 @@
             this.button2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.button2.Font = new System.Drawing.Font("Modern No. 20", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button2.ForeColor = System.Drawing.Color.White;
-            this.button2.Location = new System.Drawing.Point(12, 12);
+            this.button2.Location = new System.Drawing.Point(14, 16);
+            this.button2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(120, 40);
+            this.button2.Size = new System.Drawing.Size(140, 52);
             this.button2.TabIndex = 8;
             this.button2.Text = "SERVICIOS";
             this.button2.UseVisualStyleBackColor = true;
@@ -276,9 +291,10 @@
             this.button3.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.button3.Font = new System.Drawing.Font("Modern No. 20", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button3.ForeColor = System.Drawing.Color.White;
-            this.button3.Location = new System.Drawing.Point(230, 680);
+            this.button3.Location = new System.Drawing.Point(268, 889);
+            this.button3.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(250, 40);
+            this.button3.Size = new System.Drawing.Size(292, 52);
             this.button3.TabIndex = 12;
             this.button3.Text = "PRODUCTO MAS VENDIDO";
             this.button3.UseVisualStyleBackColor = true;
@@ -291,9 +307,10 @@
             this.button5.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.button5.Font = new System.Drawing.Font("Modern No. 20", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button5.ForeColor = System.Drawing.Color.White;
-            this.button5.Location = new System.Drawing.Point(490, 680);
+            this.button5.Location = new System.Drawing.Point(572, 889);
+            this.button5.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(150, 40);
+            this.button5.Size = new System.Drawing.Size(175, 52);
             this.button5.TabIndex = 14;
             this.button5.Text = "RESPALDO";
             this.button5.UseVisualStyleBackColor = true;
@@ -306,9 +323,10 @@
             this.BtnTipodecambio.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.BtnTipodecambio.Font = new System.Drawing.Font("Modern No. 20", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnTipodecambio.ForeColor = System.Drawing.Color.White;
-            this.BtnTipodecambio.Location = new System.Drawing.Point(12, 680);
+            this.BtnTipodecambio.Location = new System.Drawing.Point(14, 889);
+            this.BtnTipodecambio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.BtnTipodecambio.Name = "BtnTipodecambio";
-            this.BtnTipodecambio.Size = new System.Drawing.Size(200, 40);
+            this.BtnTipodecambio.Size = new System.Drawing.Size(233, 52);
             this.BtnTipodecambio.TabIndex = 3;
             this.BtnTipodecambio.Text = "TIPO DE CAMBIO";
             this.BtnTipodecambio.UseVisualStyleBackColor = true;
@@ -320,9 +338,10 @@
             this.button7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button7.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.button7.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold);
-            this.button7.Location = new System.Drawing.Point(962, 680);
+            this.button7.Location = new System.Drawing.Point(1122, 889);
+            this.button7.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.button7.Name = "button7";
-            this.button7.Size = new System.Drawing.Size(200, 40);
+            this.button7.Size = new System.Drawing.Size(233, 52);
             this.button7.TabIndex = 19;
             this.button7.Text = "CFDI";
             this.button7.UseVisualStyleBackColor = true;
@@ -331,11 +350,11 @@
             // 
             // frmPrincipal
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.MidnightBlue;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(1174, 733);
+            this.ClientSize = new System.Drawing.Size(1370, 959);
             this.Controls.Add(this.button7);
             this.Controls.Add(this.button5);
             this.Controls.Add(this.button3);
@@ -343,8 +362,8 @@
             this.Controls.Add(this.button2);
             this.Controls.Add(this.pnlMenu);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "frmPrincipal";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Menú Principal - Punto de Venta";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmPrincipal_FormClosing);

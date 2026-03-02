@@ -49,7 +49,7 @@ namespace BRUNO
             {
                 dataGridView1.Columns[2].ReadOnly = false;
             }
-            if (Conexion.lugar == "TURBOLLANTAS")
+            if (Conexion.lugar == "TURBO LLANTAS")
             {
                 dataGridView1.Columns[2].ReadOnly = false;
                 dataGridView1.Columns[1].ReadOnly = false;
@@ -393,7 +393,7 @@ namespace BRUNO
             {
                 foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
             }
-            if(Conexion.lugar == "TURBOLLANTAS")
+            if(Conexion.lugar == "TURBO LLANTAS")
                 lblFolio.Text = "TB" + String.Format("{0:0000}", foli);
             else
                 lblFolio.Text = "VR" + String.Format("{0:0000}", foli);
@@ -797,7 +797,7 @@ namespace BRUNO
 
         private void dataGridView1_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
         {
-            if (Conexion.lugar == "TURBOLLANTAS")
+            if (Conexion.lugar == "TURBO LLANTAS")
             {
                 if (e.ColumnIndex == 0 || e.ColumnIndex == 2)
                 {
@@ -805,7 +805,7 @@ namespace BRUNO
                 }
                 var valorCelda5 = dataGridView1.Rows[e.RowIndex].Cells[5].Value;
                 string verificador = valorCelda5 != null ? valorCelda5.ToString() : "";
-                if (verificador != "0")
+                if (verificador != "0" && verificador != "00")
                 {
                     e.Cancel = true; // ¡ESTO ES LA CLAVE! 
                                      // Impide que aparezca el cursor para escribir.

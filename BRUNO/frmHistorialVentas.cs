@@ -69,7 +69,7 @@ namespace BRUNO
             }
             else
             {
-                abonar.saldo = Convert.ToDouble(dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString());
+                abonar.saldo = Convert.ToDouble(dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString());
                 abonar.folio = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
                 abonar.Show();
                 this.Close();

@@ -197,7 +197,7 @@ namespace BRUNO
                             cmd.ExecuteNonQuery();
                         }
                         
-                        cmd = new OleDbCommand("insert into Ventas2(Monto,Fecha,Folio,IdCliente,Estuatus, Saldo) values('" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','" + idCliente + "','COBRADO','" + total + "');", conectar);
+                        cmd = new OleDbCommand("insert into Ventas2(Monto,Fecha,Folio,IdCliente,Estatus, Saldo) values('" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','" + idCliente + "','COBRADO'," + total + ");", conectar);
                         cmd.ExecuteNonQuery();
                         cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono de la venta a credito folio " + lblFolio.Text + "','" + txtAbono.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + cmbPago.Text + "');", conectar);
                         cmd.ExecuteNonQuery();
