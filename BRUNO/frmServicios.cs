@@ -117,7 +117,6 @@ namespace BRUNO
                 ticket.MaxChar = 34;
 
                 ticket.FontSize = 9;
-                ticket.HeaderImage = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
                 ticket.AddHeaderLine("********  NOTA DE VENTA  *******");
                 ticket.AddHeaderLine("CLIENTE: " + dataGridView1[11, dataGridView1.CurrentRow.Index].Value.ToString());
                 ticket.AddHeaderLine("FOLIO DE SERVICIO: " + dataGridView1[12, dataGridView1.CurrentRow.Index].Value.ToString());

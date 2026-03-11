@@ -1,26 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.OleDb;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Office.Interop.Excel;
 using LibPrintTicket;
 
 namespace BRUNO
 {
-    public partial class frmDetalleCorte : Form
+    public partial class frmDetalleCorte : frmBase
     {
         public int ID;
-        private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbDataAdapter da;
-        public string mas, menos, tarjeta;
+        public DataSet ds;
+        // Uso de variables DECIMALES para que el dinero no falle en centavos
+        public decimal mas = 0m;
+        public  decimal menos = 0m;
+        public decimal tarjeta = 0m;
+        public decimal trans = 0m;
+        public decimal granTotal = 0m;
+
         public frmDetalleCorte()
         {
             InitializeComponent();
@@ -28,19 +26,78 @@ namespace BRUNO
 
         private void frmDetalleCorte_Load(object sender, EventArgs e)
         {
+            // 1. Estilos heredados del frmBase
+            EstilizarBotonPrimario(button1);
+            EstilizarBotonPrimario(button2);
+
             ds = new DataSet();
-            conectar.Open();
-            da = new OleDbDataAdapter("select * from Cortes where idCorte='" + ID + "';", conectar);
-            da.Fill(ds, "Id");
+
+            // 2. Uso correcto de USING para no dejar conexiones bloqueadas
+            using (OleDbConnection conectar = new OleDbConnection(Conexion.CadCon))
+            {
+                conectar.Open();
+                using (OleDbDataAdapter da = new OleDbDataAdapter("select * from Cortes where idCorte='" + ID + "';", conectar))
+                {
+                    da.Fill(ds, "Id");
+                }
+            }
+
             dataGridView1.DataSource = ds.Tables["Id"];
-            dataGridView1.Columns[0].Visible = false;
-            //dataGridView1.Columns[1].Visible = false;
-            dataGridView1.Columns[3].Visible = false;
-            dataGridView1.Columns[4].Visible = false;
+            dataGridView1.Columns[0].Visible = false; // Id general
+            dataGridView1.Columns[3].Visible = false; // idCorte
+            dataGridView1.Columns[4].Visible = false; // Tipo interno si aplica
+
+            EstilizarDataGridView(dataGridView1);
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
+            // 3. CALCULAR LOS TOTALES RECORRIENDO EL GRID 
+            // (Igual que se hace en frmCorte activo)
+            for (int i = 0; i < dataGridView1.RowCount; i++)
+            {
+                if (dataGridView1.Rows[i].IsNewRow) continue;
+
+                if (dataGridView1[2, i].Value != null && dataGridView1[2, i].Value != DBNull.Value)
+                {
+                    decimal monto = Convert.ToDecimal(dataGridView1[2, i].Value);
+
+                    // Asegurarnos de buscar el tipo en la columna correcta (columna 5 suele ser 'Tipo')
+                    string tipoPago = "";
+                    if (dataGridView1[5, i].Value != null)
+                        tipoPago = dataGridView1[5, i].Value.ToString().ToUpper();
+
+                    // Clasificamos y sumamos a la variable correspondiente
+                    if (tipoPago.Contains("TARJETA") || tipoPago.Contains("04=") || tipoPago.Contains("28="))
+                    {
+                        tarjeta += monto;
+                    }
+                    else if (tipoPago.Contains("TRANFERENCIA") || tipoPago.Contains("TRANSFERENCIA") || tipoPago.Contains("03="))
+                    {
+                        trans += monto;
+                    }
+                    else // Si es EFECTIVO, u otro método por defecto
+                    {
+                        if (monto < 0)
+                            menos += monto;
+                        else
+                            mas += monto;
+                    }
+                }
+            }
+
+            // 4. ASIGNAR LOS VALORES A LA INTERFAZ
+            granTotal = mas + menos + tarjeta + trans;
+
+            lblMonto.Text = granTotal.ToString("C2");
+            lblEfectivo.Text = mas.ToString("C2");
+            lblTarjetas.Text = tarjeta.ToString("C2");
+            lblTransferencias.Text = trans.ToString("C2");
+            lblSalidas.Text = (menos * -1m).ToString("C2"); // Multiplicar por -1 para mostrarlo positivo en pantalla
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
+            // Código de Excel intacto
             Microsoft.Office.Interop.Excel.Application xla = new Microsoft.Office.Interop.Excel.Application();
             Workbook wb = xla.Workbooks.Add(XlSheetType.xlWorksheet);
             Worksheet ws = (Worksheet)xla.ActiveSheet;
@@ -61,29 +118,58 @@ namespace BRUNO
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Ticket ticket = new Ticket();
-            ticket.MaxChar = 35;
-            ticket.MaxCharDescription = 22;
-            ticket.FontSize = 8;
-            ticket.HeaderImage = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
-            ticket.AddHeaderLine("********  CORTE DE CAJA  *******");
-            ticket.AddSubHeaderLine("FECHA Y HORA:");
-            ticket.AddSubHeaderLine(lblFecha.Text);
+            // 1. Preparamos la lista de productos (en este caso, los conceptos del corte)
+            List<Producto> conceptos = new List<Producto>();
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
-                ticket.AddItem("1", dataGridView1[1, i].Value.ToString(), "   $" + dataGridView1[2, i].Value.ToString());
+                if (dataGridView1.Rows[i].IsNewRow) continue;
+
+                conceptos.Add(new Producto
+                {
+                    Cantidad = 1,
+                    Nombre = dataGridView1[1, i].Value.ToString(),
+                    PrecioUnitario = Convert.ToDouble(dataGridView1[2, i].Value),
+                    Total = Convert.ToDouble(dataGridView1[2, i].Value)
+                });
             }
-            string entrada= "$" + (Convert.ToDouble(mas) + Convert.ToDouble(tarjeta));
-            string salida= "$" + (Convert.ToDouble(menos) * -1);
-            string corte = "$" + mas;
-            string credito = "$" + tarjeta;
-            string total = "$" + (Convert.ToDouble(tarjeta) + Convert.ToDouble(mas) + Convert.ToDouble(menos));
-            ticket.AddTotal("Efectivo", corte);
-            ticket.AddTotal("Tarjetas", credito);
-            ticket.AddTotal("Entradas", entrada);
-            ticket.AddTotal("Salidas", salida);
-            ticket.AddTotal("Total", total);
-            ticket.PrintTicket(Conexion.impresora);
+
+            // 2. Encabezados especiales del corte
+            string[] encabezados = new string[] {
+                "******** REIMPRESION CORTE  ********",
+                "               Fecha de corte:",
+                lblFecha.Text
+            };
+
+            // 3. Diccionario de totales usando el nuevo TicketPrinter (igual que frmCorte)
+            Dictionary<string, double> totalesTicket = new Dictionary<string, double>();
+            totalesTicket.Add("Efectivo en Caja", Convert.ToDouble(mas));
+            totalesTicket.Add("Tarjetas", Convert.ToDouble(tarjeta));
+            totalesTicket.Add("Transferencias", Convert.ToDouble(trans));
+            totalesTicket.Add("Salidas", Convert.ToDouble(menos * -1));
+            totalesTicket.Add("TOTAL DEL CORTE", Convert.ToDouble(granTotal));
+
+            try
+            {
+                // Instanciamos TicketPrinter igual que en tu corte normal
+                TicketPrinter ticketPrinter = new TicketPrinter(
+                    encabezados,
+                    Conexion.pieDeTicket,
+                    Conexion.logoPath,
+                    conceptos,
+                    "",
+                    "",
+                    "",
+                    Convert.ToDouble(granTotal),
+                    true,
+                    totalesTicket);
+
+                ticketPrinter.ImprimirTicket();
+                MessageBox.Show("Corte reimpreso con éxito.", "Impresión", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al imprimir el ticket: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

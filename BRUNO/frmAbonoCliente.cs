@@ -84,7 +84,7 @@ namespace BRUNO
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("insert into Abonos(Abono,idCliente,Fecha,Nombre,Folio,Estatus) Values('" + txtAbono.Text + "','" + lblID.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+lblCliente.Text+"','"+folio+ "','PAGADO');", conectar);
             cmd.ExecuteNonQuery();
-            ticket.PrintTicket(Conexion.impresora);
+            //ticket.PrintTicket(Conexion.impresora);
             MessageBox.Show("Se ha abonado con exito", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();
         }

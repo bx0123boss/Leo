@@ -38,6 +38,9 @@ namespace BRUNO
             dataGridView1.Columns[3].Visible = false;
             dataGridView1.Columns[4].Visible = false;
             dataGridView1.Columns[5].Visible = false;
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
         }
 
         private void dateTimePicker1_ValueChanged(object sender, EventArgs e)
@@ -50,30 +53,49 @@ namespace BRUNO
             dataGridView1.Columns[3].Visible = false;
             dataGridView1.Columns[4].Visible = false;
             dataGridView1.Columns[5].Visible = false;
+       
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
+            // 1. Validar que realmente haya una fila seleccionada
+            if (dataGridView1.CurrentRow == null || dataGridView1.CurrentRow.Index < 0)
+            {
+                MessageBox.Show("Por favor, seleccione un registro de la lista primero.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return; // Detiene la ejecución, no hace nada más
+            }
+
             try
             {
                 frmDetalleCorte detail = new frmDetalleCorte();
-                detail.ID = Convert.ToInt32(dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString());
-                detail.lblMonto.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-                detail.lblFecha.Text = dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString();
-                detail.mas = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
-                detail.menos = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
-                detail.tarjeta = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
-                detail.Show();
-                this.Close();
+
+                // Guardamos el índice para no repetir "dataGridView1.CurrentRow.Index" en cada línea
+                int index = dataGridView1.CurrentRow.Index;
+
+                detail.ID = Convert.ToInt32(dataGridView1[0, index].Value);
+                detail.lblMonto.Text = dataGridView1[1, index].Value.ToString();
+                detail.lblFecha.Text = dataGridView1[2, index].Value.ToString();
+                decimal inversion = Convert.ToDecimal(dataGridView1[7, index].Value);
+                detail.lblInversion.Text = inversion.ToString("C2");
+
+                decimal utilidad = Convert.ToDecimal(dataGridView1[6, index].Value);
+                detail.lblUtilidad.Text = utilidad.ToString("C2");
+
+                detail.ShowDialog();
             }
             catch (Exception ex)
             {
-
+                MessageBox.Show("Error al cargar el detalle: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
+            if (dataGridView1.CurrentRow == null || dataGridView1.CurrentRow.Index < 0)
+            {
+                MessageBox.Show("Por favor, seleccione un registro de la lista primero.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return; 
+            }
             frmCortePorFechas fch = new frmCortePorFechas();
             fch.Show();
             this.Close();

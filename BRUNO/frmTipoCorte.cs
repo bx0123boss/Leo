@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmTipoCorte : Form
+    public partial class frmTipoCorte : frmBase
     {
         
         public frmTipoCorte()
@@ -46,7 +46,7 @@ namespace BRUNO
             bool abierto = false;
             foreach (Form frm in Application.OpenForms)
             {
-                if (frm.GetType() == typeof(frmProveedores))
+                if (frm.GetType() == typeof(frmHistorialCortes))
                 {
                     MessageBox.Show("Ya existe un modulo de historial de cortes abierto", "Alto!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     abierto = true;
@@ -66,7 +66,8 @@ namespace BRUNO
 
         private void frmTipoCorte_Load(object sender, EventArgs e)
         {
-
+            EstilizarBotonPrimario(button1);
+            EstilizarBotonPeligro(button2);
         }
     }
 }

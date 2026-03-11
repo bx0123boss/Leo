@@ -1,75 +1,99 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.OleDb;
 using System.Drawing;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmProductoMasVendido : Form
+    public partial class frmProductoMasVendido : frmBase
     {
-        private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbDataAdapter da;
-
         public frmProductoMasVendido()
         {
             InitializeComponent();
-            conectar.Open();
         }
 
-        private void dateTimePicker1_ValueChanged(object sender, EventArgs e)
+        private void frmProductoMasVendido_Load(object sender, EventArgs e)
         {
-            dateTimePicker2.Focus();
+            EstilizarDataGridView(dataGridView1); // Crédito
+            EstilizarDataGridView(dataGridView2); // Contado
+            EstilizarBotonPrimario(button1);
+            EstilizarTextBox(txtTop);
 
-        }
-
-        private void dateTimePicker2_ValueChanged(object sender, EventArgs e)
-        {
-            textBox1.Focus();
-
+            dateTimePicker1.Value = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            dateTimePicker2.Value = DateTime.Now;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (textBox1.Text != "" || textBox1.Text!="0")
+            if (!int.TryParse(txtTop.Text, out int topNum) || topNum <= 0)
             {
-                ds = new DataSet();
-                da = new OleDbDataAdapter("SELECT TOP " + textBox1.Text + " VentasCredito.Producto, Sum(VentasCredito.Cantidad) AS CantidadVendidos FROM VentasCredito where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker2.Value.Month.ToString() + "/" + dateTimePicker2.Value.Day.ToString() + "/" + dateTimePicker2.Value.Year.ToString() + " 23:59:59# GROUP BY VentasCredito.Producto ORDER BY 2 DESC;", conectar);
-                da.Fill(ds, "Id");
-                dataGridView1.DataSource = ds.Tables["Id"];
-
-                ds = new DataSet();
-                da = new OleDbDataAdapter("SELECT TOP " + textBox1.Text + " VentasContado.Producto, Sum(VentasContado.Cantidad) AS CantidadVendidos FROM VentasContado where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker2.Value.Month.ToString() + "/" + dateTimePicker2.Value.Day.ToString() + "/" + dateTimePicker2.Value.Year.ToString() + " 23:59:59# GROUP BY VentasContado.Producto ORDER BY 2 DESC;", conectar);
-                da.Fill(ds, "Id");
-                dataGridView2.DataSource = ds.Tables["Id"];
-                panel1.Visible = true;
+                MessageBox.Show("Proporciona una cantidad de productos válida (Ej: 10, 20, 50).", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtTop.Focus();
+                return;
             }
-            else
+
+            DateTime fechaInicio = dateTimePicker1.Value.Date;
+            DateTime fechaFin = dateTimePicker2.Value.Date.AddDays(1).AddSeconds(-1);
+
+            try
             {
-                MessageBox.Show("PROPORCIONA UNA CANTIDAD DE PRODUCTOS VALIDA", "ALTO!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                using (OleDbConnection conectar = new OleDbConnection(Conexion.CadCon))
+                {
+                    conectar.Open();
+
+                    // 1. PRODUCTOS ESTRELLA - CONTADO
+                    DataSet dsContado = new DataSet();
+                    string queryContado = $"SELECT TOP {topNum} Producto, SUM(Cantidad) AS CantidadVendidos " +
+                                          "FROM VentasContado WHERE Fecha >= ? AND Fecha <= ? " +
+                                          "GROUP BY Producto ORDER BY SUM(Cantidad) DESC";
+
+                    using (OleDbCommand cmd1 = new OleDbCommand(queryContado, conectar))
+                    {
+                        cmd1.Parameters.AddWithValue("?", fechaInicio);
+                        cmd1.Parameters.AddWithValue("?", fechaFin);
+                        using (OleDbDataAdapter da1 = new OleDbDataAdapter(cmd1))
+                        {
+                            da1.Fill(dsContado, "Contado");
+                        }
+                    }
+                    dataGridView2.DataSource = dsContado.Tables["Contado"];
+
+                    // 2. PRODUCTOS ESTRELLA - CREDITO
+                    DataSet dsCredito = new DataSet();
+                    string queryCredito = $"SELECT TOP {topNum} Producto, SUM(Cantidad) AS CantidadVendidos " +
+                                          "FROM VentasCredito WHERE Fecha >= ? AND Fecha <= ? " +
+                                          "GROUP BY Producto ORDER BY SUM(Cantidad) DESC";
+
+                    using (OleDbCommand cmd2 = new OleDbCommand(queryCredito, conectar))
+                    {
+                        cmd2.Parameters.AddWithValue("?", fechaInicio);
+                        cmd2.Parameters.AddWithValue("?", fechaFin);
+                        using (OleDbDataAdapter da2 = new OleDbDataAdapter(cmd2))
+                        {
+                            da2.Fill(dsCredito, "Credito");
+                        }
+                    }
+                    dataGridView1.DataSource = dsCredito.Tables["Credito"];
+                }
             }
-        }
-
-        private void label3_Click(object sender, EventArgs e)
-        {
-
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al buscar productos: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
-            CultureInfo cc = System.Threading.Thread.CurrentThread.CurrentCulture;
-            if (char.IsNumber(e.KeyChar) || e.KeyChar.ToString() == cc.NumberFormat.NumberDecimalSeparator || Convert.ToInt32(e.KeyChar) == 8)
-                e.Handled = false;
-            else
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
                 e.Handled = true;
+            }
+
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                button1.PerformClick();
+            }
         }
     }
 }

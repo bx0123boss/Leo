@@ -16,7 +16,7 @@ namespace BRUNO
     public partial class frmVentaDetallada : frmBase
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
+        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
         OleDbDataAdapter da;
         OleDbCommand cmd;
@@ -83,17 +83,64 @@ namespace BRUNO
                         cmd.ExecuteNonQuery();
                         cmd = new OleDbCommand("UPDATE VentasContado set MontoTotal='0', Utilidad='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
                         cmd.ExecuteNonQuery();
-                        cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','ENTRADA','CANCELACION DE VENTA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales+ "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                        cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','ENTRADA','CANCELACION DE VENTA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
                         cmd.ExecuteNonQuery();
-                        //cmd = new OleDbCommand("delete from VentasContado where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
-                        //cmd.ExecuteNonQuery();
+                    }
+                    reader.Close();
+                }
+
+                cmd = new OleDbCommand("update Ventas set Estatus='CANCELADO' where Folio='" + lblFolio.Text + "';", conectar);
+                cmd.ExecuteNonQuery();
+
+                // =========================================================================
+                // NUEVA LÓGICA DE CANCELACIÓN EN CORTES (SOPORTE PARA PAGO MIXTO)
+                // =========================================================================
+                string folioCancelar = lblFolio.Text;
+
+                // 1. Buscamos si existen los pagos originales de este ticket en el Corte de hoy
+                cmd = new OleDbCommand("SELECT Monto, Pago FROM Corte WHERE Concepto = 'Venta a contado folio " + folioCancelar + "';", conectar);
+                OleDbDataReader readerCorte = cmd.ExecuteReader();
+
+                bool encontroPagosEnCorte = false;
+                List<Tuple<double, string>> pagosARevertir = new List<Tuple<double, string>>();
+
+                while (readerCorte.Read())
+                {
+                    encontroPagosEnCorte = true;
+                    double montoOriginal = Convert.ToDouble(readerCorte["Monto"]);
+                    string pagoOriginal = readerCorte["Pago"].ToString();
+
+                    // Guardamos los datos para ejecutarlos después de cerrar el lector
+                    pagosARevertir.Add(new Tuple<double, string>(montoOriginal, pagoOriginal));
+                }
+                readerCorte.Close(); // OBLIGATORIO: Cerrar lector en Access antes de hacer Inserts
+
+                if (encontroPagosEnCorte)
+                {
+                    // 2. Si encontró los pagos, los inserta en negativo tal cual fueron hechos (Ej. Efectivo y Tarjeta)
+                    foreach (var pago in pagosARevertir)
+                    {
+                        cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "'," + (pago.Item1 * -1) + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + pago.Item2 + "');", conectar);
+                        cmd.ExecuteNonQuery();
                     }
                 }
-                cmd = new OleDbCommand("update Ventas set Estatus='CANCELADO' where Folio='"+lblFolio.Text+"';",conectar);
-                cmd.ExecuteNonQuery();
-                cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + lblFolio.Text + "',-" + monto + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' ,'" + lblPago.Text+"');", conectar);
-                cmd.ExecuteNonQuery();
-                MessageBox.Show("VENTA CANCELADA CON EXITO","CANCELADA!",MessageBoxButtons.OK,MessageBoxIcon.Information);
+                else
+                {
+                    // 3. Si NO encontró registros (El ticket es de otro día y el Corte ya se borró)
+                    string metodoReembolso = lblPago.Text;
+
+                    // Si dice "MIXTO" no podemos guardarlo así, el reembolso físico sale del cajón de efectivo
+                    if (metodoReembolso == "MIXTO")
+                    {
+                        metodoReembolso = "01=EFECTIVO";
+                    }
+
+                    cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "',-" + monto + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' ,'" + metodoReembolso + "');", conectar);
+                    cmd.ExecuteNonQuery();
+                }
+                // =========================================================================
+
+                MessageBox.Show("VENTA CANCELADA CON EXITO", "CANCELADA!", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
             }
             else if (dialogResult == DialogResult.No)
@@ -111,7 +158,7 @@ namespace BRUNO
         private void button2_Click(object sender, EventArgs e)
         {
             List<Producto> productos = new List<Producto>();
-           
+
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
                 productos.Add(new Producto
@@ -136,23 +183,23 @@ namespace BRUNO
             {
                 try
                 {
-                        TicketMediaCarta pdfTicket = new TicketMediaCarta(
-                             productos,
-                             lblFolio.Text,
-                             0,
-                             total,
-                             lblCliente.Text,
-                             dataGridView1[6, 0].Value.ToString(),
-                             lblPago.Text,
-                             "",
-                             "",
-                             Conexion.lugar,
-                             Conexion.logoPath,    // <--- Logo
-                             Conexion.datosTicket, // <--- Encabezado del negocio
-                             Conexion.pieDeTicket  // <--- Pie de página
-                         );
+                    TicketMediaCarta pdfTicket = new TicketMediaCarta(
+                         productos,
+                         lblFolio.Text,
+                         0,
+                         total,
+                         lblCliente.Text,
+                         dataGridView1[6, 0].Value.ToString(),
+                         lblPago.Text,
+                         "",
+                         "",
+                         Conexion.lugar,
+                         Conexion.logoPath,    // <--- Logo
+                         Conexion.datosTicket, // <--- Encabezado del negocio
+                         Conexion.pieDeTicket  // <--- Pie de página
+                     );
 
-                        pdfTicket.ImprimirDirectamente(Conexion.impresora);
+                    pdfTicket.ImprimirDirectamente(Conexion.impresora);
                 }
                 catch (Exception ex)
                 {
@@ -169,10 +216,6 @@ namespace BRUNO
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             if (dataGridView1.Columns[e.ColumnIndex].Name == "MontoTotal" || dataGridView1.Columns[e.ColumnIndex].Name == "Utilidad")
-            /*||
-
-         dataGridView2.Columns[e.ColumnIndex].Name == "PrecioVentaMayoreo" ||
-         dataGridView2.Columns[e.ColumnIndex].Name == "Especial")*/
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
                 {

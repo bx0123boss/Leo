@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmTipoVentaDetalles : Form
+    public partial class frmTipoVentaDetalles : frmBase
     {
         public String usuario = "";
         public frmTipoVentaDetalles()
@@ -70,7 +70,12 @@ namespace BRUNO
 
         private void frmTipoVentaDetalles_Load(object sender, EventArgs e)
         {
-
+            EstilizarBotonPrimario(button1);
+            EstilizarBotonPrimario(button3);
+            EstilizarBotonPrimario(button5);
+            EstilizarBotonAdvertencia(button2);
+            EstilizarBotonAdvertencia(button4);
+            EstilizarBotonAdvertencia(button6);
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -125,6 +130,13 @@ namespace BRUNO
         {
             frmVentasPorProducto veta = new frmVentasPorProducto();
             veta.Show();
+            this.Close();
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            frmProductoMasVendido mas = new frmProductoMasVendido();
+            mas.Show();
             this.Close();
         }
     }

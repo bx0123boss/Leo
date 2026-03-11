@@ -38,38 +38,43 @@ namespace BRUNO
 
         private void button2_Click(object sender, EventArgs e)
         {
-            try
+
+            if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
             {
                 frmVentaDetalladaCredito detalles = new frmVentaDetalladaCredito();
                 detalles.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
                 detalles.lblFecha.Text = dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString();
-                detalles.button1.Visible = true;
                 detalles.id = dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString();
                 detalles.lblMonto.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-                detalles.usuario = "NO";
+                if (dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString().Contains("INI"))
+                {
+                    detalles.usuario = "NO";
+                    detalles.button2.Visible = false;
+                }
                 detalles.Show();
                 this.Close();
-            }
-            catch (Exception Ex)
-            {
-
             }
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            frmAbonoCliente abonar = new frmAbonoCliente();
-            abonar.adeudo = Convert.ToDouble(lblAdeudo.Text);
-            abonar.lblID.Text = lblID.Text;
-            abonar.lblCliente.Text = lblNombre.Text;
-            string sal = dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString();
-            if (sal == "0" || sal == "")
+
+            if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
+
             {
-                abonar.saldo = 0;
-            }
-            else
-            {
-                abonar.saldo = Convert.ToDouble(dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString());
+                frmAbonoCliente abonar = new frmAbonoCliente();
+                abonar.adeudo = Convert.ToDouble(lblAdeudo.Text);
+                abonar.lblID.Text = lblID.Text;
+                abonar.lblCliente.Text = lblNombre.Text;
+                string sal = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
+                if (sal == "0" || sal == "")
+                {
+                    abonar.saldo = 0;
+                }
+                else
+                {
+                    abonar.saldo = Convert.ToDouble(dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString());
+                }
                 abonar.folio = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
                 abonar.Show();
                 this.Close();
@@ -101,10 +106,14 @@ namespace BRUNO
         private void button4_Click(object sender, EventArgs e)
         {
 
-            frmAbonosFolio histo = new frmAbonosFolio();
-            histo.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
-            histo.Show();
-            this.Close();
+            if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
+
+            {
+                frmAbonosFolio histo = new frmAbonosFolio();
+                histo.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
+                histo.Show();
+                this.Close();
+            }
         }
     }
 }

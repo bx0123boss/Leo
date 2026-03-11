@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.OleDb;
 using System.Data.SqlClient;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace BRUNO
@@ -84,7 +85,6 @@ namespace BRUNO
             txtFolioCotizacion.Enabled = true;
             txtFolioCotizacion.Text = "";
             label9.Text = "";
-            lblDatosCotizacion.Text = "";
             button5.Text = "Buscar";
             dataGridView1.Rows.Clear();
             string[] opcionesPago = {
@@ -150,7 +150,6 @@ namespace BRUNO
 
 
         }
-
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == Convert.ToChar(Keys.Enter))
@@ -160,48 +159,55 @@ namespace BRUNO
                 }
                 else
                 {
-
                     cmd = new OleDbCommand("select count(*) from Inventario where Id='" + textBox1.Text + "';", conectar);
                     int valor = int.Parse(cmd.ExecuteScalar().ToString());
+
                     if (valor == 1)
                     {
                         cmd = new OleDbCommand("select * from Inventario where Id='" + textBox1.Text + "';", conectar);
                         OleDbDataReader reader = cmd.ExecuteReader();
                         if (reader.Read())
                         {
+                            // AQUI FALTABA ABRIR EL DIALOGO Y SELECCIONAR EL PRECIO
                             using (frmPrecio buscar = new frmPrecio())
                             {
-                                        double preci = Convert.ToDouble(reader[3].ToString());
-                                        dataGridView1.Rows.Add("1", Convert.ToString(reader[1].ToString()), String.Format("{0:0.00}", preci), String.Format("{0:0.00}", preci), Convert.ToString(reader[4].ToString()), Convert.ToString(reader[0].ToString()), origen, Convert.ToString(reader[8].ToString()), Convert.ToString(reader[7].ToString()), "","X");
-                                  
-                            }
+                                if (buscar.ShowDialog() == DialogResult.OK)
+                                {
+                                    double preci = 0;
+                                    if (buscar.tipo == "GEN")
+                                    {
+                                        preci = Convert.ToDouble(reader[3].ToString());
+                                    }
+                                    else
+                                    {
+                                        preci = Convert.ToDouble(reader[2].ToString());
+                                    }
 
+                                    dataGridView1.Rows.Add("1", Convert.ToString(reader[1].ToString()), String.Format("{0:0.00}", preci), String.Format("{0:0.00}", preci), Convert.ToString(reader[4].ToString()), Convert.ToString(reader[0].ToString()), origen, Convert.ToString(reader[8].ToString()), Convert.ToString(reader[7].ToString()), "", "X");
+                                }
+                            }
                         }
                         lblTotal.Text = $"{RecalcularTotal:C}";
                         textBox1.Text = "";
                     }
                     else
                     {
-
                         using (frmBuscarProductos buscar = new frmBuscarProductos())
                         {
                             buscar.textBox1.Text = textBox1.Text;
                             if (buscar.ShowDialog() == DialogResult.OK)
                             {
-                                dataGridView1.Rows.Add("1", buscar.producto, buscar.precio, buscar.monto, buscar.existencia, buscar.ID, origen, buscar.IVA, buscar.compra, "","X");
-
+                                // Como ya arreglamos frmBuscarProductos en el paso anterior, 
+                                // buscar.precio ya trae el precio correcto (GEN o MAYOREO)
+                                dataGridView1.Rows.Add("1", buscar.producto, buscar.precio, buscar.monto, buscar.existencia, buscar.ID, origen, buscar.IVA, buscar.compra, "", "X");
                             }
                         }
-
                         lblTotal.Text = $"{RecalcularTotal:C}";
                         textBox1.Text = "";
-                        //}
-                        //}
                     }
                 }
             }
         }
-
         private void button1_Click(object sender, EventArgs e)
         {
             EliminarProductos();
@@ -374,26 +380,35 @@ namespace BRUNO
                 return;
             }
             double efectivo = 0, cambio = 0;
+
+            // 1. Declaramos el diccionario AFUERA del using para que exista después de que se cierre frmPago
+            Dictionary<string, double> pagosFinales = new Dictionary<string, double>();
+
             using (frmPago ori = new frmPago())
             {
-
                 ori.total = (total - descuento);
                 ori.txtTotal.Text = $"{ori.total:C}";
                 if (ori.ShowDialog() == DialogResult.OK)
                 {
                     efectivo = ori.efectivo;
                     cambio = ori.cambio;
+
+                    // 2. Extraemos la lista de pagos antes de que 'ori' se destruya
+                    pagosFinales = ori.PagosRealizados;
                 }
                 else
-                    return;
+                {
+                    return; // Si cancela el pago, cancelamos la venta
+                }
             }
+
             cmd = new OleDbCommand("select Numero from Folios where Folio='FolioContado';", conectar);
             OleDbDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
             }
-            if(Conexion.lugar == "TURBO LLANTAS")
+            if (Conexion.lugar == "TURBO LLANTAS")
                 lblFolio.Text = "TB" + String.Format("{0:0000}", foli);
             else
                 lblFolio.Text = "VR" + String.Format("{0:0000}", foli);
@@ -450,20 +465,14 @@ namespace BRUNO
                 // Calcula el descuento proporcional para este producto
                 double descuentoProporcional = (utilidad / totalUtilidad) * descuento;
                 double nuevaUtilidad = utilidad - descuentoProporcional;
-                
-                //MessageBox.Show("Utilidad" + nuevaUtilidad);
-                cmd = new OleDbCommand("insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad, Categoria) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + (string.IsNullOrEmpty(idCliente) ? "0" : idCliente) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + nuevaUtilidad + "','"+categoria+"');", conectar);
+
+                cmd = new OleDbCommand("insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad, Categoria) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + (string.IsNullOrEmpty(idCliente) ? "0" : idCliente) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + nuevaUtilidad + "','" + categoria + "');", conectar);
                 cmd.ExecuteNonQuery();
                 string precio = "" + Math.Round(Convert.ToDouble(dataGridView1[3, i].Value.ToString()), 2);
                 if (dataGridView1[7, i].Value.ToString() == "IVA(16)")
                 {
                     IVA += Convert.ToDouble(precio) - (Convert.ToDouble(precio) / 1.16);
                 }
-
-                //agregar item al ticket (productos)
-                //ticket.AddItem(dataGridView1[0, i].Value.ToString() + " " + unidad, "      " + dataGridView1[1, i].Value.ToString(), "   $" + dataGridView1[3, i].Value.ToString());
-                //MessageBox.Show("Se vendera el numero:"+i+"\nCantidad: "+dataGridView1[0, i].Value.ToString()+"\nProducto: "+ dataGridView1[1, i].Value.ToString()+"\nPrecio: "+dataGridView1[2, i].Value.ToString()+"\nMonto :" + dataGridView1[3, i].Value.ToString() +"\nExistencias :"+ dataGridView1[4, i].Value.ToString()+"\nID :"+dataGridView1[5, i].Value.ToString());
-
             }
             double UtilidadTotal = 0;
             total = 0;
@@ -474,11 +483,12 @@ namespace BRUNO
                 double compra = Convert.ToDouble(dataGridView1[8, i].Value.ToString()) * Convert.ToDouble(dataGridView1[0, i].Value.ToString());
                 UtilidadTotal = UtilidadTotal + (venta - compra);
             }
+
             //Area para imprimir ticket
             Dictionary<string, double> totales = new Dictionary<string, double>();
             if (descuento != 0)
             {
-                total=total - descuento;
+                total = total - descuento;
                 totales.Add("Descuento", descuento);
             }
             if (Conexion.ConIva)
@@ -489,6 +499,9 @@ namespace BRUNO
             totales.Add("Total", total);
             totales.Add("Recibido", efectivo);
             totales.Add("Cambio", cambio);
+
+            // 3. Tomamos el método de pago principal (o "MIXTO") para la tabla general y el ticket
+            string tipoPagoVenta = pagosFinales.Count > 1 ? "MIXTO" : pagosFinales.First().Key;
 
             if (Conexion.impresionMediaCarta)
             {
@@ -508,7 +521,7 @@ namespace BRUNO
                              total,
                              lblCliente.Text,
                              idCliente,
-                             cmbPago.Text,
+                             tipoPagoVenta, // Pasamos la nueva variable
                              datos,
                              observaciones,
                              Conexion.lugar,
@@ -527,29 +540,33 @@ namespace BRUNO
             }
             else
             {
-                TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", total, false, totales, cmbPago.Text);
+                TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", total, false, totales, tipoPagoVenta);
                 ticketPrinter.ImprimirTicket();
             }
-           
-            cmd = new OleDbCommand("insert into Ventas(Monto,Fecha,Folio,Estatus, Descuento, Pago) values('" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','COBRADO','" + descuento + "','" + cmbPago.Text + "');", conectar);
+
+            cmd = new OleDbCommand("insert into Ventas(Monto,Fecha,Folio,Estatus, Descuento, Pago) values('" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','COBRADO','" + descuento + "','" + tipoPagoVenta + "');", conectar);
             cmd.ExecuteNonQuery();
-            cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Venta a contado folio " + lblFolio.Text + "','" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + cmbPago.Text + "');", conectar);
-            cmd.ExecuteNonQuery();
+
+            // 4. Mágia: Recorremos cada pago del diccionario FINAL (fuera del using) y lo metemos independiente a tu tabla CORTE. 
+            foreach (var pago in pagosFinales)
+            {
+                if (pago.Value > 0)
+                {
+                    cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Venta a contado folio " + lblFolio.Text + "','" + pago.Value + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + pago.Key + "');", conectar);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
             cmd = new OleDbCommand("insert into VentasCajero(IdUsuario,Usuario,FolioVenta,Total,Fecha,Cajero) values('" + idUsuario + "','" + lblUsuario.Text + "','" + lblFolio.Text + "','" + (total - descuento) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblCajero.Text + "');", conectar);
             cmd.ExecuteNonQuery();
 
             foli = foli + 1;
             cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioContado';", conectar);
             cmd.ExecuteNonQuery();
-           
+
             ReiniciarForm();
-            MessageBox.Show(this,"Venta realizada con exito", "VENTA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-          
-
-
+            MessageBox.Show(this, "Venta realizada con exito", "VENTA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-
         private void frmVentas_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyData == Keys.F5)
@@ -737,11 +754,6 @@ namespace BRUNO
                 lblDatosCotizacion.Text = textoVisual;
                 lblDatosCotizacion.Visible = true;
             }
-            else
-            {
-                lblDatosCotizacion.Text = "";
-                lblDatosCotizacion.Visible = false;
-            }
             if (!string.IsNullOrEmpty(observaciones))
             {
                 label9.Text = "Observaciones: " + observaciones;
@@ -760,11 +772,7 @@ namespace BRUNO
             OleDbDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
-                using (frmPrecio buscar = new frmPrecio())
-                {
-                    dataGridView1.Rows.Add(cantidad, descripcion, String.Format("{0:0.00}", precioUni), String.Format("{0:0.00}", tolProducto), Convert.ToString(reader[4].ToString()), codigoProd, origen, Convert.ToString(reader[8].ToString()), Convert.ToString(reader[7].ToString()), "", "X");
-                }
-
+                dataGridView1.Rows.Add(cantidad, descripcion, String.Format("{0:0.00}", precioUni), String.Format("{0:0.00}", tolProducto), Convert.ToString(reader[4].ToString()), codigoProd, origen, Convert.ToString(reader[8].ToString()), Convert.ToString(reader[7].ToString()), "", "X");
             }
             lblTotal.Text = $"{RecalcularTotal:C}";
         }
@@ -794,7 +802,202 @@ namespace BRUNO
                 }
             }
         }
+        private void lblDatosCotizacion_Click(object sender, EventArgs e)
+        {
+            using (frmBase frmCaptura = new frmBase())
+            {
+                frmCaptura.Text = "Captura de Datos Extra";
+                frmCaptura.StartPosition = FormStartPosition.CenterParent;
+                frmCaptura.MaximizeBox = true;
+                frmCaptura.MinimizeBox = false;
+                frmCaptura.ClientSize = new Size(500, 550); // Tamaño inicial cómodo
+                frmCaptura.MinimumSize = new Size(450, 400);
 
+                // --- 1. CREACIÓN DE PANELES PARA ARREGLAR EL SCROLL ---
+
+                // Panel inferior (Fijo para los botones)
+                Panel pnlBotones = new Panel();
+                pnlBotones.Height = 70;
+                pnlBotones.Dock = DockStyle.Bottom;
+
+                // Panel superior (Dinámico para los TextBoxes con barra de scroll)
+                Panel pnlCampos = new Panel();
+                pnlCampos.Dock = DockStyle.Fill;
+                pnlCampos.AutoScroll = true;
+
+                // Es importante el orden en que se agregan al formulario
+                frmCaptura.Controls.Add(pnlCampos);
+                frmCaptura.Controls.Add(pnlBotones);
+
+                // --- 2. LECTURA DE DATOS PREVIOS ---
+                int yPos = 20;
+                Dictionary<string, string> valoresExistentes = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(datos))
+                {
+                    string[] pares = datos.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (string par in pares)
+                    {
+                        string[] partes = par.Split(new[] { ':' }, 2);
+                        if (partes.Length == 2)
+                        {
+                            valoresExistentes[partes[0].Trim()] = partes[1].Trim();
+                        }
+                    }
+                }
+
+                List<TextBox> listaTextBoxes = new List<TextBox>();
+                List<string> listaEtiquetas = new List<string>();
+
+                // --- 3. CONSULTA A LA BASE DE DATOS ---
+                string query = "SELECT NombreEtiqueta FROM CotizacionCamposConfig WHERE Activo = 1 ORDER BY Orden";
+
+                try
+                {
+                    using (SqlConnection conn = new SqlConnection(Conexion.CadSQL))
+                    {
+                        conn.Open();
+                        using (SqlCommand cmd = new SqlCommand(query, conn))
+                        {
+                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    string etiqueta = reader["NombreEtiqueta"].ToString();
+                                    listaEtiquetas.Add(etiqueta);
+
+                                    Label lbl = new Label();
+                                    lbl.Text = etiqueta + ":";
+                                    lbl.Left = 20;
+                                    lbl.Top = yPos;
+                                    lbl.Width = 120;
+                                    lbl.TextAlign = ContentAlignment.MiddleRight;
+                                    lbl.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+
+                                    TextBox txt = new TextBox();
+                                    txt.Left = 150;
+                                    txt.Top = yPos - 3;
+                                    txt.Width = 300;
+
+                                    // Se estira solo a los lados dentro de su panel
+                                    txt.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+                                    EstilizarTextBox(txt);
+
+                                    if (valoresExistentes.ContainsKey(etiqueta))
+                                    {
+                                        txt.Text = valoresExistentes[etiqueta];
+                                    }
+
+                                    // IMPORTANTE: Se agregan al Panel, no al Form
+                                    pnlCampos.Controls.Add(lbl);
+                                    pnlCampos.Controls.Add(txt);
+                                    listaTextBoxes.Add(txt);
+
+                                    yPos += 45;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al cargar configuración de campos: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // --- 4. CAMPO DE OBSERVACIONES ---
+                yPos += 10;
+                Label lblObs = new Label() { Text = "Observaciones (Ej. Detalles extra):", Left = 20, Top = yPos, Width = 380 };
+                lblObs.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+                yPos += 25;
+
+                TextBox txtObs = new TextBox()
+                {
+                    Left = 20,
+                    Top = yPos,
+                    Width = 430,
+                    Height = 90,
+                    Multiline = true,
+                    ScrollBars = ScrollBars.Vertical,
+                    Text = observaciones
+                };
+
+                // Se estira hacia los lados
+                txtObs.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                EstilizarTextBox(txtObs);
+
+                // Se agregan al Panel de scroll
+                pnlCampos.Controls.Add(lblObs);
+                pnlCampos.Controls.Add(txtObs);
+
+                // --- 5. BOTONES EN EL PANEL FIJO ---
+                Button btnAceptar = new Button() { Text = "Aceptar", Width = 90, Height = 40, DialogResult = DialogResult.OK };
+                Button btnCancelar = new Button() { Text = "Cancelar", Width = 90, Height = 40, DialogResult = DialogResult.Cancel };
+
+                // Los ubicamos en el panel inferior (Top = 15 da un pequeño margen desde arriba del panel)
+                btnAceptar.Top = 15;
+                btnCancelar.Top = 15;
+
+                // Los alineamos a la derecha
+                btnAceptar.Left = pnlBotones.ClientSize.Width - 210;
+                btnCancelar.Left = pnlBotones.ClientSize.Width - 110;
+
+                // Anclamos arriba y a la derecha (relativo al panel inferior)
+                btnAceptar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                btnCancelar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+
+                EstilizarBotonPrimario(btnAceptar);
+                EstilizarBotonPeligro(btnCancelar);
+
+                // Se agregan al panel de botones
+                pnlBotones.Controls.Add(btnAceptar);
+                pnlBotones.Controls.Add(btnCancelar);
+
+                // --- 6. PROCESAR GUARDADO ---
+                frmCaptura.AcceptButton = btnAceptar;
+                frmCaptura.CancelButton = btnCancelar;
+
+                if (frmCaptura.ShowDialog() == DialogResult.OK)
+                {
+                    List<string> datosGuardar = new List<string>();
+
+                    for (int i = 0; i < listaTextBoxes.Count; i++)
+                    {
+                        string valorCapturado = listaTextBoxes[i].Text.Trim();
+                        if (!string.IsNullOrEmpty(valorCapturado))
+                        {
+                            datosGuardar.Add($"{listaEtiquetas[i]}: {valorCapturado}");
+                        }
+                    }
+
+                    datos = string.Join("; ", datosGuardar);
+                    observaciones = txtObs.Text.Trim();
+
+                    if (!string.IsNullOrEmpty(datos))
+                    {
+                        string textoVisual = datos.Replace(";", "   |   ");
+                        lblDatosCotizacion.Text = textoVisual;
+                        lblDatosCotizacion.Visible = true;
+                    }
+                    else
+                    {
+                        lblDatosCotizacion.Text = "[ Clic aquí para capturar datos extra ]";
+                        lblDatosCotizacion.Visible = true;
+                    }
+
+                    if (!string.IsNullOrEmpty(observaciones))
+                    {
+                        label9.Text = "Observaciones: " + observaciones;
+                        label9.Visible = true;
+                    }
+                    else
+                    {
+                        label9.Text = "";
+                        label9.Visible = false;
+                    }
+                }
+            }
+        }
         private void dataGridView1_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
         {
             if (Conexion.lugar == "TURBO LLANTAS")
@@ -807,9 +1010,7 @@ namespace BRUNO
                 string verificador = valorCelda5 != null ? valorCelda5.ToString() : "";
                 if (verificador != "0" && verificador != "00")
                 {
-                    e.Cancel = true; // ¡ESTO ES LA CLAVE! 
-                                     // Impide que aparezca el cursor para escribir.
-                                     // La celda se comporta como "Read Only".
+                    e.Cancel = true; 
                 }
             }
         }
@@ -823,6 +1024,16 @@ namespace BRUNO
                 lblTotal.Text = $"{RecalcularTotal:C}";
             }
         }
-
+        protected override void FrmBase_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                e.Handled = true;
+            }
+            else
+            {
+                base.FrmBase_KeyDown(sender, e);
+            }
+        }
     }
 }

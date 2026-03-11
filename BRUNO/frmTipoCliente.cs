@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmTipoCliente : Form
+    public partial class frmTipoCliente : frmBase
     {
         public String usuario = "";
         public frmTipoCliente()
@@ -67,6 +67,12 @@ namespace BRUNO
             }
 
             
+        }
+
+        private void frmTipoCliente_Load(object sender, EventArgs e)
+        {
+            EstilizarBotonPrimario(button1);
+            EstilizarBotonAdvertencia(button2);
         }
     }
 }

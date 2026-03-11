@@ -16,14 +16,14 @@ namespace BRUNO
         double menos = 0;
         double tarjeta = 0;
         double trans = 0;
+        double otros = 0; // Nueva variable para los demás métodos de pago
         public string fechaApertura = "";
         public string usuario = "";
         private DataSet ds;
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Restaurante.accdb");
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
+        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         OleDbDataAdapter da;
         OleDbCommand cmd;
-        double total = 0, utilidad = 0, inversion = 0, gastos=0;
+        double total = 0, utilidad = 0, inversion = 0, gastos = 0;
         int folio;
         private decimal porcentaje;
 
@@ -34,12 +34,12 @@ namespace BRUNO
         }
 
         private void dgvCorte_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
-        { 
+        {
             if (dgvCorte.Columns[e.ColumnIndex].Name == "Monto")
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
                 {
-                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.Value = value.ToString("C2");
                     e.FormattingApplied = true;
                 }
             }
@@ -51,7 +51,7 @@ namespace BRUNO
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
                 {
-                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.Value = value.ToString("C2");
                     e.FormattingApplied = true;
                 }
             }
@@ -63,7 +63,20 @@ namespace BRUNO
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
                 {
-                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.Value = value.ToString("C2");
+                    e.FormattingApplied = true;
+                }
+            }
+        }
+
+        // Evento de formato para la nueva tabla de Otros Pagos
+        private void dgvOtrosPagos_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (dgvOtrosPagos.Columns[e.ColumnIndex].Name == "Monto")
+            {
+                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
+                {
+                    e.Value = value.ToString("C2");
                     e.FormattingApplied = true;
                 }
             }
@@ -75,7 +88,7 @@ namespace BRUNO
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
                 {
-                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.Value = value.ToString("C2");
                     e.FormattingApplied = true;
                 }
             }
@@ -87,7 +100,7 @@ namespace BRUNO
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
                 {
-                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.Value = value.ToString("C2");
                     e.FormattingApplied = true;
                 }
             }
@@ -97,7 +110,6 @@ namespace BRUNO
         {
             if (usuario == "Invitado")
             {
-                //button2.Hide();
                 label9.Hide();
                 lblInversion.Hide();
                 label14.Hide();
@@ -108,12 +120,7 @@ namespace BRUNO
                 lblBruta.Hide();
             }
 
-            ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from Corte where Pago='01=EFECTIVO';", conectar);
-            da.Fill(ds, "Id");
-            dgvCorte.DataSource = ds.Tables["Id"];
-            dgvCorte.Columns[0].Visible = false;
 
             cmd = new OleDbCommand("select Porcentaje from Tarjeta where Id=1;", conectar);
             OleDbDataReader reader = cmd.ExecuteReader();
@@ -131,17 +138,40 @@ namespace BRUNO
                 fechaApertura = Convert.ToString(reader[2].ToString());
             }
 
+            // 1. EFECTIVO
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Corte where Pago='04=TARJETA DE CREDITO' or Pago='28=TARJETA DE DEBITO';", conectar);
+            da = new OleDbDataAdapter("select * from Corte where Pago='01=EFECTIVO' AND Concepto NOT LIKE 'Abono%';", conectar);
+            da.Fill(ds, "Id");
+            dgvCorte.DataSource = ds.Tables["Id"];
+            dgvCorte.Columns[0].Visible = false;
+
+            // 2. TARJETAS
+            ds = new DataSet();
+            da = new OleDbDataAdapter("select * from Corte where (Pago='04=TARJETA DE CREDITO' or Pago='28=TARJETA DE DEBITO') AND Concepto NOT LIKE 'Abono%';", conectar);
             da.Fill(ds, "Id");
             dataGridView3.DataSource = ds.Tables["Id"];
             dataGridView3.Columns[0].Visible = false;
 
+            // 3. TRANSFERENCIAS
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Corte where Pago='03=TRANFERENCIA ELECTRONICA DE FONDOS';", conectar);
+            da = new OleDbDataAdapter("select * from Corte where Pago='03=TRANFERENCIA ELECTRONICA DE FONDOS' AND Concepto NOT LIKE 'Abono%';", conectar);
             da.Fill(ds, "Id");
             dataGridView4.DataSource = ds.Tables["Id"];
             dataGridView4.Columns[0].Visible = false;
+
+            // 4. OTROS PAGOS (La Magia de la nueva pestaña)
+            ds = new DataSet();
+            da = new OleDbDataAdapter("select * from Corte where Pago NOT IN ('01=EFECTIVO', '04=TARJETA DE CREDITO', '28=TARJETA DE DEBITO', '03=TRANFERENCIA ELECTRONICA DE FONDOS') AND Concepto NOT LIKE 'Abono%';", conectar);
+            da.Fill(ds, "Id");
+            dgvOtrosPagos.DataSource = ds.Tables["Id"];
+            dgvOtrosPagos.Columns[0].Visible = false;
+
+            // 5. ABONOS
+            ds = new DataSet();
+            da = new OleDbDataAdapter("select * from Corte where Concepto LIKE 'Abono%';", conectar);
+            da.Fill(ds, "Id");
+            dataGridView5.DataSource = ds.Tables["Id"];
+            dataGridView5.Columns[0].Visible = false;
 
             DateTime fechaDate;
             if (!DateTime.TryParse(this.fechaApertura, out fechaDate))
@@ -152,7 +182,6 @@ namespace BRUNO
             string fechaFinSQL = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
             ds = new DataSet();
-            // Usamos IIf con Is Null y validación de cadena vacía ""
             string query = "SELECT IIf(Categoria Is Null OR Categoria = '', 'SIN CATEGORIA', Categoria) as Categoria, " +
                            "SUM(MontoTotal) as Total " +
                            "FROM VentasContado " +
@@ -165,45 +194,84 @@ namespace BRUNO
             dataGridView6.DataSource = ds.Tables["Id"];
 
             // ======================================================================
-            // 1. CÁLCULO DE EFECTIVO EN CORTE (dgvCorte)
+            // CÁLCULOS DE MONTOS
             // ======================================================================
+
+            // Efectivo
             for (int i = 0; i < dgvCorte.RowCount; i++)
             {
                 if (dgvCorte.Rows[i].IsNewRow) continue;
-
                 if (dgvCorte[2, i].Value != null && dgvCorte[2, i].Value != DBNull.Value)
                 {
                     double valorNumerico = Convert.ToDouble(dgvCorte[2, i].Value);
-                    if (valorNumerico < 0)
-                        menos += Convert.ToSingle(valorNumerico);
-                    else if (valorNumerico > 0)
-                        mas += Convert.ToSingle(valorNumerico);
+                    if (valorNumerico < 0) menos += Convert.ToSingle(valorNumerico);
+                    else if (valorNumerico > 0) mas += Convert.ToSingle(valorNumerico);
                 }
             }
 
-            // ======================================================================
-            // 2. CÁLCULO DE TARJETAS (dataGridView3)
-            // ======================================================================
+            // Tarjetas
             for (int i = 0; i < dataGridView3.RowCount; i++)
             {
                 if (dataGridView3.Rows[i].IsNewRow) continue;
-
                 if (dataGridView3[2, i].Value != null && dataGridView3[2, i].Value != DBNull.Value)
                 {
                     tarjeta += Convert.ToSingle(dataGridView3[2, i].Value);
                 }
             }
 
-            // ======================================================================
-            // 3. CÁLCULO DE TRANSFERENCIAS (dataGridView4)
-            // ======================================================================
+            // Transferencias
             for (int i = 0; i < dataGridView4.RowCount; i++)
             {
                 if (dataGridView4.Rows[i].IsNewRow) continue;
-
                 if (dataGridView4[2, i].Value != null && dataGridView4[2, i].Value != DBNull.Value)
                 {
                     trans += Convert.ToSingle(dataGridView4[2, i].Value);
+                }
+            }
+
+            // Otros Pagos (Nueva Pestaña)
+            for (int i = 0; i < dgvOtrosPagos.RowCount; i++)
+            {
+                if (dgvOtrosPagos.Rows[i].IsNewRow) continue;
+                if (dgvOtrosPagos[2, i].Value != null && dgvOtrosPagos[2, i].Value != DBNull.Value)
+                {
+                    otros += Convert.ToSingle(dgvOtrosPagos[2, i].Value);
+                }
+            }
+
+            // Abonos
+            for (int i = 0; i < dataGridView5.RowCount; i++)
+            {
+                if (dataGridView5.Rows[i].IsNewRow) continue;
+
+                if (dataGridView5[2, i].Value != null && dataGridView5[2, i].Value != DBNull.Value)
+                {
+                    double valorNumerico = Convert.ToDouble(dataGridView5[2, i].Value);
+                    string tipoPago = "";
+
+                    if (dataGridView5[4, i].Value != null && dataGridView5[4, i].Value != DBNull.Value)
+                    {
+                        tipoPago = dataGridView5[4, i].Value.ToString().ToUpper();
+                    }
+
+                    if (tipoPago.Contains("EFECTIVO") || tipoPago.Contains("01="))
+                    {
+                        if (valorNumerico < 0) menos += Convert.ToSingle(valorNumerico);
+                        else if (valorNumerico > 0) mas += Convert.ToSingle(valorNumerico);
+                    }
+                    else if (tipoPago.Contains("TARJETA") || tipoPago.Contains("04=") || tipoPago.Contains("28="))
+                    {
+                        tarjeta += Convert.ToSingle(valorNumerico);
+                    }
+                    else if (tipoPago.Contains("TRANFERENCIA") || tipoPago.Contains("TRANSFERENCIA") || tipoPago.Contains("03="))
+                    {
+                        trans += Convert.ToSingle(valorNumerico);
+                    }
+                    else
+                    {
+                        // Si el abono fue con Vales o Monedero, se va a Otros
+                        otros += Convert.ToSingle(valorNumerico);
+                    }
                 }
             }
 
@@ -219,13 +287,10 @@ namespace BRUNO
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
 
-            // ======================================================================
-            // 4. CÁLCULO DE UTILIDADES (dataGridView1)
-            // ======================================================================
+            // Utilidades
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
                 if (dataGridView1.Rows[i].IsNewRow) continue;
-
                 if (dataGridView1[1, i].Value != null && dataGridView1[1, i].Value != DBNull.Value &&
                     dataGridView1[0, i].Value != null && dataGridView1[0, i].Value != DBNull.Value)
                 {
@@ -245,27 +310,22 @@ namespace BRUNO
             da.Fill(ds, "Id");
             dataGridView2.DataSource = ds.Tables["Id"];
 
-            // ======================================================================
-            // 5. CÁLCULO DE GASTOS (dataGridView2)
-            // ======================================================================
+            // Gastos
             for (int i = 0; i < dataGridView2.RowCount; i++)
             {
                 if (dataGridView2.Rows[i].IsNewRow) continue;
-
                 if (dataGridView2[2, i].Value != null && dataGridView2[2, i].Value != DBNull.Value)
                 {
                     gastos += Convert.ToDouble(dataGridView2[2, i].Value);
                 }
             }
 
-            // 1. Llenar el DataGridView de Folios
             ds = new DataSet();
             da = new OleDbDataAdapter("Select Id,Folio, Monto / (1 + (16 / 100)) AS [Monto sin IVA], Monto - (Monto / (1 + (16 / 100))) AS [IVA], Monto,Descuento, Fecha, Estatus, Pago from Ventas where Estatus ='COBRADO' AND Fecha>=#" + fechaInicioSQL + "# and Fecha <=#" + fechaFinSQL + "#;", conectar);
             da.Fill(ds, "Id");
             dgvFolios.DataSource = ds.Tables["Id"];
             dgvFolios.Columns[0].Visible = false;
 
-            // Agregar la columna CheckBox
             DataGridViewCheckBoxColumn checkColumn = new DataGridViewCheckBoxColumn();
             checkColumn.Name = "Seleccionar";
             checkColumn.HeaderText = "Seleccionar";
@@ -273,13 +333,11 @@ namespace BRUNO
             checkColumn.ReadOnly = false;
             dgvFolios.Columns.Insert(0, checkColumn);
 
-            // Marcar todos los CheckBoxes como true
             foreach (DataGridViewRow row in dgvFolios.Rows)
             {
                 row.Cells["Seleccionar"].Value = true;
             }
 
-            // Hacer que TODAS las demás columnas sean de solo lectura
             foreach (DataGridViewColumn column in dgvFolios.Columns)
             {
                 if (column.Name != "Seleccionar")
@@ -297,17 +355,21 @@ namespace BRUNO
             inversion = total - utilidad;
             lblInversion.Text = $"{inversion:C}";
             lblUtilidad.Text = $"{utilidad:C}";
-            lblEntrada.Text = $"{mas + tarjeta + trans:C}";
+
+            // Se agregan los Otros al cálculo de Entradas Generales
+            lblEntrada.Text = $"{mas + tarjeta + trans + otros:C}";
             lblSalida.Text = $"{menos * -1:C}";
-            lblCredito.Text = $"{tarjeta:F2}";
 
             decimal factorPorcentaje = porcentaje / 100m;
             decimal factorRestante = 1m - factorPorcentaje;
             lblCredito.Text = $"{(decimal)tarjeta * factorRestante:F2}";
             lbl5por.Text = $"{(decimal)tarjeta * factorPorcentaje:F2}";
             lblTrans.Text = $"{trans:C}";
+            lblOtros.Text = $"{otros:C}"; // Etiqueta Nueva en Pantalla
 
-            decimal monto = Convert.ToDecimal(tarjeta + mas + menos + trans);
+            // MÁS IMPORTANTE: Que los Otros Pagos se sumen a tu Total del Día
+            decimal monto = Convert.ToDecimal(tarjeta + mas + menos + trans + otros);
+
             decimal tasaIVA = 0.16m;
             decimal montoSinIVA = monto / (1 + tasaIVA);
             decimal iva = monto - montoSinIVA;
@@ -319,6 +381,7 @@ namespace BRUNO
             // ESTILIZACIÓN DE GRIDS
             EstilizarDataGridView(this.dgvFolios);
             EstilizarDataGridView(this.dgvCorte);
+            EstilizarDataGridView(this.dgvOtrosPagos); // <--
             EstilizarDataGridView(this.dataGridView5);
             EstilizarDataGridView(this.dataGridView1);
             EstilizarDataGridView(this.dataGridView2);
@@ -328,11 +391,11 @@ namespace BRUNO
 
             EstilizarBotonPrimario(this.button1);
         }
+
         private void button1_Click(object sender, EventArgs e)
         {
             #region folios nuevos
             int foli = 0;
-            
             List<Producto> productos = new List<Producto>();
             cmd = new OleDbCommand("select Numero from Folios where Folio='FolioVenta';", conectar);
             OleDbDataReader reader = cmd.ExecuteReader();
@@ -344,11 +407,11 @@ namespace BRUNO
             DialogResult dialogResult = MessageBox.Show("¿Requiere el corte impreso detallado?", "Alto!", MessageBoxButtons.YesNo);
             if (dialogResult == DialogResult.Yes)
             {
-                detallado=true;
+                detallado = true;
             }
-                foreach (DataGridViewRow row in dgvFolios.Rows)
-                {
-                if(detallado)
+            foreach (DataGridViewRow row in dgvFolios.Rows)
+            {
+                if (detallado)
                     productos.Add(new Producto
                     {
                         Cantidad = 0,
@@ -356,34 +419,27 @@ namespace BRUNO
                         PrecioUnitario = Convert.ToDouble(row.Cells["Monto sin IVA"].Value.ToString()),
                         Total = Convert.ToDouble(row.Cells["Monto"].Value.ToString()),
                     });
-                
-                if (row.Cells["Seleccionar"].Value != null && Convert.ToBoolean(row.Cells["Seleccionar"].Value))
-                    {
-                        string folio = row.Cells["Folio"].Value.ToString();
-                       
-                        //insertar datos
-                        //MessageBox.Show($"Fila seleccionada: {folio}");
 
-                        foli++;
-                    }
+                if (row.Cells["Seleccionar"].Value != null && Convert.ToBoolean(row.Cells["Seleccionar"].Value))
+                {
+                    string folio = row.Cells["Folio"].Value.ToString();
+                    foli++;
                 }
+            }
             cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioVenta';", conectar);
             cmd.ExecuteNonQuery();
             #endregion 
 
-           
             button1.Visible = false;
             folio++;
-            string[] encabezados = new string[] { "**********  CORTE DE CAJA  ********", "             Apertura de caja:", fechaApertura, "               Corte de caja:", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() };
-            for (int i = 0; i < dgvCorte.RowCount; i++)
-            {                
-                //MessageBox.Show("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvCorte[1, i].Value.ToString() + "','" + dgvCorte[2, i].Value.ToString() + "','" + dgvCorte[3, i].Value.ToString() + "','" + folio + "','PAGO CONTADO');");
-                cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvCorte[1, i].Value.ToString() + "','" + dgvCorte[2, i].Value.ToString() + "','" + folio + "','" + dgvCorte[4, i].Value.ToString() + "');", conectar);                
-                cmd.ExecuteNonQuery();
-                
+            string[] encabezados = new string[] { "********** CORTE DE CAJA  ********", "             Apertura de caja:", fechaApertura, "               Corte de caja:", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() };
 
+            for (int i = 0; i < dgvCorte.RowCount; i++)
+            {
+                cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvCorte[1, i].Value.ToString() + "','" + dgvCorte[2, i].Value.ToString() + "','" + folio + "','" + dgvCorte[4, i].Value.ToString() + "');", conectar);
+                cmd.ExecuteNonQuery();
             }
-                for (int i = 0; i < dataGridView3.RowCount; i++)
+            for (int i = 0; i < dataGridView3.RowCount; i++)
             {
                 cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dataGridView3[1, i].Value.ToString() + "','" + dataGridView3[2, i].Value.ToString() + "','" + folio + "','" + dataGridView3[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
@@ -393,11 +449,17 @@ namespace BRUNO
                 cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dataGridView4[1, i].Value.ToString() + "','" + dataGridView4[2, i].Value.ToString() + "','" + folio + "','" + dataGridView4[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
-       
 
-                cmd = new OleDbCommand("INSERT INTO histocortes(Id,Monto,Fecha,Mas,Menos,Tarjeta,utilidad,inversion) VALUES ('" + folio + "','" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+mas+"','"+menos+"','"+tarjeta+"','"+utilidad+"','"+inversion+"');", conectar);
+            // Insertamos la nueva pestaña de OTROS al historial de cortes detallados
+            for (int i = 0; i < dgvOtrosPagos.RowCount; i++)
+            {
+                cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvOtrosPagos[1, i].Value.ToString() + "','" + dgvOtrosPagos[2, i].Value.ToString() + "','" + folio + "','" + dgvOtrosPagos[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
-            
+            }
+
+            cmd = new OleDbCommand("INSERT INTO histocortes(Id,Monto,Fecha,Mas,Menos,Tarjeta,utilidad,inversion) VALUES ('" + folio + "','" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + mas + "','" + menos + "','" + tarjeta + "','" + utilidad + "','" + inversion + "');", conectar);
+            cmd.ExecuteNonQuery();
+
             cmd = new OleDbCommand("UPDATE Folios set Numero=" + folio + " where Folio='Corte';", conectar);
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("UPDATE Folios set Numero=0 where Folio='Inicio';", conectar);
@@ -408,38 +470,39 @@ namespace BRUNO
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("delete from Credito where 1;", conectar);
             cmd.ExecuteNonQuery();
-            // Elimina todo excepto números, punto y signo negativo (si aplica)
+
             string GetNumericValue(string input)
             {
                 return Regex.Replace(input, @"[^\d.-]", "");
             }
 
-            Dictionary<string, double> totales = new Dictionary<string, double>();
-            totales.Add("Efectivo", Convert.ToDouble(GetNumericValue(lblCorte.Text)));
-            totales.Add("Tarjetas", Convert.ToDouble(GetNumericValue(lblCredito.Text)));
-            totales.Add("Transferencias", Convert.ToDouble(GetNumericValue(lblTrans.Text)));
-            totales.Add("Sin IVA", Convert.ToDouble(GetNumericValue(lblNoIva.Text)));
-            totales.Add("IVA", Convert.ToDouble(GetNumericValue(lblIVA.Text)));
-            /*
-            totales.Add("Entradas", Convert.ToDouble(GetNumericValue(lblEntrada.Text)));
-            totales.Add("Salidas", Convert.ToDouble(GetNumericValue(lblSalida.Text)));
-            */
-            totales.Add("Total", Convert.ToDouble(GetNumericValue(lblTotal.Text)));
-            string[] pieDePagina = new string[] { "" };
-            TicketPrinter ticketPrinter = new TicketPrinter(encabezados, Conexion.pieDeTicket, Conexion.logoPath, productos, "", "", "", total, true, totales);
+            dialogResult = MessageBox.Show("¿Desea imprimir el corte de caja?", "Alto!", MessageBoxButtons.YesNo);
+            if (dialogResult == DialogResult.Yes)
+            {
+                Dictionary<string, double> totales = new Dictionary<string, double>();
+                totales.Add("Efectivo", Convert.ToDouble(GetNumericValue(lblCorte.Text)));
+                totales.Add("Tarjetas", Convert.ToDouble(GetNumericValue(lblCredito.Text)));
+                totales.Add("Transferencias", Convert.ToDouble(GetNumericValue(lblTrans.Text)));
 
-            ticketPrinter.ImprimirTicket();
-            MessageBox.Show("CORTE REALIZADO CON EXITO","EXITO",MessageBoxButtons.OK,MessageBoxIcon.Information);
+                // Que aparezca en el ticket impreso tu nueva categoría
+                totales.Add("Otros Pagos", Convert.ToDouble(GetNumericValue(lblOtros.Text)));
+
+                totales.Add("Sin IVA", Convert.ToDouble(GetNumericValue(lblNoIva.Text)));
+                totales.Add("IVA", Convert.ToDouble(GetNumericValue(lblIVA.Text)));
+                totales.Add("Total", Convert.ToDouble(GetNumericValue(lblTotal.Text)));
+                string[] pieDePagina = new string[] { "" };
+                TicketPrinter ticketPrinter = new TicketPrinter(encabezados, Conexion.pieDeTicket, Conexion.logoPath, productos, "", "", "", total, true, totales);
+                ticketPrinter.ImprimirTicket();
+            }
+            MessageBox.Show("CORTE REALIZADO CON EXITO", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             foreach (Form form in Application.OpenForms)
             {
                 if (form is frmPrincipal principal)
                 {
-                    // Ejecutamos el método público para matar el servidor
                     principal.DetenerServidorWeb();
                     break;
                 }
             }
-            // --- NUEVO CÓDIGO FIN ---
 
             Application.Exit();
         }
@@ -458,8 +521,7 @@ namespace BRUNO
             }
             else
                 ticket.FontName = Conexion.Font;
-            ticket.HeaderImage = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
-            ticket.AddHeaderLine("********  CORTE PARCIAL  *******");
+            ticket.AddHeaderLine("******** CORTE PARCIAL  *******");
             ticket.AddSubHeaderLine("FECHA Y HORA:");
             ticket.AddSubHeaderLine(DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
             for (int i = 0; i < dgvCorte.RowCount; i++)
@@ -471,7 +533,6 @@ namespace BRUNO
             ticket.AddTotal("Entradas", lblEntrada.Text);
             ticket.AddTotal("Salidas", lblSalida.Text);
             ticket.AddTotal("Total", lblTotal.Text);
-            ticket.PrintTicket(Conexion.impresora);
             MessageBox.Show("CORTE REALIZADO CON EXITO", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();
         }

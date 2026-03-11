@@ -181,12 +181,13 @@
             this.Comentario.Width = 120;
             // 
             // btnEliminar
-            // 
+            // 
             this.btnEliminar.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
             this.btnEliminar.HeaderText = "Eliminar";
             this.btnEliminar.Name = "btnEliminar";
             this.btnEliminar.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.btnEliminar.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.btnEliminar.Width = 79;
             // 
             // button3
             // 
@@ -554,8 +555,10 @@
             this.lblDatosCotizacion.ForeColor = System.Drawing.Color.Yellow;
             this.lblDatosCotizacion.Location = new System.Drawing.Point(31, 41);
             this.lblDatosCotizacion.Name = "lblDatosCotizacion";
-            this.lblDatosCotizacion.Size = new System.Drawing.Size(0, 18);
+            this.lblDatosCotizacion.Size = new System.Drawing.Size(106, 18);
             this.lblDatosCotizacion.TabIndex = 37;
+            this.lblDatosCotizacion.Text = "Sin datos extra";
+            this.lblDatosCotizacion.Click += new System.EventHandler(this.lblDatosCotizacion_Click);
             // 
             // label9
             // 

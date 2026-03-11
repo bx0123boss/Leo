@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmElegirApartado : Form
+    public partial class frmElegirApartado : frmBase
     {
         public String usuario = "";
         public frmElegirApartado()
@@ -65,6 +65,12 @@ namespace BRUNO
                 apart.Show();
                 this.Close();
             } 
+        }
+
+        private void frmElegirApartado_Load(object sender, EventArgs e)
+        {
+            EstilizarBotonPrimario(button1);
+            EstilizarBotonAdvertencia(button2);
         }
     }
 }

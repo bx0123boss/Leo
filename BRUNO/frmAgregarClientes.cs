@@ -39,10 +39,11 @@ namespace BRUNO
                     {
                         idCliente = reader[0].ToString();
                     }
-                    cmd = new OleDbCommand("insert into VentasCredito(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha) values('001','0','1','ADEUDO INICIAL','" + txtAdeudo.Text + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
-                    cmd.ExecuteNonQuery();
+                    
                     if (txtAdeudo.Text != "" || Convert.ToDouble(txtAdeudo.Text) > 0)
                     {
+                        cmd = new OleDbCommand("insert into VentasCredito(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha, Categoria) values(,'INI" + idCliente + "','0','1','ADEUDO INICIAL','" + txtAdeudo.Text + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "', 'ADEUDO INICIAL');", conectar);
+                        cmd.ExecuteNonQuery();
                         cmd = new OleDbCommand("insert into Ventas2(Monto,Fecha,Folio,IdCliente,Saldo) values('" + txtAdeudo.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','INI" + idCliente + "','" + idCliente + "','" + txtAdeudo.Text + "');", conectar);
                         cmd.ExecuteNonQuery();
                     }

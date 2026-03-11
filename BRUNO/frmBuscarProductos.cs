@@ -18,6 +18,7 @@ namespace BRUNO
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         OleDbDataAdapter da;
+
         public string producto { get; set; }
         public string precio { get; set; }
         public string monto { get; set; }
@@ -49,7 +50,7 @@ namespace BRUNO
             if (textBox1.Text != "")
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select top 100 Id,Nombre,PrecioVenta,PrecioVentaMayoreo,Existencia,Especial,IVA from Inventario where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
+                da = new OleDbDataAdapter("select top 100 Id,Nombre,PrecioVenta,PrecioVentaMayoreo,Existencia,Especial,IVA from Inventario where Nombre LIKE '%" + textBox1.Text.Replace("'", "''") + "%' ORDER BY Nombre ;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 OcultarColumnasInternas();
@@ -77,34 +78,45 @@ namespace BRUNO
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (selec)
+            SeleccionarProducto();
+        }
+
+        // ---------- NUEVOS MÉTODOS PARA SELECCIONAR PRODUCTO ----------
+
+        private void SeleccionarProducto()
+        {
+            if (selec && dataGridView1.CurrentRow != null)
             {
                 var filaActual = dataGridView1.Rows[dataGridView1.CurrentRow.Index];
 
                 if (compras)
                 {
+                    // Si estamos en compras, toma el Precio Venta por defecto sin preguntar
                     double preci = Convert.ToDouble(filaActual.Cells["PrecioVenta"].Value.ToString());
-                    producto = filaActual.Cells["Nombre"].Value.ToString();
-                    precio = String.Format("{0:0.00}", preci);
-                    monto = String.Format("{0:0.00}", preci);
-                    existencia = filaActual.Cells["Existencia"].Value.ToString();
-                    ID = filaActual.Cells["Id"].Value.ToString();
-                    IVA = filaActual.Cells["IVA"].Value.ToString();
-                    compra = filaActual.Cells["Especial"].Value.ToString();
-                    this.DialogResult = System.Windows.Forms.DialogResult.OK;
+                    AsignarValoresYSalir(filaActual, preci);
                 }
                 else
                 {
-                    // Asignación mediante el nombre de la columna para evitar errores si el SQL cambia de orden
-                    double preci = Convert.ToDouble(filaActual.Cells["PrecioVenta"].Value.ToString());
-                    producto = filaActual.Cells["Nombre"].Value.ToString();
-                    precio = String.Format("{0:0.00}", preci);
-                    monto = String.Format("{0:0.00}", preci);
-                    existencia = filaActual.Cells["Existencia"].Value.ToString();
-                    ID = filaActual.Cells["Id"].Value.ToString();
-                    IVA = filaActual.Cells["IVA"].Value.ToString();
-                    compra = filaActual.Cells["Especial"].Value.ToString();
-                    this.DialogResult = System.Windows.Forms.DialogResult.OK;
+                    // Módulo de ventas: abrimos frmPrecio para elegir GEN o MAYOREO
+                    using (frmPrecio buscar = new frmPrecio())
+                    {
+                        if (buscar.ShowDialog() == DialogResult.OK)
+                        {
+                            double preci = 0;
+                            if (buscar.tipo == "GEN")
+                            {
+                                // Toma el Precio Venta Normal
+                                preci = Convert.ToDouble(filaActual.Cells["PrecioVenta"].Value.ToString());
+                            }
+                            else
+                            {
+                                // Toma el Precio Venta Mayoreo
+                                preci = Convert.ToDouble(filaActual.Cells["PrecioVentaMayoreo"].Value.ToString());
+                            }
+
+                            AsignarValoresYSalir(filaActual, preci);
+                        }
+                    }
                 }
             }
             else
@@ -112,6 +124,28 @@ namespace BRUNO
                 MessageBox.Show("No se ha seleccionado ningun producto", "¡ALTO!", MessageBoxButtons.OK, MessageBoxIcon.Hand);
             }
         }
+
+        private void AsignarValoresYSalir(DataGridViewRow filaActual, double preci)
+        {
+            try
+            {
+                producto = filaActual.Cells["Nombre"].Value.ToString();
+                precio = String.Format("{0:0.00}", preci);
+                monto = String.Format("{0:0.00}", preci);
+                existencia = filaActual.Cells["Existencia"].Value.ToString();
+                ID = filaActual.Cells["Id"].Value.ToString();
+                IVA = filaActual.Cells["IVA"].Value.ToString();
+                compra = filaActual.Cells["Especial"].Value.ToString();
+
+                this.DialogResult = System.Windows.Forms.DialogResult.OK;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al extraer producto: " + ex.Message);
+            }
+        }
+
+        // --------------------------------------------------------------
 
         private void textBox2_KeyPress(object sender, KeyPressEventArgs e)
         {
@@ -161,48 +195,17 @@ namespace BRUNO
 
         private void frmBuscarProductos_KeyDown(object sender, KeyEventArgs e)
         {
+            // 1. SOLUCIÓN: Si el control activo es un TextBox, ignoramos este evento
+            // para que el Enter lo procese el evento KeyPress del TextBox y haga la búsqueda.
+            if (e.KeyData == Keys.Enter && (this.ActiveControl == textBox1 || this.ActiveControl == textBox2))
+            {
+                return;
+            }
+
+            // 2. Si NO estamos en un TextBox y presionamos Enter, seleccionamos el producto
             if (e.KeyData == Keys.Enter)
             {
-                if (selec)
-                {
-                    var filaActual = dataGridView1.Rows[dataGridView1.CurrentRow.Index];
-
-                    if (compras)
-                    {
-                        double preci = Convert.ToDouble(filaActual.Cells["PrecioVenta"].Value.ToString());
-                        producto = filaActual.Cells["Nombre"].Value.ToString();
-                        precio = String.Format("{0:0.00}", preci);
-                        monto = String.Format("{0:0.00}", preci);
-                        existencia = filaActual.Cells["Existencia"].Value.ToString();
-                        ID = filaActual.Cells["Id"].Value.ToString();
-                        IVA = filaActual.Cells["IVA"].Value.ToString();
-                        compra = filaActual.Cells["Especial"].Value.ToString();
-                        this.DialogResult = System.Windows.Forms.DialogResult.OK;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            double preci = Convert.ToDouble(filaActual.Cells["PrecioVenta"].Value.ToString());
-                            producto = filaActual.Cells["Nombre"].Value.ToString();
-                            precio = String.Format("{0:0.00}", preci);
-                            monto = String.Format("{0:0.00}", preci);
-                            existencia = filaActual.Cells["Existencia"].Value.ToString();
-                            ID = filaActual.Cells["Id"].Value.ToString();
-                            IVA = filaActual.Cells["IVA"].Value.ToString();
-                            compra = filaActual.Cells["Especial"].Value.ToString();
-                            this.DialogResult = System.Windows.Forms.DialogResult.OK;
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show("Error al extraer producto: " + ex.Message);
-                        }
-                    }
-                }
-                else
-                {
-                    //MessageBox.Show("No se ha seleccionado ningun producto", "¡ALTO!", MessageBoxButtons.OK, MessageBoxIcon.Hand);
-                }
+                SeleccionarProducto();
             }
             else if (e.KeyData == Keys.F1)
             {

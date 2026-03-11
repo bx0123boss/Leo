@@ -34,6 +34,7 @@
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.label2 = new System.Windows.Forms.Label();
             this.cmbCategoria = new System.Windows.Forms.ComboBox();
+            this.chkSoloCredito = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -80,8 +81,8 @@
             this.dataGridView1.AllowUserToDeleteRows = false;
             this.dataGridView1.AllowUserToOrderColumns = true;
             this.dataGridView1.AllowUserToResizeRows = false;
-            this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.BackgroundColor = System.Drawing.Color.Black;
@@ -119,12 +120,26 @@
             this.cmbCategoria.TabIndex = 24;
             this.cmbCategoria.SelectedIndexChanged += new System.EventHandler(this.cmbCategoria_SelectedIndexChanged_1);
             // 
+            // chkSoloCredito
+            // 
+            this.chkSoloCredito.AutoSize = true;
+            this.chkSoloCredito.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkSoloCredito.ForeColor = System.Drawing.Color.White;
+            this.chkSoloCredito.Location = new System.Drawing.Point(680, 20);
+            this.chkSoloCredito.Name = "chkSoloCredito";
+            this.chkSoloCredito.Size = new System.Drawing.Size(296, 28);
+            this.chkSoloCredito.TabIndex = 26;
+            this.chkSoloCredito.Text = "Mostrar solo ventas a crédito";
+            this.chkSoloCredito.UseVisualStyleBackColor = true;
+            this.chkSoloCredito.CheckedChanged += new System.EventHandler(this.chkSoloCredito_CheckedChanged);
+            // 
             // frmVentasPorProducto
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.ClientSize = new System.Drawing.Size(1325, 915);
+            this.Controls.Add(this.chkSoloCredito);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.cmbCategoria);
             this.Controls.Add(this.label1);
@@ -150,5 +165,6 @@
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox cmbCategoria;
+        private System.Windows.Forms.CheckBox chkSoloCredito;
     }
 }

@@ -22,14 +22,18 @@ namespace BRUNO
             this.ForeColor = Color.White;
             this.Font = new System.Drawing.Font("Segoe UI", 9.75F, FontStyle.Regular);
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.KeyPreview = true;
 
-            // Puedes agregar más propiedades comunes aquí
-            // this.Icon = ... 
-            // this.MaximizeBox = false;
+            this.KeyDown += FrmBase_KeyDown;
         }
 
-
-
+        protected virtual void FrmBase_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                this.Close();
+            }
+        }
         /// <summary>
         /// Aplica el estilo "dark mode" estándar a un DataGridView
         /// y agrega funcionalidad de exportación con Click Derecho.

@@ -31,10 +31,6 @@ namespace BRUNO
         {
             cmbPago.SelectedIndex = 0;
 
-            if (Conexion.lugar == "SANJUAN" && usuario == "Admin")
-            {
-                dataGridView1.Columns[2].ReadOnly = false;
-            }
             EstilizarDataGridView(this.dataGridView1);
 
             // Botones
@@ -142,7 +138,7 @@ namespace BRUNO
                         existencia = 0;
                         for (int i = 0; i < dataGridView1.RowCount; i++)
                         {
-                            string unidad = "0";
+                            string unidad = "0", categoria="";
                             //Obtenemos existencias del articulo
                             cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
                             reader = cmd.ExecuteReader();
@@ -150,6 +146,7 @@ namespace BRUNO
                             {
                                 exis = Convert.ToDouble(Convert.ToString(reader[4].ToString()));
                                 unidad = Convert.ToString(reader[9].ToString());
+                                categoria = Convert.ToString(reader["Categoria"].ToString());
                                 if (unidad == "")
                                 {
                                     unidad = "0";
@@ -173,7 +170,7 @@ namespace BRUNO
                             cmd.ExecuteNonQuery();
 
                             //Insertamos en la venta a credito
-                            cmd = new OleDbCommand("insert into VentasCredito(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                            cmd = new OleDbCommand("insert into VentasCredito(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha, categoria) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+categoria+"');", conectar);
                             cmd.ExecuteNonQuery();
 
                             cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[5, i].Value.ToString() + "','SALIDA','VENTA DE ARTICULO FOLIO: " + lblFolio.Text + "'," + exis + ",'" + existencia + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
@@ -281,11 +278,6 @@ namespace BRUNO
         private void frmVentasCredito_Load(object sender, EventArgs e)
         {
             cmbPago.SelectedIndex = 0;
-
-            if (Conexion.lugar == "SANJUAN" && usuario == "Admin")
-            {
-                dataGridView1.Columns[2].ReadOnly = false;
-            }
         }
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
@@ -320,6 +312,8 @@ namespace BRUNO
                                         double preci = Convert.ToDouble(reader[2].ToString());
                                         dataGridView1.Rows.Add("1", Convert.ToString(reader[1].ToString()), String.Format("{0:0.00}", preci), String.Format("{0:0.00}", preci), Convert.ToString(reader[4].ToString()), Convert.ToString(reader[0].ToString()), origen, Convert.ToString(reader[8].ToString()), Convert.ToString(reader[7].ToString()));
                                     }
+                                    textBox1.Clear();
+                                    textBox1.Focus();
                                 }
                             }
                         }
@@ -376,14 +370,23 @@ namespace BRUNO
 
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            if (dataGridView1.Rows[e.RowIndex].Cells[0].Value != null &&
-                dataGridView1.Rows[e.RowIndex].Cells[2].Value != null)
+            try
             {
-                double cantidad = Convert.ToDouble(dataGridView1.Rows[e.RowIndex].Cells[0].Value);
-                double precio = Convert.ToDouble(dataGridView1.Rows[e.RowIndex].Cells[2].Value);
+                double cantidad = Convert.ToDouble(dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString());
+                double precio = Convert.ToDouble(dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString());
                 double monto = cantidad * precio;
-
-                dataGridView1.Rows[e.RowIndex].Cells[3].Value = monto;
+                dataGridView1.Rows[e.RowIndex].Cells[3].Value = String.Format("{0:0.00}", monto);
+                textBox1.Focus();
+            }
+            catch
+            {
+                MessageBox.Show("Solo puedes introducir números", "Alto", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                dataGridView1.Rows[e.RowIndex].Cells[0].Value = "1";
+                double cantidad = 1;
+                double precio = Convert.ToDouble(dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString());
+                double monto = cantidad * precio;
+                dataGridView1.Rows[e.RowIndex].Cells[3].Value = String.Format("{0:0.00}", monto);
+                textBox1.Focus();
             }
             CalcularTotales();
         }
@@ -427,6 +430,24 @@ namespace BRUNO
             this.descuento = valorDescuento;
             lblTotal.Text = subtotal.ToString("0.00");
             lblFinal.Text = saldoRestante.ToString("0.00");
+        }
+
+        private void dataGridView1_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+
+            if (Conexion.lugar == "TURBO LLANTAS")
+            {
+                if (e.ColumnIndex == 0 || e.ColumnIndex == 2)
+                {
+                    return;
+                }
+                var valorCelda5 = dataGridView1.Rows[e.RowIndex].Cells[5].Value;
+                string verificador = valorCelda5 != null ? valorCelda5.ToString() : "";
+                if (verificador != "0" && verificador != "00")
+                {
+                    e.Cancel = true;
+                }
+            }
         }
     }
 }

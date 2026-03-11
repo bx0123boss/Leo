@@ -292,5 +292,16 @@ namespace BRUNO
         }
 
         private void pictureBox1_Click(object sender, EventArgs e) { }
+        protected override void FrmBase_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                e.Handled = true;
+            }
+            else
+            {
+                base.FrmBase_KeyDown(sender, e);
+            }
+        }
     }
 }
