@@ -9,6 +9,8 @@ namespace BRUNO
 {
     public partial class frmPrincipal : frmBase
     {
+        public static bool IsAgenteBasculaActivo = false;
+        private Process _procesoBascula;
         bool IsServidorActivo = false;
         private Process _procesoWeb;
         public String usuario = "";
@@ -18,12 +20,47 @@ namespace BRUNO
         public frmPrincipal()
         {
             InitializeComponent();
-            this.DoubleBuffered = true; // Refuerza la eliminación de parpadeo
+            this.DoubleBuffered = true; 
             IsServidorActivo = ArrancarServidorWeb();
-
-            // Hacemos transparentes los contenedores, pero NO tocamos los botones
+            IsAgenteBasculaActivo = ArrancarAgenteBascula(true);
             pnlMenu.BackColor = Color.Transparent;
             pictureBox1.BackColor = Color.Transparent;
+        }
+        private bool ArrancarAgenteBascula(bool usarMock)
+        {
+            if (!Conexion.Bascula)
+                return false;
+            try
+            {
+                string rutaWebExe = @"C:\Jaeger Soft\AgenteBascula\AgenteBasculaTorrey.exe";
+                if (!File.Exists(rutaWebExe))
+                {
+                    MessageBox.Show("Error iniciando bascula: No se encontró el archivo.");
+                    return false;
+                }
+
+                ProcessStartInfo info = new ProcessStartInfo();
+                info.FileName = rutaWebExe;
+                info.Arguments = usarMock ? "true" : "false";
+                // =========================================
+
+                info.WindowStyle = ProcessWindowStyle.Hidden; 
+                info.CreateNoWindow = true;
+                info.UseShellExecute = false;
+                info.WorkingDirectory = Path.GetDirectoryName(rutaWebExe);
+
+                _procesoBascula = Process.Start(info);
+                if (_procesoBascula != null)
+                {
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error iniciando agente de báscula: " + ex.Message);
+                return false;
+            }
         }
 
         private void frmPrincipal_Load(object sender, EventArgs e)

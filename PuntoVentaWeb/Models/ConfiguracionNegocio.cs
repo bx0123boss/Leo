@@ -9,4 +9,5 @@ public class ConfiguracionNegocio
     public string CorreoEmisor { get; set; }
     public string PasswordEmisor { get; set; }
     public string Whatsapp { get; set; }
+    public bool Bascula { get; set; } = false;
 }

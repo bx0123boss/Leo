@@ -6,11 +6,15 @@ using System.Data.Odbc;
 using System.Data.SqlClient;
 public class CotizacionService
 {
-    static string nombrePC = Environment.MachineName;
-
-    public static string _sqlString = $@"Server={nombrePC}\SQLEXPRESS;Database=PuntoDeVenta;Integrated Security=True;MultipleActiveResultSets=True;";
-    private string _accessString = @"Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=C:\Jaeger Soft\Jaeger.accdb;Pwd=75941232;";
-
+    private readonly string _sqlString;
+    private readonly string _accessString;
+    private readonly ILogger<CotizacionService> _logger;
+    public CotizacionService(IConfiguration configuracion, ILogger<CotizacionService> logger)
+    {
+        _sqlString = configuracion.GetConnectionString("SQL");
+        _accessString = configuracion.GetConnectionString("Access");
+        _logger = logger;
+    }
     public async Task<List<Cotizacion>> ObtenerHistorial()
     {
         var lista = new List<Cotizacion>();
@@ -298,6 +302,8 @@ public class CotizacionService
                         if (!string.IsNullOrEmpty(cotizacion.Datos))
                         {
                             var pares = cotizacion.Datos.Split(';');
+                            if (cotizacion.DatosDinamicos == null)
+                                cotizacion.DatosDinamicos = new List<DatoDinamicoItem>();
                             foreach (var par in pares)
                             {
                                 var partes = par.Split(':');
@@ -323,7 +329,6 @@ public class CotizacionService
 
             if (cotizacion != null)
             {
-                // ... (El bloque de cargar detalles queda igual)
                 string sqlDet = "SELECT * FROM DetalleCotizacion WHERE CotizacionId = @Id";
                 using (var cmd = new SqlCommand(sqlDet, con))
                 {
@@ -378,7 +383,7 @@ public class CotizacionService
             {
                 await con.OpenAsync();
 
-                string query = "SELECT TOP 1 Lugar, DatosTicket, FooterCorreoCotizacion, ConIva, LogoPath, CorreoEmisor,  PasswordEmisor, Whatsapp FROM Configuracion";
+                string query = "SELECT TOP 1 Lugar, DatosTicket, FooterCorreoCotizacion, ConIva, LogoPath, CorreoEmisor,  PasswordEmisor, Whatsapp, Bascula FROM Configuracion";
 
                 using (var cmd = new OdbcCommand(query, con))
                 {
@@ -403,6 +408,8 @@ public class CotizacionService
                             config.CorreoEmisor = reader["CorreoEmisor"] != DBNull.Value ? reader["CorreoEmisor"].ToString() : "";
                             config.PasswordEmisor = reader["PasswordEmisor"] != DBNull.Value ? reader["PasswordEmisor"].ToString() : "";
                             config.Whatsapp = reader["Whatsapp"] != DBNull.Value ? reader["Whatsapp"].ToString() : "";
+                            if (reader["Bascula"] != DBNull.Value)
+                                config.Bascula = Convert.ToBoolean(reader["Bascula"]);
                         }
                     }
                 }
@@ -410,7 +417,8 @@ public class CotizacionService
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error leyendo configuración: " + ex.Message);
+            _logger.LogError(ex, "Error al leer la configuración de Access.");
+            throw new ApplicationException("No se pudo cargar la configuración del sistema. Revise la conexión con la base de datos principal.");
         }
 
         return config;

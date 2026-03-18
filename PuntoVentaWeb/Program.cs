@@ -11,6 +11,7 @@ builder.Services.AddScoped<PuntoVentaWeb.Services.EmailService>();
 builder.Services.AddScoped<PuntoVentaWeb.Services.ClienteService>();
 builder.Services.AddScoped<PuntoVentaWeb.Services.ConfiguracionService>();
 builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddScoped(sp => new HttpClient());
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

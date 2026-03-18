@@ -7,6 +7,7 @@
 @using PuntoVentaWeb.Services
 @inject CotizacionService _cotizacionService
 @inject IJSRuntime JSRuntime
+@inject HttpClient Http
 
 <div class="container-fluid p-2" style="max-width: 600px;">
 
@@ -51,6 +52,7 @@
 
             @* CAMPO DE ENTRADA Y LÓGICA DE SUGERENCIAS *@
             <div class="position-relative">
+
                 <div class="input-group input-group-lg">
                     <button class="btn btn-outline-dark" @onclick="() => MostrarCamara = !MostrarCamara">
                         📷
@@ -95,41 +97,61 @@
                 <div class="text-danger small mt-1">No se encontró el producto.</div>
             }
         </div>
-    </div>
-    @if (Carrito.Any())
+    </div>@if (Carrito.Any())
     {
         <div class="list-group shadow-sm mb-5">
             @foreach (var item in Carrito)
             {
-                <div class="list-group-item d-flex justify-content-between align-items-center p-2">
-                    <div style="width: 55%;">
-                        <div class="fw-bold text-truncate">@item.Descripcion</div>
-                        <div class="text-muted small">@item.ProductoCodigo | $@item.PrecioUnitario.ToString("0.00")</div>
-                    </div>
+                <div class="list-group-item p-2">
 
-                    <div class="d-flex align-items-center bg-light rounded px-1">
-                        <button class="btn btn-sm text-secondary fw-bold"
-                                @onclick="() => CambiarCantidad(item, -1)">
-                            -
-                        </button>
-
-                        <input type="number"
-                               class="form-control form-control-sm border-0 bg-transparent text-center fw-bold p-0"
-                               style="width: 70px; outline: none; box-shadow: none;"
-                               @bind="item.Cantidad"
-                               @bind:event="oninput"
-                               step="any"
-                               min="0.001" />
-
-                        <button class="btn btn-sm text-secondary fw-bold"
-                                @onclick="() => CambiarCantidad(item, 1)">
-                            +
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="fw-bold" style="font-size: 0.95rem; line-height: 1.2;">
+                            @item.Descripcion
+                            <div class="text-muted small mt-1">@item.ProductoCodigo | $@item.PrecioUnitario.ToString("0.00")</div>
+                        </div>
+                        <button class="btn btn-sm text-danger p-0 ms-2" title="Eliminar" @onclick="() => EliminarItem(item)">
+                            <i class="oi oi-trash"></i> Borrar
                         </button>
                     </div>
 
-                    <div class="ms-2 text-end" style="min-width: 60px;">
-                        <div class="fw-bold">$@item.Importe.ToString("0")</div>
-                        <small class="text-danger" style="cursor:pointer;" @onclick="() => EliminarItem(item)">Borrar</small>
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div class="d-flex align-items-center bg-light border rounded px-1">
+                            <button class="btn btn-sm text-secondary fw-bold px-2 border-0"
+                                    @onclick="() => CambiarCantidad(item, -1)">
+                                -
+                            </button>
+
+                            <input type="number"
+                                   class="form-control form-control-sm border-0 bg-transparent text-center fw-bold p-0 mx-1"
+                                   style="width: 55px; outline: none; box-shadow: none;"
+                                   @bind="item.Cantidad"
+                                   @bind:event="oninput"
+                                   step="any"
+                                   min="0.001" />
+
+                            <button class="btn btn-sm text-secondary fw-bold px-2 border-0"
+                                    @onclick="() => CambiarCantidad(item, 1)">
+                                +
+                            </button>
+                        </div>
+
+                    @if (config != null && config.Bascula)
+                    {
+                        <button class="btn btn-warning btn-sm fw-bold px-3 ms-2 shadow-sm"
+                                title="Capturar peso de báscula"
+                                style="border-radius: 8px;"
+                                @onclick="() => ObtenerPesoDesdeBascula(item)">
+                            ⚖️ Pesar
+                        </button>
+                    }
+
+                        <div class="text-end ms-auto">
+                            <div class="fw-bold text-success" style="font-size: 1.1rem;">
+                                $@item.Importe.ToString("0.00")
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             }
@@ -192,6 +214,7 @@
         </div>
     </div>
 }
+
 @code {
     // --- ESTADO ---
     private List<DetalleCotizacion> Carrito = new();
@@ -206,24 +229,30 @@
     private int FolioGenerado = 0;
     private decimal TotalFinal = 0;
 
-    // Nuevas variables para sugerencias
     private List<Producto> listaSugerencias = new();
     private bool mostrarSugerencias = false;
 
+    private ConfiguracionNegocio config;
+
+    protected override async Task OnInitializedAsync()
+    {
+        config = await _cotizacionService.ObtenerConfiguracion();
+    }
     private async Task ManejarKeyUp(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
         {
-            await BuscarYAgregar(); // Si da enter, intenta agregar el primero o lo que haya escrito
+            await BuscarYAgregar();
         }
         else
         {
             await BuscarProductoEnTiempoReal();
         }
     }
+
     private async Task BuscarProductoEnTiempoReal()
     {
-        if (TextoBusqueda.Length > 2) // Buscar solo si hay más de 2 letras
+        if (TextoBusqueda.Length > 2)
         {
             listaSugerencias = await _cotizacionService.BuscarProductos(TextoBusqueda);
             mostrarSugerencias = true;
@@ -236,9 +265,10 @@
             BusquedaSinResultados = false;
         }
     }
+
     private async void AlEscanearCamara(BarcodeReceivedEventArgs args)
     {
-        await JSRuntime.InvokeVoidAsync("vibrar", 200); // Vibra 200ms al detectar
+        await JSRuntime.InvokeVoidAsync("vibrar", 200);
         TextoBusqueda = args.BarcodeText;
         await BuscarYAgregar();
         StateHasChanged();
@@ -251,16 +281,17 @@
             await BuscarYAgregar();
         }
     }
+
     private void SeleccionarProducto(Producto p)
     {
-        AgregarAlCarrito(p); // Usa tu método actual de agregar
+        AgregarAlCarrito(p);
 
-        // Limpieza de interfaz
         TextoBusqueda = "";
         listaSugerencias.Clear();
         mostrarSugerencias = false;
-        MostrarCamara = false; // Por si estaba abierta la cámara
+        MostrarCamara = false;
     }
+
     // --- LÓGICA DE NEGOCIO ---
 
     private async Task BuscarYAgregar()
@@ -285,18 +316,14 @@
 
     private void AgregarAlCarrito(Producto prod)
     {
-        // Verificar si ya existe en el carrito local
         var itemExistente = Carrito.FirstOrDefault(d => d.ProductoCodigo == prod.Id);
 
         if (itemExistente != null)
         {
-            // CORRECCIÓN: Solo aumentamos la cantidad.
-            // El 'Importe' se recalcula solo en la clase DetalleCotizacion.
             itemExistente.Cantidad++;
         }
         else
         {
-            // CORRECCIÓN: No asignamos 'Importe' porque es ReadOnly
             var nuevoItem = new DetalleCotizacion
             {
                 ProductoCodigo = prod.Id,
@@ -308,12 +335,10 @@
         }
     }
 
-    // CAMBIO: delta ahora es decimal para soportar 1.5, 0.5, etc.
     private void CambiarCantidad(DetalleCotizacion item, decimal delta)
     {
         item.Cantidad += delta;
 
-        // Validación: Si es menor o igual a 0, lo borramos
         if (item.Cantidad <= 0)
         {
             Carrito.Remove(item);
@@ -325,7 +350,42 @@
         Carrito.Remove(item);
     }
 
-    // --- FINALIZACIÓN Y GUARDADO ---
+    // === NUEVA LÓGICA DE BÁSCULA ===
+    private async Task ObtenerPesoDesdeBascula(DetalleCotizacion item)
+    {
+        if (config == null || !config.Bascula)
+        {
+            item.Cantidad = 1;
+            await JSRuntime.InvokeVoidAsync("console.log", "Báscula desactivada en configuración. Usando cantidad: 1");
+            return;
+        }
+        try
+        {
+            string urlBascula = "http://localhost:8080/peso/"; 
+            
+            var respuesta = await Http.GetStringAsync(urlBascula);
+
+            if (respuesta != "ERROR")
+            {
+                decimal pesoLeido = decimal.Parse(respuesta, System.Globalization.CultureInfo.InvariantCulture);
+                if (pesoLeido > 0)
+                {
+                    item.Cantidad = pesoLeido;
+                    StateHasChanged(); // Forzamos a la UI a refrescarse con el nuevo peso
+                }
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Error: La báscula respondió con un error o no tiene peso válido.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "No se pudo conectar al Agente de la Báscula. Verifica que el programa negro (consola) esté abierto.");
+            Console.WriteLine("Error de báscula: " + ex.Message);
+        }
+    }
+    // ================================
 
     private async Task FinalizarPreVenta()
     {
@@ -334,7 +394,6 @@
 
         try
         {
-            // CORRECCIÓN: El total se calcula usando la propiedad calculada
             var cotizacion = new Cotizacion
             {
                 Fecha = DateTime.Now,
@@ -364,6 +423,7 @@
             Procesando = false;
         }
     }
+
     private void FinalizarPreVentaQR()
     {
         if (!Carrito.Any()) return;
@@ -371,30 +431,19 @@
 
         try
         {
-            // 1. Construimos la cadena concatenada
-            // Formato: PRE:Id1:Cant1;Id2:Cant2;...
             var sb = new System.Text.StringBuilder();
-            sb.Append("PRE:"); // Prefijo para identificar que es preventa
+            sb.Append("PRE:"); 
 
             foreach (var item in Carrito)
             {
-                // Aseguramos que la cantidad use punto decimal si es necesario, sin comas
                 string cantidadStr = item.Cantidad.ToString(System.Globalization.CultureInfo.InvariantCulture);
-
-                // Formato: IdProducto:Cantidad
                 sb.Append($"{item.ProductoCodigo}:{cantidadStr};");
             }
 
-            // Quitamos el último punto y coma para que quede limpio
             string cadenaQR = sb.ToString().TrimEnd(';');
-
-            // 2. Calculamos el total solo para mostrarlo en el modal (visual)
             TotalFinal = Carrito.Sum(x => x.Importe);
-
-            // Folio es 0 porque no se guarda en BD
             FolioGenerado = 0;
 
-            // 3. Generamos el QR con la cadena larga
             GenerarImagenQR(cadenaQR);
 
             MostrarModalQR = true;
@@ -409,6 +458,7 @@
             Procesando = false;
         }
     }
+
     private void GenerarImagenQR(string contenido)
     {
         using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
@@ -426,11 +476,11 @@
         ImagenQR = "";
         FolioGenerado = 0;
     }
+
     private async Task ImprimirTicket()
     {
         if (!string.IsNullOrEmpty(ImagenQR))
         {
-            // Llamamos a la función JS que creamos en el _Layout
             await JSRuntime.InvokeVoidAsync("imprimirTicketQR", ImagenQR, TotalFinal.ToString("C2"));
         }
     }

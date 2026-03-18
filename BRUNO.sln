@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketJaegersoft", "TicketJ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PuntoVentaWeb", "PuntoVentaWeb\PuntoVentaWeb.csproj", "{EFBFF2B0-DEEA-43CE-BAC5-DC75EAA453EB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgenteBasculaTorrey", "AgenteBasculaTorrey\AgenteBasculaTorrey.csproj", "{53946FB0-BE07-FF8D-0B06-003898C5C29E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{EFBFF2B0-DEEA-43CE-BAC5-DC75EAA453EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFBFF2B0-DEEA-43CE-BAC5-DC75EAA453EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFBFF2B0-DEEA-43CE-BAC5-DC75EAA453EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53946FB0-BE07-FF8D-0B06-003898C5C29E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53946FB0-BE07-FF8D-0B06-003898C5C29E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53946FB0-BE07-FF8D-0B06-003898C5C29E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53946FB0-BE07-FF8D-0B06-003898C5C29E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
