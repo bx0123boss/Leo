@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.OleDb;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BRUNO
@@ -26,6 +20,11 @@ namespace BRUNO
         private void frmInventariosFisicos_Load(object sender, EventArgs e)
         {
             conectar.Open();
+            ds = new DataSet();
+            da = new OleDbDataAdapter("Select * from Fisico where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59#;", conectar);
+            da.Fill(ds, "Id");
+            dataGridView1.DataSource = ds.Tables["Id"];
+            dataGridView1.Columns[0].Visible = false;
         }
 
         private void dateTimePicker1_ValueChanged(object sender, EventArgs e)
@@ -39,17 +38,17 @@ namespace BRUNO
 
         private void button1_Click(object sender, EventArgs e)
         {
-            try
+                if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
+                {
+                    frmFisicoDetallado detalles = new frmFisicoDetallado();
+                    detalles.fisico = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
+                    detalles.lblFecha.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+                    detalles.Show();
+                    this.Close();
+                }
+            else
             {
-                frmFisicoDetallado detalles = new frmFisicoDetallado();
-                detalles.fisico = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
-                detalles.lblFecha.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-                detalles.Show();
-                this.Close();
-
-            }
-            catch (Exception ex)
-            {
+                MessageBox.Show("Por favor, seleccione un registro de la lista.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 

@@ -27,7 +27,8 @@ namespace BRUNO
 
 
         private List<ProductoInventario> listaCompletaInventario;
-        private int tamanoPagina = 30; // ¿Cuántos registros por página?
+        private List<ProductoInventario> listaFiltradaInventario;
+        private int tamanoPagina = 30; 
         private int paginaActual = 1;
         private int totalPaginas = 0;
         public class ProductoInventario
@@ -127,6 +128,7 @@ namespace BRUNO
                     listaCompletaInventario.Add(prod);
                 }
             }
+            listaFiltradaInventario = new List<ProductoInventario>(listaCompletaInventario); 
             totalPaginas = (int)Math.Ceiling((double)listaCompletaInventario.Count / tamanoPagina);
 
             // 4. Cargar la primera página
@@ -139,15 +141,14 @@ namespace BRUNO
             if (paginaActual < 1) paginaActual = 1;
             if (paginaActual > totalPaginas && totalPaginas > 0) paginaActual = totalPaginas;
 
-            // Usar LINQ (Skip y Take) sobre TU lista de inventario
-            var datosPaginados = listaCompletaInventario
+            var datosPaginados = listaFiltradaInventario // ¡Usamos la filtrada!
                 .Skip((paginaActual - 1) * tamanoPagina)
                 .Take(tamanoPagina)
                 .ToList();
 
             // Asignar al DataGridView (sin cambios)
             dataGridView2.DataSource = datosPaginados;
-
+            totalPaginas = (int)Math.Ceiling((double)listaFiltradaInventario.Count / tamanoPagina);
             // Actualizar controles (sin cambios)
             ActualizarControlesPaginacion();
         }
@@ -200,17 +201,17 @@ namespace BRUNO
         }
         private void CargarDatosPaginados()
         {
-            // Asegúrate de que 'listaCompleta' tenga datos
-            if (listaCompletaInventario == null || listaCompletaInventario.Count == 0)
+            // CAMBIO 1: Validamos contra la lista FILTRADA
+            if (listaFiltradaInventario == null || listaFiltradaInventario.Count == 0)
             {
                 dataGridView2.DataSource = null;
+                totalPaginas = 1;
                 ActualizarControlesNavegacion();
                 return;
             }
 
-            // Calcular el total de páginas
-            // Usamos Math.Ceiling para redondear hacia arriba (ej. 105 items / 10 por pag = 10.5 -> 11 páginas)
-            totalPaginas = (int)Math.Ceiling((double)listaCompletaInventario.Count / tamanoPagina);
+            // CAMBIO 2: Calculamos las páginas según los resultados FILTRADOS
+            totalPaginas = (int)Math.Ceiling((double)listaFiltradaInventario.Count / tamanoPagina);
 
             // Asegurarse de que la página actual esté dentro de los límites
             if (paginaActual > totalPaginas)
@@ -222,17 +223,15 @@ namespace BRUNO
                 paginaActual = 1;
             }
 
-            // Usar LINQ (Skip y Take) para obtener solo los registros de la página actual
-            // Skip: Omite los registros de las páginas anteriores
-            // Take: Toma el número de registros para la página actual
-            var datosPaginados = listaCompletaInventario
+            // CAMBIO 3: Hacemos el Skip y Take sobre la lista FILTRADA
+            var datosPaginados = listaFiltradaInventario
                 .Skip((paginaActual - 1) * tamanoPagina)
                 .Take(tamanoPagina)
                 .ToList();
 
             // Asignar los datos paginados al DataGridView
             dataGridView2.DataSource = datosPaginados;
-            
+
             // Actualizar los botones y la etiqueta
             ActualizarControlesNavegacion();
         }
@@ -341,6 +340,7 @@ namespace BRUNO
                     if (itemAEliminar != null)
                     {
                         listaCompletaInventario.Remove(itemAEliminar);
+                        listaFiltradaInventario.Remove(itemAEliminar);
                     }
 
                     paginaActual = 1;
@@ -353,94 +353,69 @@ namespace BRUNO
             }
 
         }
+        private void AplicarFiltros()
+        {
+            if (listaCompletaInventario == null) return;
+
+            // Empezamos asumiendo que mostramos todo
+            var filtro = listaCompletaInventario.AsEnumerable();
+
+            // Filtro por Categoría (Combo y Check)
+            if (checkBox1.Checked)
+            {
+                filtro = filtro.Where(p => p.Categoria != null &&
+                                           p.Categoria == comboBox2.Text &&
+                                           p.Categoria != "ACCESORIOS");
+            }
+
+            // Filtro por Nombre (TextBox1)
+            if (!string.IsNullOrWhiteSpace(textBox1.Text))
+            {
+                filtro = filtro.Where(p => p.Nombre != null &&
+                                           p.Nombre.IndexOf(textBox1.Text, StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+
+            // Filtro por ID (TextBox2)
+            if (!string.IsNullOrWhiteSpace(textBox2.Text))
+            {
+                filtro = filtro.Where(p => p.Id != null &&
+                                           p.Id.IndexOf(textBox2.Text, StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+
+            // Actualizamos la vista y regresamos a la página 1
+            listaFiltradaInventario = filtro.ToList();
+            paginaActual = 1;
+            CargarDatosPaginados();
+        }
+
+        // Ahora, enlazamos los controles a este método:
+        private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == Convert.ToChar(Keys.Enter))
+            {
+                AplicarFiltros();
+                e.Handled = true; // Quita el sonido molesto de "beep" de Windows
+            }
+        }
+
+        private void textBox2_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == Convert.ToChar(Keys.Enter))
+            {
+                AplicarFiltros();
+                e.Handled = true;
+            }
+        }
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (checkBox1.Checked == true)
-            {
-                ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Inventario where Categoria='" + comboBox2.Text + "'order by Nombre;", conectar);
-                da.Fill(ds, "Id");
-                dataGridView2.DataSource = ds.Tables["Id"];
-                dataGridView2.Columns[7].HeaderText = "Precio Compra";
-                dataGridView2.Columns[10].HeaderText = "Unidad";
-                dataGridView2.Columns[9].Visible = false;
-                //dataGridView2.Columns[0].Visible = false;
-            }
-            else
-            {
-                
-                //dataGridView2.Columns[0].Visible = false;
-            }
+            AplicarFiltros();
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            if (checkBox1.Checked == true)
-            {
-                textBox1.Enabled = false;
-                ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Inventario where Categoria='" + comboBox2.Text + "' and not Categoria='ACCESORIOS' order by Nombre;", conectar);
-                da.Fill(ds, "Id");
-                dataGridView2.DataSource = ds.Tables["Id"];
-                dataGridView2.Columns[7].HeaderText = "Precio Compra";
-                dataGridView2.Columns[10].HeaderText = "Unidad";
-                dataGridView2.Columns[9].Visible = false;
-                //dataGridView2.Columns[0].Visible = false;
-            }
-            else
-            {
-                textBox1.Enabled = true;
-                comboBox2.SelectedIndex = 0;
-                ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Inventario where not Categoria='ACCESORIOS' order by Nombre;", conectar);
-                da.Fill(ds, "Id");
-                dataGridView2.DataSource = ds.Tables["Id"];
-                dataGridView2.Columns[7].HeaderText = "Precio Compra";
-                dataGridView2.Columns[10].HeaderText = "Unidad";
-                dataGridView2.Columns[9].Visible = false;
-                //dataGridView2.Columns[0].Visible = false;
-            }
-        }
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-            //if (textBox1.Text == "")
-            //{
-            //    ds = new DataSet();
-            //    da = new OleDbDataAdapter("select * from Inventario where not Categoria='ACCESORIOS' and Existencia > 0 order by Nombre;", conectar);
-            //    da.Fill(ds, "Id");
-            //    dataGridView2.DataSource = ds.Tables["Id"];
-            //    //dataGridView2.Columns[0].Visible = false;
-            //}
-            //else
-            //{
-            //    ds = new DataSet();
-            //    da = new OleDbDataAdapter("select * from Inventario where not Categoria='ACCESORIOS' and Existencia > 0 and Nombre LIKE '%" + textBox1.Text + "%';", conectar);
-            //    da.Fill(ds, "Id");
-            //    dataGridView2.DataSource = ds.Tables["Id"];
-            //    //dataGridView2.Columns[0].Visible = false;
-            //}
-        }
-
-        private void textBox2_TextChanged(object sender, EventArgs e)
-        {
-            //if (textBox2.Text == "")
-            //{
-            //    ds = new DataSet();
-            //    da = new OleDbDataAdapter("select * from Inventario where not Categoria='ACCESORIOS' and Existencia > 0  order by Nombre;", conectar);
-            //    da.Fill(ds, "Id");
-            //    dataGridView2.DataSource = ds.Tables["Id"];
-            //    //dataGridView2.Columns[0].Visible = false;
-            //}
-            //else
-            //{
-            //    ds = new DataSet();
-            //    da = new OleDbDataAdapter("select * from Inventario where not Categoria='ACCESORIOS'  and Existencia > 0 and Id LIKE '%" + textBox2.Text + "%';", conectar);
-            //    da.Fill(ds, "Id");
-            //    dataGridView2.DataSource = ds.Tables["Id"];
-            //    //dataGridView2.Columns[0].Visible = false;
-            //}
+            textBox1.Enabled = !checkBox1.Checked;
+            AplicarFiltros();
         }
         private void ExportarInventarioExcel(object sender, EventArgs e)
         {
@@ -689,60 +664,6 @@ namespace BRUNO
             //}
         }
 
-        private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == Convert.ToChar(Keys.Enter))
-            {
-                if (textBox1.Text == "")
-                {
-                    ds = new DataSet();
-                    da = new OleDbDataAdapter("select * from Inventario order by Nombre;", conectar);
-                    da.Fill(ds, "Id");
-                    dataGridView2.DataSource = ds.Tables["Id"];
-                    dataGridView2.Columns[7].HeaderText = "Precio Compra";
-                    dataGridView2.Columns[10].HeaderText = "Unidad";
-                    dataGridView2.Columns[9].Visible = false;
-                }
-                else
-                {
-                    ds = new DataSet();
-                    da = new OleDbDataAdapter("select * from Inventario where Nombre LIKE '%" + textBox1.Text + "%';", conectar);
-                    da.Fill(ds, "Id");
-                    dataGridView2.DataSource = ds.Tables["Id"];
-                    dataGridView2.Columns[7].HeaderText = "Precio Compra";
-                    dataGridView2.Columns[10].HeaderText = "Unidad";
-                    dataGridView2.Columns[9].Visible = false;
-                }
-            }
-        }
-
-        private void textBox2_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == Convert.ToChar(Keys.Enter))
-            {
-                if (textBox2.Text == "")
-                {
-                    ds = new DataSet();
-                    da = new OleDbDataAdapter("select * from Inventario order by Nombre;", conectar);
-                    da.Fill(ds, "Id");
-                    dataGridView2.DataSource = ds.Tables["Id"];
-                    dataGridView2.Columns[7].HeaderText = "Precio Compra";
-                    dataGridView2.Columns[10].HeaderText = "Unidad";
-                    dataGridView2.Columns[9].Visible = false;
-                }
-                else
-                {
-                    ds = new DataSet();
-                    da = new OleDbDataAdapter("select * from Inventario where Id LIKE '%" + textBox2.Text + "%';", conectar);
-                    da.Fill(ds, "Id");
-                    dataGridView2.DataSource = ds.Tables["Id"];
-                    dataGridView2.Columns[7].HeaderText = "Precio Compra";
-                    dataGridView2.Columns[10].HeaderText = "Unidad";
-                    dataGridView2.Columns[9].Visible = false;
-                }
-            }
-        }
-
         private void button7_Click(object sender, EventArgs e)
         {
             try
@@ -837,38 +758,66 @@ namespace BRUNO
 
         private void button13_Click(object sender, EventArgs e)
         {
-             DialogResult dialogResult = MessageBox.Show("¿Desea imprimir un reporte para capturar el inventario fisico?", "Alto!", MessageBoxButtons.YesNo);
-             if (dialogResult == DialogResult.Yes)
-             {
-                 Microsoft.Office.Interop.Excel.Application xla = new Microsoft.Office.Interop.Excel.Application();
-                 Workbook wb = xla.Workbooks.Add(XlSheetType.xlWorksheet);
-                 Worksheet ws = (Worksheet)xla.ActiveSheet;
+            DialogResult dialogResult = MessageBox.Show("¿Desea imprimir un reporte para capturar el inventario fisico?", "Alto!", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-                 xla.Visible = true;
+            if (dialogResult == DialogResult.Yes)
+            {
+                // Cambiamos el cursor para que el usuario sepa que está cargando
+                this.Cursor = Cursors.WaitCursor;
 
-                 ws.Cells[1, 1] = "ID";
-                 ws.Cells[1, 2] = "Nombre";
-                 ws.Cells[1, 3] = "Existen";
-                 ws.Cells[1, 4] = "Fisico";
-                 int cont = 1;
-                 for (int i = 0; i < dataGridView2.RowCount; i++)
-                 {
-                         cont++;
-                         ws.Cells[cont, 1] = dataGridView2[0, i].Value.ToString();
-                         ws.Cells[cont, 2] = dataGridView2[1, i].Value.ToString();
-                         ws.Cells[cont, 3] = dataGridView2[4, i].Value.ToString();
-                 }
-                 frmInventariosFisicos fis = new frmInventariosFisicos();
-                 fis.Show();
-                 this.Close();
-             }
-             else
-             {
-                 frmInventariosFisicos fis = new frmInventariosFisicos();
-                 fis.Show();
-                 this.Close();
+                try
+                {
+                    Microsoft.Office.Interop.Excel.Application xla = new Microsoft.Office.Interop.Excel.Application();
+                    Workbook wb = xla.Workbooks.Add(XlSheetType.xlWorksheet);
+                    Worksheet ws = (Worksheet)xla.ActiveSheet;
 
-             }
+                    ws.Cells[1, 1] = "ID";
+                    ws.Cells[1, 2] = "Nombre";
+                    ws.Cells[1, 3] = "Existen";
+                    ws.Cells[1, 4] = "Fisico";
+
+                    // Poner en negrita los encabezados (opcional, para mejor presentación)
+                    ws.Range["A1", "D1"].Font.Bold = true;
+
+                    int cont = 1;
+
+                    // Verificamos que la lista no esté vacía
+                    if (listaCompletaInventario != null)
+                    {
+                        // Recorremos la lista completa en memoria en lugar del DataGridView paginado
+                        foreach (var producto in listaCompletaInventario)
+                        {
+                            cont++;
+                            ws.Cells[cont, 1] = producto.Id;
+                            ws.Cells[cont, 2] = producto.Nombre;
+                            ws.Cells[cont, 3] = producto.Existencia.ToString();
+                        }
+                    }
+
+                    // Autoajustar el ancho de las columnas
+                    ws.Columns.AutoFit();
+
+                    xla.Visible = true;
+
+                    frmInventariosFisicos fis = new frmInventariosFisicos();
+                    fis.Show();
+                    this.Close();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al generar el reporte de Excel: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    this.Cursor = Cursors.Default; // Regresamos el cursor a la normalidad
+                }
+            }
+            else
+            {
+                frmInventariosFisicos fis = new frmInventariosFisicos();
+                fis.Show();
+                this.Close();
+            }
         }
 
         private void button14_Click(object sender, EventArgs e)
@@ -961,18 +910,17 @@ namespace BRUNO
             {
                 tamanoPagina = 20; // Un valor seguro por si acaso
             }
-            if (listaCompletaInventario.Count > 0 && tamanoPagina > 0)
+
+            // CAMBIO 4: Calculamos las páginas base a la lista FILTRADA al mostrar el form
+            if (listaFiltradaInventario != null && listaFiltradaInventario.Count > 0 && tamanoPagina > 0)
             {
-                totalPaginas = (int)Math.Ceiling((double)listaCompletaInventario.Count / tamanoPagina);
+                totalPaginas = (int)Math.Ceiling((double)listaFiltradaInventario.Count / tamanoPagina);
             }
             else
             {
                 totalPaginas = 1;
             }
 
-            // 4. Recargar la vista
-            // CargarPagina() ya se encarga de validar si 'paginaActual' 
-            // se salió de los límites (ej. si achicas la ventana y el total de páginas aumenta)
             CargarPagina();
         }
         private void ActualizarTamanoPagina()

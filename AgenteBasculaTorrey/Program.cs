@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.IO;
 using System.IO.Ports;
 using System.Net;
 using System.Text;
@@ -9,8 +9,8 @@ namespace AgenteBasculaTorrey
 {
     class Program
     {
-        static bool USAR_MOCK = true;
-        const string PUERTO_COM = "COM3";
+        static bool USAR_MOCK = false;
+        static string PUERTO_COM = "COM3";
 
         static async Task Main(string[] args)
         {
@@ -21,7 +21,30 @@ namespace AgenteBasculaTorrey
                     USAR_MOCK = paramMock;
                 }
             }
+            string rutaExe = AppDomain.CurrentDomain.BaseDirectory;
+            string archivoPuerto = Path.Combine(rutaExe, "puerto.txt");
 
+            try
+            {
+                if (File.Exists(archivoPuerto))
+                {
+                    // Si el archivo existe, leemos el texto, quitamos espacios/saltos de línea y lo ponemos en mayúsculas
+                    string puertoLeido = File.ReadAllText(archivoPuerto).Trim().ToUpper();
+                    if (!string.IsNullOrEmpty(puertoLeido))
+                    {
+                        PUERTO_COM = puertoLeido;
+                    }
+                }
+                else
+                {
+                    // Si el archivo no existe, lo creamos automáticamente para que el usuario sepa dónde editarlo
+                    File.WriteAllText(archivoPuerto, PUERTO_COM);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Aviso: No se pudo leer el archivo puerto.txt. Usando por defecto: {PUERTO_COM}");
+            }
             Console.Title = USAR_MOCK
                 ? "Agente Báscula Torrey - MODO SIMULADOR (MOCK)"
                 : "Agente Báscula Torrey - PRODUCCIÓN";

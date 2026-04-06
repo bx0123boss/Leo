@@ -53,6 +53,11 @@
             // 
             // dataGridView2
             // 
+            // --- AQUÍ ESTÁ LA MAGIA RESPONSIVA ---
+            this.dataGridView2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            // -------------------------------------
             this.dataGridView2.AllowUserToAddRows = false;
             this.dataGridView2.AllowUserToDeleteRows = false;
             this.dataGridView2.AllowUserToOrderColumns = true;
@@ -127,7 +132,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.ClientSize = new System.Drawing.Size(1370, 611);
+            this.ClientSize = new System.Drawing.Size(1316, 613); // Ligeramente ajustado para encuadrar perfecto
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.label14);
             this.Controls.Add(this.textBox1);

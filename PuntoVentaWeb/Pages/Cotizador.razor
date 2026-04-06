@@ -98,13 +98,33 @@
                 </div>
             </div>
 
-            @* --- NUEVO: SECCIÓN DINÁMICA DE DATOS --- *@
+     @* --- NUEVO: SECCIÓN DINÁMICA DE DATOS --- *@
             @if (nuevaCotizacion.DatosDinamicos != null && nuevaCotizacion.DatosDinamicos.Any())
             {
                 <div class="row mt-3 pt-3 border-top">
-                    <div class="col-12 mb-2">
-                        <h6 class="text-primary"><i class="oi oi-list"></i> Datos Adicionales de Cotización</h6>
+                    <div class="col-12 mb-3 d-flex align-items-center justify-content-between">
+                        <h6 class="text-primary mb-0"><i class="oi oi-list"></i> Datos Adicionales de Cotización</h6>
+                        
+                        @* COMBOBOX DE HISTORIAL *@
+                        @if (historialDatosCliente != null && historialDatosCliente.Any())
+                        {
+                            <div class="d-flex align-items-center">
+                                <span class="text-muted small me-2">Historial:</span>
+                                <select class="form-select form-select-sm" style="max-width: 300px; cursor: pointer;" @onchange="AlSeleccionarHistorial">
+                                    <option value="-1">-- Rellenar con historial --</option>
+                                    @for (int i = 0; i < historialDatosCliente.Count; i++)
+                                    {
+                                        var registro = historialDatosCliente[i];
+                                        // Armamos un pequeño resumen con los 2 o 3 primeros valores para que el usuario lo identifique
+                                        string textoResumen = string.Join(" | ", registro.Values.Where(v => !string.IsNullOrEmpty(v)).Take(3));
+                                        <option value="@i">@textoResumen</option>
+                                    }
+                                </select>
+                            </div>
+                        }
                     </div>
+
+                    @* CAMPOS DE TEXTO LIMPIOS *@
                     @foreach (var dato in nuevaCotizacion.DatosDinamicos)
                     {
                         <div class="col-md-4 mb-2">
@@ -116,7 +136,7 @@
                     }
                 </div>
             }
-            @* ---------------------------------------- *@
+            @* ---------------------------------------- *@  
         </div>
     </div>
 
@@ -128,10 +148,27 @@
                     Buscador de Productos
                 </div>
                 <div class="card-body">
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" @bind="terminoBusqueda" @onkeyup="@(e => { if (e.Key == "Enter") Buscar(); })" placeholder="Código o Nombre..." />
-                        <button class="btn btn-secondary" @onclick="Buscar">Buscar</button>
-                    </div>
+                  <div class="input-group mb-3">
+                    <select class="form-select bg-light" style="max-width: 220px; font-weight: bold;" 
+                            value="@categoriaSeleccionada" 
+                            @onchange="AlCambiarCategoria">
+                        <option value="">-- TODAS LAS CATEGORÍAS --</option>
+                        @if (listaCategorias != null)
+                        {
+                            @foreach (var cat in listaCategorias)
+                            {
+                                <option value="@cat">@cat</option>
+                            }
+                        }
+                    </select>
+
+                    <input type="text" class="form-control" 
+                           @bind="terminoBusqueda" 
+                           @onkeyup="@(e => { if (e.Key == "Enter") Buscar(); })" 
+                           placeholder="Código o Nombre..." />
+           
+                    <button class="btn btn-secondary" @onclick="Buscar">Buscar</button>
+                </div>
 
                     @if (resultadosBusqueda != null && resultadosBusqueda.Count > 0)
                     {
@@ -337,58 +374,88 @@
     private Producto productoSeleccionado;
     private int cantidadAgregar = 1;
     private decimal precioManual = 0;
+    private ConfiguracionNegocio configNegocio;
 
+    private List<string> listaCategorias = new List<string>();
+    private string categoriaSeleccionada = "";
+
+    private List<Dictionary<string, string>> historialDatosCliente = new List<Dictionary<string, string>>();
     // --- NUEVO: Inicialización del componente ---
- protected override async Task OnInitializedAsync()
-{
-    configuracionCampos = await _cotizacionService.ObtenerConfiguracionCampos();
-
-    if (IdCopiar.HasValue) // Verificamos si hay un ID para copiar
+    protected override async Task OnInitializedAsync()
     {
-        // Pasamos IdCopiar.Value (int) en lugar de IdCopiar (int?)
-        var cotizacionExistente = await _cotizacionService.ObtenerCotizacionPorId(IdCopiar.Value);
-        
-        if (cotizacionExistente != null)    
-        {
-            // Inicializamos para que traiga los campos dinámicos vacíos primero
-            await InicializarCotizacion(); 
+        configuracionCampos = await _cotizacionService.ObtenerConfiguracionCampos();
+        configNegocio = await _cotizacionService.ObtenerConfiguracion();
 
-            // Clonamos solo los productos
-            nuevaCotizacion.Detalles = cotizacionExistente.Detalles.Select(d => new DetalleCotizacion {
+        listaCategorias = await _cotizacionService.ObtenerCategorias();
+
+        if (IdCopiar.HasValue) // Verificamos si hay un ID para copiar
+        {
+            // Pasamos IdCopiar.Value (int) en lugar de IdCopiar (int?)
+            var cotizacionExistente = await _cotizacionService.ObtenerCotizacionPorId(IdCopiar.Value);
+
+            if (cotizacionExistente != null)    
+            {
+                // Inicializamos para que traiga los campos dinámicos vacíos primero
+                await InicializarCotizacion(); 
+
+                // Clonamos solo los productos
+                nuevaCotizacion.Detalles = cotizacionExistente.Detalles.Select(d => new DetalleCotizacion {
                 ProductoCodigo = d.ProductoCodigo,
                 Descripcion = d.Descripcion,
                 Cantidad = d.Cantidad,
                 PrecioUnitario = d.PrecioUnitario
             }).ToList();
-        }
-    }
-    else if (Id.HasValue) // MODO EDICIÓN
-    {
-        // Pasamos Id.Value (int) en lugar de Id (int?)
-        var cotExistente = await _cotizacionService.ObtenerCotizacionPorId(Id.Value);
-        
-        if (cotExistente != null)
-        {
-            nuevaCotizacion = cotExistente;
-            if (nuevaCotizacion.ClienteId > 0)
-            {
-                var c = await _clienteService.ObtenerClientePorId(nuevaCotizacion.ClienteId);
-                clienteEmailSeleccionado = c?.Correo ?? "";
             }
         }
-        else
+        else if (Id.HasValue) // MODO EDICIÓN
         {
-            await JS.InvokeVoidAsync("alert", "No se encontró la cotización.");
-            Navigation.NavigateTo("/cotizacion");
+            // Pasamos Id.Value (int) en lugar de Id (int?)
+            var cotExistente = await _cotizacionService.ObtenerCotizacionPorId(Id.Value);
+
+            if (cotExistente != null)
+            {
+                nuevaCotizacion = cotExistente;
+                if (nuevaCotizacion.ClienteId > 0)
+                {
+                    var c = await _clienteService.ObtenerClientePorId(nuevaCotizacion.ClienteId);
+                    clienteEmailSeleccionado = c?.Correo ?? "";
+                }
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "No se encontró la cotización.");
+                Navigation.NavigateTo("/cotizacion");
+            }
+        }
+        else // MODO NUEVO
+        {
+            await InicializarCotizacion();
+        }
+    }private void AlSeleccionarHistorial(ChangeEventArgs e)
+    {
+        // Revisamos si el valor seleccionado es un número válido (el índice de la lista)
+        if (int.TryParse(e.Value?.ToString(), out int index) && index >= 0)
+        {
+            // Obtenemos el registro histórico completo basado en su posición
+            var registroSeleccionado = historialDatosCliente[index];
+
+            // Recorremos los campos dinámicos actuales y los rellenamos
+            foreach (var itemFormulario in nuevaCotizacion.DatosDinamicos)
+            {
+                // Si el historial tiene información para esta etiqueta, se la asignamos
+                if (registroSeleccionado.ContainsKey(itemFormulario.Etiqueta))
+                {
+                    itemFormulario.Valor = registroSeleccionado[itemFormulario.Etiqueta];
+                }
+            }
         }
     }
-    else // MODO NUEVO
+    private async Task AlCambiarCategoria(ChangeEventArgs e)
     {
-        await InicializarCotizacion();
+        categoriaSeleccionada = e.Value?.ToString() ?? "";
+        await Buscar(); // Dispara la búsqueda automáticamente al elegir una categoría
     }
-}
 
-    // --- NUEVO: Método helper para resetear el formulario con campos dinámicos ---
     private async Task InicializarCotizacion()
     {
         nuevaCotizacion = new Cotizacion();
@@ -424,19 +491,23 @@
         }
     }
 
-    private void SeleccionarCliente(Cliente c)
+    private async Task SeleccionarCliente(Cliente c)
     {
         nuevaCotizacion.ClienteId = c.Id;
         nuevaCotizacion.ClienteNombre = c.Nombre;
         clienteEmailSeleccionado = c.Correo;
         busquedaCliente = "";
         mostrarListaClientes = false;
+        historialDatosCliente = await _cotizacionService.ObtenerHistorialDatosCliente(c.Id);
     }
 
     private async Task Buscar()
     {
-        if (string.IsNullOrWhiteSpace(terminoBusqueda)) return;
-
+        if (string.IsNullOrWhiteSpace(terminoBusqueda) && string.IsNullOrWhiteSpace(categoriaSeleccionada)) 
+        {
+            resultadosBusqueda?.Clear();
+            return;
+        }
         if (terminoBusqueda.Trim() == "0")
         {
             var detalle = new DetalleCotizacion
@@ -456,7 +527,7 @@
 
         busquedaRealizada = true;
         productoSeleccionado = null;
-        resultadosBusqueda = await _cotizacionService.BuscarProductos(terminoBusqueda);
+        resultadosBusqueda = await _cotizacionService.BuscarProductos(terminoBusqueda, categoriaSeleccionada);
     }
 
     private void PrepararProducto(Producto prod)
@@ -477,9 +548,26 @@
         }
         else
         {
-            productoSeleccionado = prod;
-            cantidadAgregar = 1;
-            precioManual = Math.Round(prod.Precioventa, 2);
+            if (configNegocio != null && configNegocio.NombreLugar == "TURBO LLANTAS")
+            {
+                // Lo agregamos directamente a la cotización con cantidad 1 y precio público
+                var detalle = new DetalleCotizacion
+                    {
+                        ProductoCodigo = prod.Id,
+                        Descripcion = prod.Nombre,
+                        Cantidad = 1, // Por defecto 1
+                        PrecioUnitario = Math.Round(prod.Precioventa, 2)
+                    };
+
+                nuevaCotizacion.Detalles.Add(detalle);
+
+            }
+            else
+            {
+                productoSeleccionado = prod;
+                cantidadAgregar = 1;
+                precioManual = Math.Round(prod.Precioventa, 2);
+            }
         }
     }
 
@@ -573,7 +661,7 @@
                 clienteParaPdf = await _clienteService.ObtenerClientePorId(nuevaCotizacion.ClienteId);
             }
             var pdfBytes = PdfGenerator.CrearPdfCotizacion(nuevaCotizacion,clienteParaPdf, config);
-            
+
             var resultado = await _emailService.EnviarCotizacionConPdf(
                 clienteEmailSeleccionado,
                 nuevaCotizacion.ClienteNombre,
@@ -604,5 +692,6 @@
         nuevaCotizacion.ClienteNombre = "";
         clienteEmailSeleccionado = "";
         busquedaCliente = "";
+        historialDatosCliente.Clear();
     }
 }

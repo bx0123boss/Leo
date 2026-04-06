@@ -178,7 +178,6 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(224, 25);
             this.textBox1.TabIndex = 38;
-            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             this.textBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox1_KeyPress);
             // 
             // textBox2
@@ -188,7 +187,6 @@
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(224, 25);
             this.textBox2.TabIndex = 47;
-            this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
             this.textBox2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox2_KeyPress);
             // 
             // label14
@@ -240,7 +238,6 @@
             this.button13.TabIndex = 58;
             this.button13.Text = "FISICO";
             this.button13.UseVisualStyleBackColor = true;
-            this.button13.Visible = false;
             this.button13.Click += new System.EventHandler(this.button13_Click);
             // 
             // button11
@@ -284,7 +281,7 @@
             // 
             this.button18.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button18.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button18.Location = new System.Drawing.Point(3, 1176);
+            this.button18.Location = new System.Drawing.Point(-7, 1266);
             this.button18.Margin = new System.Windows.Forms.Padding(4);
             this.button18.Name = "button18";
             this.button18.Size = new System.Drawing.Size(205, 63);

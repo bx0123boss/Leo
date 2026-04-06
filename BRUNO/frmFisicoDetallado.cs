@@ -52,5 +52,27 @@ namespace BRUNO
             MessageBox.Show("El inventario se restauro con exito", "Exito!", MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();
         }
+
+        private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (dataGridView1.Columns[e.ColumnIndex].Name == "Diferencia" || e.ColumnIndex == 5)
+            {
+                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal dif))
+                {
+                    if (dif < 0)
+                    {
+                        dataGridView1.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.FromArgb(255, 200, 200);
+                    }
+                    else if (dif > 0)
+                    {
+                        dataGridView1.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.FromArgb(255, 255, 200);
+                    }
+                    else
+                    {
+                        dataGridView1.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.FromArgb(200, 255, 200);
+                    }
+                }
+            }
+        }
     }
 }

@@ -36,13 +36,10 @@ namespace BRUNO
             EstilizarBotonAdvertencia(this.button3);
             EstilizarBotonAdvertencia(this.button5);
             EstilizarBotonPeligro(this.button1);
-            EstilizarComboBox(this.cmbPago);
             EstilizarTextBox(this.txtDescuento);
             EstilizarTextBox(this.textBox1);
-            EstilizarCheckBox(this.checkBox1);
             conectar.Open();
             dataGridView1.Columns[0].ReadOnly = false;
-            cmbPago.SelectedIndex = 0;
             if (Conexion.lugar == "DEPORTES LEO")
             {
                 dataGridView1.Columns[2].ReadOnly = false;
@@ -78,44 +75,15 @@ namespace BRUNO
             dataGridView1.Rows.Clear();
             lblTotal.Text = $"{RecalcularTotal:C}";
             lblCliente.Text = "PUBLICO EN GENERAL";
-            checkBox1.Checked = false;
             txtFolioCotizacion.Enabled = true;
             txtFolioCotizacion.Text = "";
             label9.Text = "";
             button5.Text = "Buscar";
             dataGridView1.Rows.Clear();
-            string[] opcionesPago = {
-                    "01=EFECTIVO",
-                    "02=CHEQUE NOMINATIVO",
-                    "03=TRANFERENCIA ELECTRONICA DE FONDOS",
-                    "05=MONEDERO ELECTRONICO",
-                    "06=DINERO ELECTRONICO",
-                    "08=VALES DE DESPENSA",
-                    "12=DACION EN PAGO",
-                    "13=PAGO POR SUBROGACION",
-                    "14=PAGO POR CONSIGNACION",
-                    "15=CONDONACION",
-                    "17=COMPENSACION",
-                    "23=NOVACION",
-                    "24=CONFUSION",
-                    "25=REMISION DE DEUDA",
-                    "26=PRESCRIPCION O CADUCIDAD",
-                    "27=A SATISFACCION DEL ACREEDOR",
-                    "29=TARJETA DE SERVICIOS",
-                    "30=APLICACION DE ANTICIPOS",
-                    "31=INTERMEDIARIO PAGOS",
-                    "99=POR DEFINIR"
-                };
-            cmbPago.Items.Clear();
-            cmbPago.Items.AddRange(opcionesPago);
-            if (cmbPago.Items.Count > 0)
-            {
-                cmbPago.SelectedIndex = 0;
-            }
             radioButton1.Checked = false;
             radioButton2.Checked = false;
             txtDescuento.Text = "";
-            AjustarAnchoDropDown(this.cmbPago);
+            lblDatosCotizacion.Text = "Sin datos extra";
             conectar.Open();
         }
         private double RecalcularTotal
@@ -179,7 +147,7 @@ namespace BRUNO
                         if (reader.Read())
                         {
                             // En preventa tomamos el precio del índice 2 (Público) automáticamente
-                            double precio = Convert.ToDouble(reader[2].ToString());
+                            double precio = Convert.ToDouble(reader[3].ToString());
                             double importe = precio * cantidad;
 
                             // 4. Agregar al Grid con todos tus campos
@@ -208,7 +176,7 @@ namespace BRUNO
             }
         }
         private double ObtenerPesoLocal()
-        {
+           {
             if (!frmPrincipal.IsAgenteBasculaActivo)
             {
                 return 1;
@@ -442,51 +410,6 @@ namespace BRUNO
             }
         }
 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-            if (checkBox1.Checked)
-            {
-                checkBox1.Checked = true;
-                cmbPago.Items.Clear();
-                cmbPago.Items.Add("04=TARJETA DE CREDITO");
-                cmbPago.Items.Add("28=TARJETA DE DEBITO");
-                cmbPago.SelectedIndex = 0;
-
-            }
-            else
-            {
-                // Lista de opciones para el ComboBox
-                string[] opcionesPago = {
-                    "01=EFECTIVO",
-                    "02=CHEQUE NOMINATIVO",
-                    "03=TRANFERENCIA ELECTRONICA DE FONDOS",
-                    "05=MONEDERO ELECTRONICO",
-                    "06=DINERO ELECTRONICO",
-                    "08=VALES DE DESPENSA",
-                    "12=DACION EN PAGO",
-                    "13=PAGO POR SUBROGACION",
-                    "14=PAGO POR CONSIGNACION",
-                    "15=CONDONACION",
-                    "17=COMPENSACION",
-                    "23=NOVACION",
-                    "24=CONFUSION",
-                    "25=REMISION DE DEUDA",
-                    "26=PRESCRIPCION O CADUCIDAD",
-                    "27=A SATISFACCION DEL ACREEDOR",
-                    "29=TARJETA DE SERVICIOS",
-                    "30=APLICACION DE ANTICIPOS",
-                    "31=INTERMEDIARIO PAGOS",
-                    "99=POR DEFINIR"
-                };
-                cmbPago.Items.Clear();
-                cmbPago.Items.AddRange(opcionesPago);
-                if (cmbPago.Items.Count > 0)
-                {
-                    cmbPago.SelectedIndex = 0;
-                }
-                AjustarAnchoDropDown(cmbPago);
-            }
-        }
         public void Venta()
         {
             if (total == 0)
@@ -555,7 +478,7 @@ namespace BRUNO
                         {
                             string idProd = dataGridView1[5, i].Value.ToString();
                             double cantidad = Convert.ToDouble(dataGridView1[0, i].Value.ToString());
-                            double precioVenta = Convert.ToDouble(dataGridView1[2, i].Value.ToString());
+                            double precioVenta = Math.Round(Convert.ToDouble(dataGridView1[2, i].Value.ToString()) / 1.16,2);
                             double montoFila = Convert.ToDouble(dataGridView1[3, i].Value.ToString());
                             string nombreProd = dataGridView1[1, i].Value.ToString();
                             double precioCompra = Convert.ToDouble(dataGridView1[8, i].Value.ToString());
@@ -671,6 +594,53 @@ namespace BRUNO
                         }
 
                         transaccion.Commit();
+                        // ----------------------------------------------------------------------------------
+                        // NUEVO: GUARDAR HISTORIAL DE DATOS EXTRA EN SQL SERVER (Para el autocompletado)
+                        // ----------------------------------------------------------------------------------
+                        if (!string.IsNullOrEmpty(datos) && !string.IsNullOrEmpty(idCliente) && idCliente != "0")
+                        {
+                            try
+                            {
+                                using (SqlConnection conSql = new SqlConnection(Conexion.CadSQL))
+                                {
+                                    conSql.Open();
+
+                                    if (!string.IsNullOrEmpty(txtFolioCotizacion.Text))
+                                    {
+                                        // Si la venta viene de una cotización, simplemente actualizamos sus datos para mantener el historial fresco
+                                        string queryUpdate = "UPDATE Cotizaciones SET Datos = @Datos, Observaciones = @Obs WHERE Id = @FolioCot";
+                                        using (SqlCommand cmdSql = new SqlCommand(queryUpdate, conSql))
+                                        {
+                                            cmdSql.Parameters.AddWithValue("@Datos", datos);
+                                            cmdSql.Parameters.AddWithValue("@Obs", observaciones);
+                                            cmdSql.Parameters.AddWithValue("@FolioCot", txtFolioCotizacion.Text.Trim());
+                                            cmdSql.ExecuteNonQuery();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Si es venta directa, creamos una cotización "fantasma" con Total = -1 para que sirva de historial
+                                        string queryInsert = @"INSERT INTO Cotizaciones 
+                                     (Fecha, ClienteId, ClienteNombre, Total, Observaciones, Datos) 
+                                     VALUES (GETDATE(), @CId, @CNom, -1, 'HISTORIAL OCULTO - VENTA DIRECTA', @Datos)";
+                                        using (SqlCommand cmdSql = new SqlCommand(queryInsert, conSql))
+                                        {
+                                            cmdSql.Parameters.AddWithValue("@CId", idCliente);
+                                            cmdSql.Parameters.AddWithValue("@CNom", lblCliente.Text);
+                                            cmdSql.Parameters.AddWithValue("@Datos", datos);
+                                            cmdSql.ExecuteNonQuery();
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception exHistorial)
+                            {
+                                // Solo mostramos en consola para no interrumpir el flujo de la venta si falla el SQL
+                                Console.WriteLine("Error al guardar historial extra: " + exHistorial.Message);
+                            }
+                        }
+                        // ----------------------------------------------------------------------------------
+
                         ReiniciarForm();
                         MessageBox.Show(this, "Venta realizada con éxito", "VENTA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
@@ -687,10 +657,6 @@ namespace BRUNO
             if (e.KeyData == Keys.F5)
             {
                 Venta();
-            }
-            if (e.KeyCode == Keys.F1)
-            {
-                checkBox1.Checked = !checkBox1.Checked; // Alterna el estado
             }
             if (e.KeyCode == Keys.Delete)
             {
@@ -882,18 +848,14 @@ namespace BRUNO
                 frmCaptura.MinimumSize = new Size(450, 400);
 
                 // --- 1. CREACIÓN DE PANELES PARA ARREGLAR EL SCROLL ---
-
-                // Panel inferior (Fijo para los botones)
                 Panel pnlBotones = new Panel();
                 pnlBotones.Height = 70;
                 pnlBotones.Dock = DockStyle.Bottom;
 
-                // Panel superior (Dinámico para los TextBoxes con barra de scroll)
                 Panel pnlCampos = new Panel();
                 pnlCampos.Dock = DockStyle.Fill;
                 pnlCampos.AutoScroll = true;
 
-                // Es importante el orden en que se agregan al formulario
                 frmCaptura.Controls.Add(pnlCampos);
                 frmCaptura.Controls.Add(pnlBotones);
 
@@ -916,9 +878,44 @@ namespace BRUNO
                 List<TextBox> listaTextBoxes = new List<TextBox>();
                 List<string> listaEtiquetas = new List<string>();
 
+                // ---> NUEVO: OBTENER HISTORIAL Y CREAR COMBOBOX <---
+                var historialDatos = ObtenerHistorialDatosCliente(idCliente);
+                ComboBox cmbHistorial = null;
+
+                if (historialDatos.Count > 0)
+                {
+                    Label lblHistorial = new Label();
+                    lblHistorial.Text = "Historial:";
+                    lblHistorial.Left = 20;
+                    lblHistorial.Top = yPos;
+                    lblHistorial.Width = 120;
+                    lblHistorial.TextAlign = ContentAlignment.MiddleRight;
+                    lblHistorial.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+                    lblHistorial.ForeColor = Color.SteelBlue; // Para que resalte visualmente
+
+                    cmbHistorial = new ComboBox();
+                    cmbHistorial.Left = 150;
+                    cmbHistorial.Top = yPos - 3;
+                    cmbHistorial.Width = 300;
+                    cmbHistorial.DropDownStyle = ComboBoxStyle.DropDownList;
+                    cmbHistorial.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+                    cmbHistorial.Items.Add("-- Seleccione para rellenar --");
+                    foreach (var reg in historialDatos)
+                    {
+                        string resumen = string.Join(" | ", reg.Values.Where(v => !string.IsNullOrEmpty(v)).Take(3));
+                        cmbHistorial.Items.Add(resumen);
+                    }
+                    cmbHistorial.SelectedIndex = 0;
+
+                    pnlCampos.Controls.Add(lblHistorial);
+                    pnlCampos.Controls.Add(cmbHistorial);
+
+                    yPos += 45; // Bajamos el eje Y para los siguientes campos
+                }
+
                 // --- 3. CONSULTA A LA BASE DE DATOS ---
                 string query = "SELECT NombreEtiqueta FROM CotizacionCamposConfig WHERE Activo = 1 ORDER BY Orden";
-
                 try
                 {
                     using (SqlConnection conn = new SqlConnection(Conexion.CadSQL))
@@ -945,10 +942,9 @@ namespace BRUNO
                                     txt.Left = 150;
                                     txt.Top = yPos - 3;
                                     txt.Width = 300;
-
-                                    // Se estira solo a los lados dentro de su panel
                                     txt.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
+                                    // Si existe la funcion EstilizarTextBox, descomentarla:
                                     EstilizarTextBox(txt);
 
                                     if (valoresExistentes.ContainsKey(etiqueta))
@@ -956,7 +952,6 @@ namespace BRUNO
                                         txt.Text = valoresExistentes[etiqueta];
                                     }
 
-                                    // IMPORTANTE: Se agregan al Panel, no al Form
                                     pnlCampos.Controls.Add(lbl);
                                     pnlCampos.Controls.Add(txt);
                                     listaTextBoxes.Add(txt);
@@ -973,6 +968,26 @@ namespace BRUNO
                     return;
                 }
 
+                // ---> NUEVO: EVENTO DEL COMBOBOX PARA LLENAR TEXTBOXES <---
+                if (cmbHistorial != null)
+                {
+                    cmbHistorial.SelectedIndexChanged += (sCombo, evCombo) =>
+                    {
+                        if (cmbHistorial.SelectedIndex > 0)
+                        {
+                            var registroElegido = historialDatos[cmbHistorial.SelectedIndex - 1];
+                            for (int i = 0; i < listaEtiquetas.Count; i++)
+                            {
+                                string etiq = listaEtiquetas[i];
+                                if (registroElegido.ContainsKey(etiq))
+                                {
+                                    listaTextBoxes[i].Text = registroElegido[etiq];
+                                }
+                            }
+                        }
+                    };
+                }
+
                 // --- 4. CAMPO DE OBSERVACIONES ---
                 yPos += 10;
                 Label lblObs = new Label() { Text = "Observaciones (Ej. Detalles extra):", Left = 20, Top = yPos, Width = 380 };
@@ -987,14 +1002,11 @@ namespace BRUNO
                     Height = 90,
                     Multiline = true,
                     ScrollBars = ScrollBars.Vertical,
-                    Text = observaciones
+                    Text = observaciones,
+                    Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
                 };
 
-                // Se estira hacia los lados
-                txtObs.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
                 EstilizarTextBox(txtObs);
-
-                // Se agregan al Panel de scroll
                 pnlCampos.Controls.Add(lblObs);
                 pnlCampos.Controls.Add(txtObs);
 
@@ -1002,22 +1014,16 @@ namespace BRUNO
                 Button btnAceptar = new Button() { Text = "Aceptar", Width = 90, Height = 40, DialogResult = DialogResult.OK };
                 Button btnCancelar = new Button() { Text = "Cancelar", Width = 90, Height = 40, DialogResult = DialogResult.Cancel };
 
-                // Los ubicamos en el panel inferior (Top = 15 da un pequeño margen desde arriba del panel)
                 btnAceptar.Top = 15;
                 btnCancelar.Top = 15;
-
-                // Los alineamos a la derecha
                 btnAceptar.Left = pnlBotones.ClientSize.Width - 210;
                 btnCancelar.Left = pnlBotones.ClientSize.Width - 110;
-
-                // Anclamos arriba y a la derecha (relativo al panel inferior)
                 btnAceptar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
                 btnCancelar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
 
                 EstilizarBotonPrimario(btnAceptar);
                 EstilizarBotonPeligro(btnCancelar);
 
-                // Se agregan al panel de botones
                 pnlBotones.Controls.Add(btnAceptar);
                 pnlBotones.Controls.Add(btnCancelar);
 
@@ -1082,7 +1088,65 @@ namespace BRUNO
                 }
             }
         }
+        private List<Dictionary<string, string>> ObtenerHistorialDatosCliente(string idClient)
+        {
+            var historial = new List<Dictionary<string, string>>();
 
+            // Si no hay cliente seleccionado, no buscamos historial
+            if (string.IsNullOrEmpty(idClient) || idClient == "0") return historial;
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(Conexion.CadSQL))
+                {
+                    con.Open();
+                    // Buscamos el historial de los datos en las cotizaciones pasadas
+                    string query = "SELECT Datos FROM Cotizaciones WHERE ClienteId = @ClienteId AND Datos IS NOT NULL AND Datos <> ''";
+
+                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue("@ClienteId", idClient);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                string datosRaw = reader["Datos"].ToString();
+                                if (!string.IsNullOrWhiteSpace(datosRaw))
+                                {
+                                    var pares = datosRaw.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                                    var registro = new Dictionary<string, string>();
+
+                                    foreach (var par in pares)
+                                    {
+                                        var partes = par.Split(new[] { ':' }, 2);
+                                        if (partes.Length == 2)
+                                        {
+                                            string etiqueta = partes[0].Trim();
+                                            string valor = partes[1].Trim();
+
+                                            if (!string.IsNullOrWhiteSpace(valor))
+                                            {
+                                                registro[etiqueta] = valor;
+                                            }
+                                        }
+                                    }
+
+                                    // Evitamos agregar registros exactos duplicados
+                                    if (registro.Count > 0)
+                                    {
+                                        bool yaExiste = historial.Any(h => h.Count == registro.Count && !h.Except(registro).Any());
+                                        if (!yaExiste) historial.Add(registro);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { /* Ignoramos si ocurre un error de conexión */ }
+
+            return historial;
+        }
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
 

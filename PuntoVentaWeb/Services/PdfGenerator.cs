@@ -4,6 +4,9 @@ using QuestPDF.Infrastructure;
 using PuntoVentaWeb.Models;
 using Microsoft.Extensions.Configuration; // Necesario para leer appsettings
 using System.Data.SqlClient; // O Microsoft.Data.SqlClient
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace PuntoVentaWeb.Services;
 
@@ -28,11 +31,15 @@ public class PdfGenerator
         var colorGrisClaro = Colors.Grey.Lighten3;
         // CÁLCULO DE LA FECHA DE coloresHex
         var fechaVigencia = cotizacion.Fecha.AddDays(coloresHex.DiasValidez);
+
         return Document.Create(container =>
         {
             container.Page(page =>
             {
-                page.Size(new PageSize(612, 396));
+                // --- CAMBIO APLICADO AQUÍ ---
+                // Se reemplazó new PageSize(612, 396) por PageSizes.Letter
+                page.Size(PageSizes.Letter);
+
                 page.Margin(1, Unit.Centimetre);
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Arial"));
@@ -127,7 +134,7 @@ public class PdfGenerator
                                 datos.Item().Text($"Dirección: {cliente?.Direccion ?? "                                        "} CP: {cliente?.CP ?? ""}");
                                 datos.Item().Text($"Teléfono: {cliente?.Telefono ?? ""}");
                                 datos.Item().Text($"RFC: {cliente?.RFC ?? "                                        "} Correo: {cliente?.Correo ?? ""}");
-                                
+
                             }
                         });
                     });
@@ -287,7 +294,7 @@ public class PdfGenerator
             if (!string.IsNullOrEmpty(connectionString))
             {
                 // 2. Consultamos los campos activos
-                using (var con= new SqlConnection(connectionString))
+                using (var con = new SqlConnection(connectionString))
                 {
                     con.Open();
                     string sql = "SELECT NombreEtiqueta FROM CotizacionCamposConfig WHERE Activo = 1 ORDER BY Orden";

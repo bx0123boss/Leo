@@ -68,9 +68,8 @@ namespace BRUNO
             txtUsuario.DisplayMember = "Usuario";
             txtUsuario.ValueMember = "Id";
             txtUsuario.DataSource = dt;
-            txtUsuario.SelectedIndex = -1; // Para que inicie en blanco
 
-            ValidarCajaYLicencia(); // Movemos esto a un método para limpiar el código
+            ValidarCajaYLicencia();
 
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             txtUsuario.Focus();

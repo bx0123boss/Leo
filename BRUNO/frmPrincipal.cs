@@ -22,7 +22,7 @@ namespace BRUNO
             InitializeComponent();
             this.DoubleBuffered = true; 
             IsServidorActivo = ArrancarServidorWeb();
-            IsAgenteBasculaActivo = ArrancarAgenteBascula(true);
+            IsAgenteBasculaActivo = ArrancarAgenteBascula(false);
             pnlMenu.BackColor = Color.Transparent;
             pictureBox1.BackColor = Color.Transparent;
         }
@@ -41,8 +41,11 @@ namespace BRUNO
 
                 ProcessStartInfo info = new ProcessStartInfo();
                 info.FileName = rutaWebExe;
-                info.Arguments = usarMock ? "true" : "false";
-                // =========================================
+                string puertoBascula = "COM4";
+
+                // Concatenamos el parámetro mock (true/false), un ESPACIO, y el puerto
+                info.Arguments = $"{(usarMock ? "true" : "false")} {puertoBascula}";
+                // ==========================
 
                 info.WindowStyle = ProcessWindowStyle.Hidden; 
                 info.CreateNoWindow = true;

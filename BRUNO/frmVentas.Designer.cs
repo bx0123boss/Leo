@@ -57,9 +57,6 @@
             this.button4 = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.lblCliente = new System.Windows.Forms.Label();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.cmbPago = new System.Windows.Forms.ComboBox();
-            this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.lblUsuario = new System.Windows.Forms.Label();
             this.lblObservaciones = new System.Windows.Forms.Label();
@@ -389,68 +386,6 @@
             this.lblCliente.TabIndex = 25;
             this.lblCliente.Text = "PUBLICO EN GENERAL";
             // 
-            // checkBox1
-            // 
-            this.checkBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkBox1.ForeColor = System.Drawing.Color.White;
-            this.checkBox1.Location = new System.Drawing.Point(673, 540);
-            this.checkBox1.Margin = new System.Windows.Forms.Padding(4);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(193, 22);
-            this.checkBox1.TabIndex = 27;
-            this.checkBox1.Text = "PAGO CON TARJETA";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
-            // 
-            // cmbPago
-            // 
-            this.cmbPago.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmbPago.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbPago.FormattingEnabled = true;
-            this.cmbPago.ItemHeight = 17;
-            this.cmbPago.Items.AddRange(new object[] {
-            "01=EFECTIVO",
-            "02=CHEQUE NOMINATIVO",
-            "03=TRANFERENCIA ELECTRONICA DE FONDOS",
-            "05=MONEDERO ELECTRONICO",
-            "06=DINERO ELECTRONICO",
-            "08=VALES DE DESPENSA",
-            "12=DACION EN PAGO",
-            "13=PAGO POR SUBROGACION",
-            "14=PAGO POR CONSIGNACION",
-            "15=CONDONACION",
-            "17=COMPENSACION",
-            "23=NOVACION",
-            "24=CONFUSION",
-            "25=REMISION DE DEUDA",
-            "26=PRESCRIPCION O CADUCIDAD",
-            "27=A SATISFACCION DEL ACREEDOR",
-            "29=TARJETA DE SERVICIOS",
-            "30=APLICACION DE ANTICIPOS",
-            "31=INTERMEDIARIO PAGOS",
-            "99=POR DEFINIR"});
-            this.cmbPago.Location = new System.Drawing.Point(642, 468);
-            this.cmbPago.Margin = new System.Windows.Forms.Padding(4);
-            this.cmbPago.Name = "cmbPago";
-            this.cmbPago.Size = new System.Drawing.Size(278, 25);
-            this.cmbPago.TabIndex = 28;
-            // 
-            // label5
-            // 
-            this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.label5.AutoSize = true;
-            this.label5.BackColor = System.Drawing.Color.Transparent;
-            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.ForeColor = System.Drawing.Color.White;
-            this.label5.Location = new System.Drawing.Point(678, 431);
-            this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(177, 25);
-            this.label5.TabIndex = 29;
-            this.label5.Text = "Forma de pago:";
-            // 
             // label6
             // 
             this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -585,9 +520,6 @@
             this.Controls.Add(this.lblCajero);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.lblUsuario);
-            this.Controls.Add(this.label5);
-            this.Controls.Add(this.cmbPago);
-            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.lblCliente);
@@ -606,7 +538,6 @@
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.lblDatosCotizacion);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.KeyPreview = true;
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "frmVentas";
             this.Text = "Ventas";
@@ -637,9 +568,6 @@
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label lblCliente;
-        private System.Windows.Forms.CheckBox checkBox1;
-        private System.Windows.Forms.ComboBox cmbPago;
-        private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         public System.Windows.Forms.Label lblUsuario;
         private System.Windows.Forms.Label lblObservaciones;

@@ -15,6 +15,7 @@ using QImage = QuestPDF.Infrastructure.Image;
 
 namespace BRUNO
 {
+    // Cambiamos el nombre de la clase a TicketCarta
     public class TicketMediaCarta
     {
         private class ColoresPdf
@@ -27,7 +28,7 @@ namespace BRUNO
         private List<Producto> _productos;
         private string _folio;
         private double _total;
-        private string _cliente, _idCliente, _direccion, _rfc, _telefono, _correo,_CP, _formaPago;
+        private string _cliente, _idCliente, _direccion, _rfc, _telefono, _correo, _CP, _formaPago;
         private string _datos, _observaciones;
         private string _nombreLugar, _logoPath;
         private string[] _datosTicket, _pieDeTicket;
@@ -137,7 +138,6 @@ namespace BRUNO
             return campos;
         }
 
-        // --- MÉTODO CORREGIDO Y OPTIMIZADO ---
         public void ImprimirDirectamente(string nombreImpresora)
         {
             try
@@ -157,17 +157,14 @@ namespace BRUNO
                 {
                     container.Page(page =>
                     {
-                        // ESTRATEGIA: Usar Hoja Carta Completa (Vertical)
-                        // Esto evita que la impresora intente rotar el contenido.
+                        // Hoja Carta Completa (Vertical)
                         page.Size(PageSizes.Letter); // 8.5 x 11 pulgadas
 
+                        // Márgenes normales para toda la hoja
                         page.MarginTop(0.5f, Unit.Centimetre);
                         page.MarginLeft(0.5f, Unit.Centimetre);
                         page.MarginRight(0.5f, Unit.Centimetre);
-
-                        // BLOQUEO: Margen inferior gigante (396 puntos = 5.5 pulgadas)
-                        // Esto fuerza a que todo el contenido se dibuje solo en la mitad superior.
-                        page.MarginBottom(396);
+                        page.MarginBottom(0.5f, Unit.Centimetre); // <--- CAMBIO AQUÍ: Ahora usa toda la página hacia abajo
 
                         page.PageColor(Colors.White);
                         page.DefaultTextStyle(x => x.FontSize(8).FontFamily("Arial"));
@@ -205,7 +202,6 @@ namespace BRUNO
                                     c.Item().AlignCenter().Text($"Folio: {_folio}").FontSize(11).Bold().FontColor(Colors.Black);
                                     c.Item().PaddingTop(2).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
                                     c.Item().PaddingTop(2).AlignCenter().Text($"{DateTime.Now:dd/MMM/yyyy} - {DateTime.Now:HH:mm} hrs").FontSize(8);
-                                    
 
                                     // Vigencia calculada
                                     var fechaVigencia = DateTime.Now.AddDays(_diasValidez);

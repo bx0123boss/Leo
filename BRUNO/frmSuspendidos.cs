@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace BRUNO
 {
-    public partial class frmSuspendidos : Form
+    public partial class frmSuspendidos : frmBase
     {
         private DataSet ds;
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
@@ -33,6 +33,11 @@ namespace BRUNO
             dataGridView2.Columns[7].HeaderText = "Precio Compra";
             dataGridView2.Columns[10].HeaderText = "Unidad";
             dataGridView2.Columns[9].Visible = false;
+            EstilizarBotonAdvertencia(this.button7);
+            EstilizarTextBox(this.textBox1);
+            EstilizarTextBox(this.textBox2);
+            EstilizarDataGridView(this.dataGridView2);
+            dataGridView2.ReadOnly = true;
         }
 
         private void button7_Click(object sender, EventArgs e)

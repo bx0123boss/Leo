@@ -3,7 +3,10 @@
 using PuntoVentaWeb.Models;
 using System.Data;
 using System.Data.Odbc;
+using System.Data.OleDb;
 using System.Data.SqlClient;
+using System.Text.Json;
+
 public class CotizacionService
 {
     private readonly string _sqlString;
@@ -31,6 +34,7 @@ public class CotizacionService
                         Total, 
                         Observaciones 
                        FROM Cotizaciones 
+                       WHERE Total >= 0
                        ORDER BY Id DESC";
 
             using (var cmd = new SqlCommand(sql, con))
@@ -53,41 +57,146 @@ public class CotizacionService
         }
         return lista;
     }
-
-    public async Task<List<Producto>> BuscarProductos(string busqueda)
+    public async Task<List<string>> ObtenerCategorias()
     {
-        var lista = new List<Producto>();
+        var categorias = new List<string>();
 
-        // Usamos OdbcConnection en vez de OleDbConnection
-        using (var con = new OdbcConnection(_accessString))
+        // Cambiamos a OdbcConnection y usamos tu variable _accessString
+        using (var conexion = new OdbcConnection(_accessString))
+        {
+            await conexion.OpenAsync();
+
+            // SELECT DISTINCT para no traer categorías repetidas
+            string query = "SELECT DISTINCT Categoria FROM Inventario WHERE Categoria IS NOT NULL AND Categoria <> '' ORDER BY Categoria";
+
+            using (var cmd = new OdbcCommand(query, conexion))
+            using (var reader = await cmd.ExecuteReaderAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    categorias.Add(reader["Categoria"].ToString());
+                }
+            }
+        }
+        return categorias;
+    }
+
+    // Cambiamos el tipo de retorno a List<Dictionary<string, string>>
+    public async Task<List<Dictionary<string, string>>> ObtenerHistorialDatosCliente(int clienteId)
+    {
+        var historial = new List<Dictionary<string, string>>();
+
+        using (var con = new SqlConnection(_sqlString))
         {
             await con.OpenAsync();
+            string query = "SELECT Datos FROM Cotizaciones WHERE ClienteId = @ClienteId";
 
-            // La consulta es igual, pero ODBC usa '?' en vez de '@parametro' a veces. 
-            // Sin embargo, System.Data.Odbc soporta nombres en muchos casos. 
-            // Si falla, cambiaremos a '?'. Probemos así primero:
-            string query = @"SELECT TOP 20 
-                                    Id, Nombre, PrecioventaMayoreo, precioventa, Existencia 
-                                FROM Inventario 
-                                WHERE Nombre LIKE ? OR Id LIKE ?";
-
-            using (var cmd = new OdbcCommand(query, con))
+            using (var cmd = new SqlCommand(query, con))
             {
-                cmd.Parameters.AddWithValue("?", "%" + busqueda + "%");
-                cmd.Parameters.AddWithValue("?", "%" + busqueda + "%");
+                cmd.Parameters.AddWithValue("@ClienteId", clienteId);
 
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     while (reader.Read())
                     {
+                        string datosRaw = reader["Datos"] != DBNull.Value ? reader["Datos"].ToString() : string.Empty;
+
+                        if (!string.IsNullOrWhiteSpace(datosRaw))
+                        {
+                            try
+                            {
+                                var pares = datosRaw.Split(';', StringSplitOptions.RemoveEmptyEntries);
+                                var registro = new Dictionary<string, string>();
+
+                                foreach (var par in pares)
+                                {
+                                    var partes = par.Split(new[] { ':' }, 2);
+                                    if (partes.Length == 2)
+                                    {
+                                        string etiqueta = partes[0].Trim();
+                                        string valor = partes[1].Trim();
+
+                                        if (!string.IsNullOrWhiteSpace(valor))
+                                        {
+                                            registro[etiqueta] = valor;
+                                        }
+                                    }
+                                }
+
+                                // Si el registro tiene datos y no lo hemos agregado ya exacto igual, lo agregamos
+                                if (registro.Count > 0)
+                                {
+                                    bool yaExiste = historial.Any(h => h.Count == registro.Count && !h.Except(registro).Any());
+                                    if (!yaExiste)
+                                    {
+                                        historial.Add(registro);
+                                    }
+                                }
+                            }
+                            catch { /* Ignoramos errores de formato */ }
+                        }
+                    }
+                }
+            }
+        }
+
+        return historial;
+    }
+    public async Task<List<Producto>> BuscarProductos(string busqueda, string categoria)
+    {
+        var lista = new List<Producto>();
+
+        using (var con = new OdbcConnection(_accessString))
+        {
+            await con.OpenAsync();
+
+            // 1. Construimos la consulta base. "1=1" siempre es verdadero y nos permite 
+            // agregar condiciones con "AND" sin preocuparnos por cuál va primero.
+            string query = @"SELECT TOP 20 
+                            Id, Nombre, PrecioventaMayoreo, precioventa, Existencia 
+                         FROM Inventario 
+                         WHERE 1=1 ";
+
+            // 2. Evaluamos si el usuario escribió algo en la búsqueda
+            if (!string.IsNullOrWhiteSpace(busqueda))
+            {
+                query += " AND (Nombre LIKE ? OR Id LIKE ?) ";
+            }
+
+            // 3. Evaluamos si el usuario seleccionó una categoría
+            if (!string.IsNullOrWhiteSpace(categoria))
+            {
+                query += " AND Categoria = ? ";
+            }
+
+            using (var cmd = new OdbcCommand(query, con))
+            {
+                // 4. IMPORTANTE: En ODBC, el orden en que agregas los parámetros 
+                // DEBE ser el mismo en el que aparecen los '?' en el string query.
+
+                if (!string.IsNullOrWhiteSpace(busqueda))
+                {
+                    cmd.Parameters.AddWithValue("?", "%" + busqueda + "%"); // Para Nombre LIKE ?
+                    cmd.Parameters.AddWithValue("?", "%" + busqueda + "%"); // Para Id LIKE ?
+                }
+
+                if (!string.IsNullOrWhiteSpace(categoria))
+                {
+                    cmd.Parameters.AddWithValue("?", categoria); // Para Categoria = ?
+                }
+
+                // Cambié a ExecuteReaderAsync y ReadAsync() para mejor rendimiento en la Web
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
                         lista.Add(new Producto
                         {
-                            Id = reader["Id"].ToString(), // Access a veces devuelve int, el ToString() lo asegura
+                            Id = reader["Id"].ToString(),
                             Nombre = reader["Nombre"].ToString(),
                             PrecioventaMayoreo = reader["PrecioventaMayoreo"] != DBNull.Value ? Convert.ToDecimal(reader["PrecioventaMayoreo"]) : 0,
                             Precioventa = reader["precioventa"] != DBNull.Value ? Convert.ToDecimal(reader["precioventa"]) : 0,
                             Existencia = reader["Existencia"] != DBNull.Value ? Convert.ToDouble(reader["Existencia"]) : 0,
-                            // Agrega el resto de campos si los necesitas
                         });
                     }
                 }
@@ -279,7 +388,7 @@ public class CotizacionService
             await con.OpenAsync();
 
             // 1. Obtener la Cabecera
-            string sqlHead = "SELECT * FROM Cotizaciones WHERE Id = @Id";
+            string sqlHead = "SELECT * FROM Cotizaciones WHERE Total >= 0 and Id = @Id";
             using (var cmd = new SqlCommand(sqlHead, con))
             {
                 cmd.Parameters.AddWithValue("@Id", id);

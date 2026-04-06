@@ -254,7 +254,7 @@
     {
         if (TextoBusqueda.Length > 2)
         {
-            listaSugerencias = await _cotizacionService.BuscarProductos(TextoBusqueda);
+            listaSugerencias = await _cotizacionService.BuscarProductos(TextoBusqueda,"");
             mostrarSugerencias = true;
             BusquedaSinResultados = !listaSugerencias.Any();
         }
@@ -300,7 +300,7 @@
 
         BusquedaSinResultados = false;
 
-        var productosEncontrados = await _cotizacionService.BuscarProductos(TextoBusqueda);
+        var productosEncontrados = await _cotizacionService.BuscarProductos(TextoBusqueda,"");
 
         if (productosEncontrados != null && productosEncontrados.Any())
         {

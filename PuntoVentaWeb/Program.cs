@@ -2,7 +2,15 @@ using PuntoVentaWeb.Data;
 using PuntoVentaWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.WebHost.ConfigureKestrel(opciones =>
+{
+    opciones.ListenAnyIP(5000); // Escucha HTTP normal en toda la red
+    opciones.ListenAnyIP(5001, opcionesEscucha =>
+    {
+        // Escucha HTTPS y le decimos exactamente dónde está el certificado
+        opcionesEscucha.UseHttps("certificado_pv.pfx", "MiClave123");
+    });
+});
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
