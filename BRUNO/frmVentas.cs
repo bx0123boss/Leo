@@ -120,10 +120,7 @@ namespace BRUNO
                         buscar.existencia, buscar.ID, origen, buscar.IVA, buscar.compra, "", "X");
                 }
             }
-
             lblTotal.Text = $"{RecalcularTotal:C}";
-
-
         }
         private void ProcesarPreventaQR(string cadenaQR)
         {

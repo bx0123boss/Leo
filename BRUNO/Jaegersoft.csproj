@@ -465,6 +465,12 @@
     <Compile Include="frmLogin.Designer.cs">
       <DependentUpon>frmLogin.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmNuevaConsignacion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmNuevaConsignacion.Designer.cs">
+      <DependentUpon>frmNuevaConsignacion.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmPago.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -858,6 +864,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmLogin.resx">
       <DependentUpon>frmLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmNuevaConsignacion.resx">
+      <DependentUpon>frmNuevaConsignacion.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmPago.resx">
       <DependentUpon>frmPago.cs</DependentUpon>
