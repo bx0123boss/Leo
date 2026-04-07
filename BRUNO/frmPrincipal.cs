@@ -16,7 +16,7 @@ namespace BRUNO
         public String usuario = "";
         public string NombreUsuario = "";
         public string idUsuario = "";
-
+        public bool IsPuntoB { get; set; } =  false;
         public frmPrincipal()
         {
             InitializeComponent();
@@ -77,17 +77,31 @@ namespace BRUNO
                 if (File.Exists(logoPath)) { pictureBox1.Image = Image.FromFile(logoPath); }
             }
             catch (Exception) { }
+            if (IsPuntoB) return;
+            BtnInventario.Visible = Sesion.TienePermiso("MOD_INVENTARIO");
+            BtnCobrar.Visible = Sesion.TienePermiso("MOD_VENTAS");
+            BtnDevoluciones.Visible = Sesion.TienePermiso("MOD_REPORTES");
+            BtnClientes.Visible = Sesion.TienePermiso("MOD_CLIENTES");
+            BtnDeposito.Visible = Sesion.TienePermiso("MOD_ENTRADAS");
+            BtnRetiro.Visible = Sesion.TienePermiso("MOD_SALIDAS");
+            BtnCotizar.Visible = Sesion.TienePermiso("MOD_PROVEEDORES");
+            button4.Visible = Sesion.TienePermiso("MOD_USUARIOS");
+            BtnApartados.Visible = Sesion.TienePermiso("MOD_APARTADOS");
+            button1.Visible = Sesion.TienePermiso("MOD_CORTES");
+            //button2.Visible = Sesion.TienePermiso("MOD_SERVICIOS");
+            //BtnTipodecambio.Visible = Sesion.TienePermiso("MOD_TIPOCAMBIO");
+            
+            button6.Visible = Sesion.TienePermiso("MOD_CONFIGURACION"); // Ticket
+            button8.Visible = Sesion.TienePermiso("MOD_WEB"); // Modulo Web
 
-            if (usuario == "Invitado")
-            {
-                BtnTipodecambio.Hide();
-                button3.Hide();
-                button5.Hide();
-            }
-
-            if (Conexion.lugar == "LEO")
+            // Excepción especial para Facturación (Lugar LEO)
+            if (Conexion.lugar == "LEO" && Sesion.TienePermiso("MOD_FACTURACION"))
             {
                 button7.Visible = true;
+            }
+            else
+            {
+                button7.Visible = false;
             }
         }
 
@@ -120,11 +134,26 @@ namespace BRUNO
         {
             if (!FormularioEstaAbierto(typeof(frmTipoVenta)))
             {
-                frmTipoVenta vent = new frmTipoVenta();
-                vent.usuario = usuario;
-                vent.NombreUsuario = NombreUsuario;
-                vent.idUsuario = idUsuario;
-                vent.Show();
+                if (Sesion.TienePermiso("MOD_VENTAS_CREDITO"))
+                {
+                    frmTipoVenta vent = new frmTipoVenta();
+                    vent.usuario = usuario;
+                    vent.NombreUsuario = NombreUsuario;
+                    vent.idUsuario = idUsuario;
+                    vent.Show();
+                }
+                else
+                {
+                    frmVentas vent = new frmVentas();
+                    vent.MinimizeBox = false;  // Elimina el botón de minimizar
+                    vent.ControlBox = true;
+                    vent.usuario = usuario;
+                    vent.lblUsuario.Text = NombreUsuario;
+                    vent.idUsuario = idUsuario;
+                    vent.lblCajero.Text = NombreUsuario;
+                    vent.ShowDialog();
+                    this.Close();
+                }
             }
         }
 
@@ -132,9 +161,19 @@ namespace BRUNO
         {
             if (!FormularioEstaAbierto(typeof(frmTipoVentaDetalles)))
             {
-                frmTipoVentaDetalles venta = new frmTipoVentaDetalles();
-                venta.usuario = usuario;
-                venta.Show();
+                if (IsPuntoB)
+                {
+                    frmReporteVentas REPORTE = new frmReporteVentas();
+                    REPORTE.ConsultaVentasB = true;
+                    REPORTE.Show();
+                    return;
+                }
+                else
+                {
+                    frmTipoVentaDetalles venta = new frmTipoVentaDetalles();
+                    venta.usuario = usuario;
+                    venta.Show();
+                }
             }
         }
 
@@ -203,7 +242,13 @@ namespace BRUNO
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (usuario == "Invitado")
+            if(IsPuntoB)
+            {
+                frmHistorialCortes REPORTE = new frmHistorialCortes();
+                REPORTE.ConsultaB = true;
+                REPORTE.Show();
+            }
+            else if (!Sesion.TienePermiso("HISTORIAL_CORTES"))
             {
                 frmCorte cor = new frmCorte();
                 cor.usuario = usuario;

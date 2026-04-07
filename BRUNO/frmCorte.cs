@@ -404,11 +404,18 @@ namespace BRUNO
                 foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
             }
             bool detallado = false;
-            DialogResult dialogResult = MessageBox.Show("¿Requiere el corte impreso detallado?", "Alto!", MessageBoxButtons.YesNo);
-            if (dialogResult == DialogResult.Yes)
+            DialogResult dialogResult;
+            if (Sesion.TienePermiso("IMPRESION_CORTE"))
             {
-                detallado = true;
+                dialogResult = MessageBox.Show("¿Desea imprimir el corte detallado?", "Alto!", MessageBoxButtons.YesNo);
+                if (dialogResult == DialogResult.Yes)
+                {
+                    detallado = true;
+                }
             }
+            double masB = 0, tarjetaB = 0, transB = 0, otrosB = 0, totalB = 0, utilidadB = 0;
+            string primerFolio = "";
+            string ultimoFolio = "";
             foreach (DataGridViewRow row in dgvFolios.Rows)
             {
                 if (detallado)
@@ -419,19 +426,67 @@ namespace BRUNO
                         PrecioUnitario = Convert.ToDouble(row.Cells["Monto sin IVA"].Value.ToString()),
                         Total = Convert.ToDouble(row.Cells["Monto"].Value.ToString()),
                     });
+                string folioVenta = row.Cells["Folio"].Value.ToString();
 
+              
                 if (row.Cells["Seleccionar"].Value != null && Convert.ToBoolean(row.Cells["Seleccionar"].Value))
                 {
-                    string folio = row.Cells["Folio"].Value.ToString();
+                    // Extraemos el monto y el tipo de pago
+                    string montoLimpio = Regex.Replace(row.Cells["Monto"].Value.ToString(), @"[^\d.-]", "");
+                    double montoVenta = Convert.ToDouble(montoLimpio);
+                    string tipoPago = row.Cells["Pago"].Value.ToString().ToUpper();
+
+                    // --- SUMATORIAS PARA EL CORTE B ---
+                    totalB += montoVenta;
+
+                    if (tipoPago.Contains("EFECTIVO") || tipoPago.Contains("01=")) masB += montoVenta;
+                    else if (tipoPago.Contains("TARJETA") || tipoPago.Contains("04=") || tipoPago.Contains("28=")) tarjetaB += montoVenta;
+                    else if (tipoPago.Contains("TRANFERENCIA") || tipoPago.Contains("03=")) transB += montoVenta;
+                    else otrosB += montoVenta;
+
+                    // Buscamos la utilidad exacta de esta venta para que los reportes B cuadren perfecto
+                    double utVenta = 0;
+                    using (OleDbCommand cmdUt = new OleDbCommand("SELECT SUM(Utilidad) FROM VentasContado WHERE FolioVenta='" + folioVenta + "'", conectar))
+                    {
+                        object res = cmdUt.ExecuteScalar();
+                        if (res != DBNull.Value && res != null) utVenta = Convert.ToDouble(res);
+                    }
+                    utilidadB += utVenta;
+                    if (string.IsNullOrEmpty(primerFolio)) primerFolio = foli.ToString("D6");
+                    ultimoFolio = foli.ToString("D6");
+                    using (OleDbCommand cmdCB = new OleDbCommand("INSERT INTO CortesB (Concepto, Monto, idCorte, Tipo) VALUES ('Venta a Contado Folio " + foli.ToString("D6") + "', '" + montoVenta + "', '" + folio + "', '" + tipoPago + "')", conectar))
+                    {
+                        cmdCB.ExecuteNonQuery();
+                    }
+                    string queryFacturacion = "INSERT INTO VentasB (Monto, Fecha, FolioA, Estatus, Descuento, Pago, FolioB) VALUES (" +
+                        "'" + row.Cells["Monto"].Value.ToString() + "', '" + row.Cells["Fecha"].Value.ToString() + "', '" + row.Cells["Folio"].Value.ToString() + "', " +
+                        "'" + row.Cells["Estatus"].Value.ToString() + "', " +
+                        "'" + row.Cells["Descuento"].Value.ToString() + "', '" + row.Cells["Pago"].Value.ToString() + "', '"+foli+"');";
+                    using (OleDbCommand cmdFactura = new OleDbCommand(queryFacturacion, conectar))
+                    {
+                        cmdFactura.ExecuteNonQuery();
+                    }
                     foli++;
                 }
             }
             cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioVenta';", conectar);
             cmd.ExecuteNonQuery();
+            if (totalB > 0)
+            {
+                double inversionB = totalB - utilidadB;
+                string fechaCorteB = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                string rangoFolios = primerFolio + "-" + ultimoFolio;
+                // Insertamos el resumen (la sumatoria total) en histocortesB
+                string queryHistoB = "INSERT INTO histocortesB (Id, Monto, Fecha, Mas, Menos, Tarjeta, utilidad, inversion, CubreFolio) VALUES ('" + folio + "', '" + totalB + "', '" + fechaCorteB + "', '" + masB + "', '0', '" + tarjetaB + "', '" + utilidadB + "', '" + inversionB + "','"+ rangoFolios+"');";
+                using (OleDbCommand cmdHistoB = new OleDbCommand(queryHistoB, conectar))
+                {
+                    cmdHistoB.ExecuteNonQuery();
+                }
+            }
             #endregion 
 
             button1.Visible = false;
-            folio++;
+            
             string[] encabezados = new string[] { "********** CORTE DE CAJA  ********", "             Apertura de caja:", fechaApertura, "               Corte de caja:", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() };
 
             for (int i = 0; i < dgvCorte.RowCount; i++)
@@ -459,7 +514,7 @@ namespace BRUNO
 
             cmd = new OleDbCommand("INSERT INTO histocortes(Id,Monto,Fecha,Mas,Menos,Tarjeta,utilidad,inversion) VALUES ('" + folio + "','" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + mas + "','" + menos + "','" + tarjeta + "','" + utilidad + "','" + inversion + "');", conectar);
             cmd.ExecuteNonQuery();
-
+            folio++;
             cmd = new OleDbCommand("UPDATE Folios set Numero=" + folio + " where Folio='Corte';", conectar);
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("UPDATE Folios set Numero=0 where Folio='Inicio';", conectar);

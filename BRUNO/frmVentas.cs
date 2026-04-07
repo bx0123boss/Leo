@@ -19,9 +19,9 @@ namespace BRUNO
         double exis = 0.0;
         string idCliente = "0";
         double descuento;
-        string datos = "", observaciones="", direccion;
+        string datos = "", observaciones="";
         int foli;
-        public string usuario = "", idUsuario = "";
+        public string usuario = "", idUsuario = "", direccion;
         public frmVentas()
         {
             InitializeComponent();

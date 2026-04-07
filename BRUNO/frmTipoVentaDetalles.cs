@@ -36,6 +36,7 @@ namespace BRUNO
             else
             {
                 frmReporteVentas REPORTE = new frmReporteVentas();
+                //REPORTE.ConsultaVentasB = true;
                 REPORTE.usuario = usuario;
                 REPORTE.Show();
                 this.Close();

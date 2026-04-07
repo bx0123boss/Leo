@@ -27,6 +27,13 @@
             this.radioButton2 = new System.Windows.Forms.RadioButton();
             this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.Cant = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Producto = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Precio = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Monto = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Existencia = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ID = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Origin = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.label6 = new System.Windows.Forms.Label();
             this.lblLimite = new System.Windows.Forms.Label();
             this.lblFinal = new System.Windows.Forms.Label();
@@ -47,13 +54,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.lblAdeudo = new System.Windows.Forms.Label();
             this.button5 = new System.Windows.Forms.Button();
-            this.Cant = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Producto = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Precio = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Monto = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Existencia = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ID = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Origin = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.label10 = new System.Windows.Forms.Label();
+            this.lblDatosCotizacion = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
@@ -65,6 +67,8 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.AutoScroll = true;
             this.panel1.BackColor = System.Drawing.Color.Transparent;
+            this.panel1.Controls.Add(this.label10);
+            this.panel1.Controls.Add(this.lblDatosCotizacion);
             this.panel1.Controls.Add(this.label9);
             this.panel1.Controls.Add(this.cmbPago);
             this.panel1.Controls.Add(this.label8);
@@ -227,15 +231,57 @@
             this.ID,
             this.Origin});
             this.dataGridView1.GridColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.dataGridView1.Location = new System.Drawing.Point(18, 177);
+            this.dataGridView1.Location = new System.Drawing.Point(18, 230);
             this.dataGridView1.Margin = new System.Windows.Forms.Padding(4);
             this.dataGridView1.MultiSelect = false;
             this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.Size = new System.Drawing.Size(1120, 447);
+            this.dataGridView1.Size = new System.Drawing.Size(1120, 394);
             this.dataGridView1.TabIndex = 34;
             this.dataGridView1.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dataGridView1_CellBeginEdit);
             this.dataGridView1.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellEndEdit);
             this.dataGridView1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.dataGridView1_KeyPress);
+            // 
+            // Cant
+            // 
+            this.Cant.HeaderText = "Cant";
+            this.Cant.Name = "Cant";
+            // 
+            // Producto
+            // 
+            this.Producto.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Producto.HeaderText = "Producto";
+            this.Producto.Name = "Producto";
+            // 
+            // Precio
+            // 
+            this.Precio.HeaderText = "Precio";
+            this.Precio.Name = "Precio";
+            this.Precio.Width = 160;
+            // 
+            // Monto
+            // 
+            this.Monto.HeaderText = "Monto";
+            this.Monto.Name = "Monto";
+            this.Monto.ReadOnly = true;
+            this.Monto.Width = 160;
+            // 
+            // Existencia
+            // 
+            this.Existencia.HeaderText = "Existencia";
+            this.Existencia.Name = "Existencia";
+            this.Existencia.Visible = false;
+            // 
+            // ID
+            // 
+            this.ID.HeaderText = "ID";
+            this.ID.Name = "ID";
+            this.ID.Visible = false;
+            // 
+            // Origin
+            // 
+            this.Origin.HeaderText = "Origin";
+            this.Origin.Name = "Origin";
+            this.Origin.Visible = false;
             // 
             // label6
             // 
@@ -487,47 +533,29 @@
             this.button5.Visible = false;
             this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
-            // Cant
+            // label10
             // 
-            this.Cant.HeaderText = "Cant";
-            this.Cant.Name = "Cant";
+            this.label10.AutoSize = true;
+            this.label10.BackColor = System.Drawing.Color.Transparent;
+            this.label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label10.ForeColor = System.Drawing.Color.Yellow;
+            this.label10.Location = new System.Drawing.Point(6, 183);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(0, 18);
+            this.label10.TabIndex = 42;
             // 
-            // Producto
+            // lblDatosCotizacion
             // 
-            this.Producto.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Producto.HeaderText = "Producto";
-            this.Producto.Name = "Producto";
-            // 
-            // Precio
-            // 
-            this.Precio.HeaderText = "Precio";
-            this.Precio.Name = "Precio";
-            this.Precio.Width = 160;
-            // 
-            // Monto
-            // 
-            this.Monto.HeaderText = "Monto";
-            this.Monto.Name = "Monto";
-            this.Monto.ReadOnly = true;
-            this.Monto.Width = 160;
-            // 
-            // Existencia
-            // 
-            this.Existencia.HeaderText = "Existencia";
-            this.Existencia.Name = "Existencia";
-            this.Existencia.Visible = false;
-            // 
-            // ID
-            // 
-            this.ID.HeaderText = "ID";
-            this.ID.Name = "ID";
-            this.ID.Visible = false;
-            // 
-            // Origin
-            // 
-            this.Origin.HeaderText = "Origin";
-            this.Origin.Name = "Origin";
-            this.Origin.Visible = false;
+            this.lblDatosCotizacion.AutoSize = true;
+            this.lblDatosCotizacion.BackColor = System.Drawing.Color.Transparent;
+            this.lblDatosCotizacion.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblDatosCotizacion.ForeColor = System.Drawing.Color.Yellow;
+            this.lblDatosCotizacion.Location = new System.Drawing.Point(6, 160);
+            this.lblDatosCotizacion.Name = "lblDatosCotizacion";
+            this.lblDatosCotizacion.Size = new System.Drawing.Size(106, 18);
+            this.lblDatosCotizacion.TabIndex = 41;
+            this.lblDatosCotizacion.Text = "Sin datos extra";
+            this.lblDatosCotizacion.Click += new System.EventHandler(this.lblDatosCotizacion_Click);
             // 
             // frmVentasCredito
             // 
@@ -586,5 +614,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Existencia;
         private System.Windows.Forms.DataGridViewTextBoxColumn ID;
         private System.Windows.Forms.DataGridViewTextBoxColumn Origin;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.Label lblDatosCotizacion;
     }
 }

@@ -40,7 +40,6 @@ namespace BRUNO
             EstilizarBotonPrimario(this.button1);
             EstilizarTextBox(this.textBox1);
             EstilizarTextBox(this.textBox2);
-
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
@@ -74,6 +73,8 @@ namespace BRUNO
 
             if (dataGridView1.Columns.Contains("IVA"))
                 dataGridView1.Columns["IVA"].Visible = false;
+
+            dataGridView1.Columns[4].Visible = !Sesion.TienePermiso("EXISTENCIAS");
         }
 
         private void button1_Click(object sender, EventArgs e)

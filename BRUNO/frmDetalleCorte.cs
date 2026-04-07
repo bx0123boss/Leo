@@ -14,10 +14,13 @@ namespace BRUNO
         public DataSet ds;
         // Uso de variables DECIMALES para que el dinero no falle en centavos
         public decimal mas = 0m;
-        public  decimal menos = 0m;
+        public decimal menos = 0m;
         public decimal tarjeta = 0m;
         public decimal trans = 0m;
         public decimal granTotal = 0m;
+
+        // --- PROPIEDAD QUE RECIBE DESDE EL FORMULARIO ANTERIOR ---
+        public bool EsCorteB { get; set; } = false;
 
         public frmDetalleCorte()
         {
@@ -32,11 +35,16 @@ namespace BRUNO
 
             ds = new DataSet();
 
+            // --- LÓGICA DINÁMICA DE TABLAS ---
+            string tablaDetalle = EsCorteB ? "CortesB" : "Cortes";
+
             // 2. Uso correcto de USING para no dejar conexiones bloqueadas
             using (OleDbConnection conectar = new OleDbConnection(Conexion.CadCon))
             {
                 conectar.Open();
-                using (OleDbDataAdapter da = new OleDbDataAdapter("select * from Cortes where idCorte='" + ID + "';", conectar))
+                // Consultamos la tabla correspondiente (Cortes o CortesB)
+                string sql = "select * from " + tablaDetalle + " where idCorte='" + ID + "';";
+                using (OleDbDataAdapter da = new OleDbDataAdapter(sql, conectar))
                 {
                     da.Fill(ds, "Id");
                 }
@@ -51,8 +59,8 @@ namespace BRUNO
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
+
             // 3. CALCULAR LOS TOTALES RECORRIENDO EL GRID 
-            // (Igual que se hace en frmCorte activo)
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
                 if (dataGridView1.Rows[i].IsNewRow) continue;
@@ -61,12 +69,11 @@ namespace BRUNO
                 {
                     decimal monto = Convert.ToDecimal(dataGridView1[2, i].Value);
 
-                    // Asegurarnos de buscar el tipo en la columna correcta (columna 5 suele ser 'Tipo')
                     string tipoPago = "";
                     if (dataGridView1[5, i].Value != null)
                         tipoPago = dataGridView1[5, i].Value.ToString().ToUpper();
 
-                    // Clasificamos y sumamos a la variable correspondiente
+                    // Clasificamos y sumamos
                     if (tipoPago.Contains("TARJETA") || tipoPago.Contains("04=") || tipoPago.Contains("28="))
                     {
                         tarjeta += monto;
@@ -75,7 +82,7 @@ namespace BRUNO
                     {
                         trans += monto;
                     }
-                    else // Si es EFECTIVO, u otro método por defecto
+                    else
                     {
                         if (monto < 0)
                             menos += monto;
@@ -92,12 +99,12 @@ namespace BRUNO
             lblEfectivo.Text = mas.ToString("C2");
             lblTarjetas.Text = tarjeta.ToString("C2");
             lblTransferencias.Text = trans.ToString("C2");
-            lblSalidas.Text = (menos * -1m).ToString("C2"); // Multiplicar por -1 para mostrarlo positivo en pantalla
+            lblSalidas.Text = (menos * -1m).ToString("C2");
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            // Código de Excel intacto
+            // Código de Excel dinámico según el Grid cargado
             Microsoft.Office.Interop.Excel.Application xla = new Microsoft.Office.Interop.Excel.Application();
             Workbook wb = xla.Workbooks.Add(XlSheetType.xlWorksheet);
             Worksheet ws = (Worksheet)xla.ActiveSheet;
@@ -107,7 +114,8 @@ namespace BRUNO
             ws.Cells[1, 1] = "Concepto";
             ws.Cells[1, 2] = "Monto Total";
             ws.Cells[1, 3] = "Tipo Pago";
-            ws.Cells[1, 4] = "Fecha de Corte: " + lblFecha.Text;
+            ws.Cells[1, 4] = (EsCorteB ? "Fecha de Corte B: " : "Fecha de Corte: ") + lblFecha.Text;
+
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
                 ws.Cells[i + 2, 1] = dataGridView1[1, i].Value.ToString();
@@ -118,7 +126,6 @@ namespace BRUNO
 
         private void button1_Click(object sender, EventArgs e)
         {
-            // 1. Preparamos la lista de productos (en este caso, los conceptos del corte)
             List<Producto> conceptos = new List<Producto>();
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
@@ -133,14 +140,15 @@ namespace BRUNO
                 });
             }
 
-            // 2. Encabezados especiales del corte
+            // Encabezado dinámico para el Ticket
+            string tituloTicket = EsCorteB ? "******** REIMPRESION CORTE B ********" : "******** REIMPRESION CORTE  ********";
+
             string[] encabezados = new string[] {
-                "******** REIMPRESION CORTE  ********",
-                "               Fecha de corte:",
+                tituloTicket,
+                "                Fecha de corte:",
                 lblFecha.Text
             };
 
-            // 3. Diccionario de totales usando el nuevo TicketPrinter (igual que frmCorte)
             Dictionary<string, double> totalesTicket = new Dictionary<string, double>();
             totalesTicket.Add("Efectivo en Caja", Convert.ToDouble(mas));
             totalesTicket.Add("Tarjetas", Convert.ToDouble(tarjeta));
@@ -150,15 +158,12 @@ namespace BRUNO
 
             try
             {
-                // Instanciamos TicketPrinter igual que en tu corte normal
                 TicketPrinter ticketPrinter = new TicketPrinter(
                     encabezados,
                     Conexion.pieDeTicket,
                     Conexion.logoPath,
                     conceptos,
-                    "",
-                    "",
-                    "",
+                    "", "", "",
                     Convert.ToDouble(granTotal),
                     true,
                     totalesTicket);

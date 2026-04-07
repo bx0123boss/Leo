@@ -68,7 +68,7 @@ namespace BRUNO
             txtUsuario.DisplayMember = "Usuario";
             txtUsuario.ValueMember = "Id";
             txtUsuario.DataSource = dt;
-
+            txtUsuario.SelectedIndex = -1; // Para que no seleccione nada al cargar
             ValidarCajaYLicencia();
 
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
@@ -101,14 +101,21 @@ namespace BRUNO
 
         private void EjecutarLogin()
         {
-            if (string.IsNullOrEmpty(txtUsuario.Text) || string.IsNullOrEmpty(txtContraseña.Text))
+            if ((string.IsNullOrEmpty(txtUsuario.Text) || string.IsNullOrEmpty(txtContraseña.Text)) && !Conexion.PuntoB)
             {
                 MessageBox.Show("Por favor, ingresa el usuario y la contraseña.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            else if (Conexion.PuntoB)
+            {
+                frmPrincipal menu = new frmPrincipal();
+                menu.IsPuntoB = true;
+                menu.Show();
+                this.Hide();
+            }
 
-            // Validar caja #1
-            cmd = new OleDbCommand("select * from Fech where Id=1;", conectar);
+                // Validar caja #1
+                cmd = new OleDbCommand("select * from Fech where Id=1;", conectar);
             OleDbDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
@@ -128,11 +135,40 @@ namespace BRUNO
             {
                 string TIPO = reader[3].ToString() == "ADMINISTRADOR" ? "Admin" : "Invitado";
 
-                frmPrincipal principal = new frmPrincipal();
-                principal.idUsuario = reader[0].ToString();
-                principal.usuario = TIPO;
-                principal.NombreUsuario = txtUsuario.Text;
-                principal.Show();
+                // (Asumiendo que ya validaste que el usuario y password son correctos)
+                // Aquí guardamos los datos básicos en la Sesión
+                Sesion.IdUsuario = reader["Id"].ToString(); // Sustituye "reader" por como se llame tu variable del Sql/OleDbDataReader
+                Sesion.NombreUsuario = txtUsuario.Text;     // O reader["Usuario"].ToString()
+
+                // 1. Limpiamos cualquier permiso viejo por seguridad
+                Sesion.PermisosActuales.Clear();
+
+                // 2. Traemos sus permisos asignados desde Access
+                try
+                {
+                    // Asumiendo que usas "conectar" como tu OleDbConnection ya abierta
+                    string queryPermisos = "SELECT Permiso FROM PermisosUsuario WHERE IdUsuario = '" + Sesion.IdUsuario + "'";
+                    using (OleDbCommand cmdPermisos = new OleDbCommand(queryPermisos, conectar))
+                    {
+                        using (OleDbDataReader rdrPermisos = cmdPermisos.ExecuteReader())
+                        {
+                            while (rdrPermisos.Read())
+                            {
+                                // Metemos cada permiso a la mochila de la Sesión
+                                Sesion.PermisosActuales.Add(rdrPermisos["Permiso"].ToString().ToUpper());
+                            }
+                        }
+                    }
+                }
+                catch (Exception exPermisos)
+                {
+                    MessageBox.Show("Error al cargar permisos: " + exPermisos.Message);
+                }
+
+                // 3. ¡Listo! Ahora sí abrimos el menú principal
+                frmPrincipal menu = new frmPrincipal();
+                menu.usuario = Sesion.NombreUsuario; // Para compatibilidad con tu código actual
+                menu.Show();
                 this.Hide();
             }
             else

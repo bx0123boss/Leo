@@ -30,6 +30,7 @@ namespace BRUNO
         public static bool impresionMediaCarta;
         public static string Whatsapp;
         public static bool Bascula;
+        public static bool PuntoB;
         public static void CargarConfiguracion(int id)
         {
             using (var conexion = new OleDbConnection(CadCon))
@@ -56,6 +57,7 @@ namespace BRUNO
                             impresionMediaCarta = Convert.ToBoolean(reader["MediaCarta"]);
                             Whatsapp = reader["PieDeTicket"].ToString();
                             Bascula = Convert.ToBoolean(reader["Bascula"].ToString());
+                            PuntoB = Convert.ToBoolean(reader["PuntoB"].ToString());
                         }
                     }
                 }

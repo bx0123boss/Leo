@@ -33,11 +33,6 @@ namespace BRUNO
             EstilizarBotonPeligro(this.button2);     // Botón "Eliminar"
             EstilizarBotonAdvertencia(this.button3); // Botón "Editar Contraseña"
 
-
-            if (usuario != "ADMINISTRADOR")
-            {
-                button3.Visible = false;
-            }
             ds = new DataSet();
             conectar.Open();
             da = new OleDbDataAdapter("select * from Usuarios;", conectar);
@@ -45,6 +40,7 @@ namespace BRUNO
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
             dataGridView1.Columns[2].Visible = false;
+            dataGridView1.ReadOnly = true;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -93,6 +89,14 @@ namespace BRUNO
             ad.idUsuario = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
             ad.Show();
             this.Close();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            frmAsignarPermisos ad = new frmAsignarPermisos();
+            ad.NombreUsuarioSeleccionado = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+            ad.IdUsuarioSeleccionado = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
+            ad.ShowDialog();
         }
     }
 }
