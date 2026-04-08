@@ -30,6 +30,7 @@ namespace BRUNO
             EstilizarDataGridView(this.dataGridView1);
             EstilizarBotonPrimario(this.btnGenerarConsigna);
             EstilizarBotonAdvertencia(this.button3); // Botón Buscar Producto
+            EstilizarBotonAdvertencia(this.btnBuscarCliente); // Botón Buscar Producto
             EstilizarBotonPeligro(this.button1); // Botón Eliminar
             EstilizarTextBox(this.textBox1);
 
@@ -106,6 +107,60 @@ namespace BRUNO
             catch (Exception) { }
             return 0;
         }
+
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            EliminarProductos();
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            // Índice 10 es el botón 'btnEliminar' con la X
+            if (e.ColumnIndex == 10 && e.RowIndex >= 0)
+            {
+                dataGridView1.Rows.RemoveAt(e.RowIndex);
+                lblTotal.Text = $"{RecalcularTotal:C}";
+                textBox1.Focus();
+            }
+        }
+
+        // =========================================================================
+        // CLIENTE, EXTRAS Y GUARDADO DE CONSIGNA
+        // =========================================================================
+
+        private void btnBuscarCliente_Click(object sender, EventArgs e)
+        {
+            using (frmBuscaCliente cliente = new frmBuscaCliente())
+            {
+                if (cliente.ShowDialog() == DialogResult.OK)
+                {
+                    idCliente = cliente.ID;
+                    lblCliente.Text = cliente.Nombre;
+                }
+            }
+        }
+
+        private void btnGenerarConsigna_Click(object sender, EventArgs e)
+        {
+            if (dataGridView1.RowCount == 0)
+            {
+                MessageBox.Show("No hay productos para consignar.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (idCliente == "0" || string.IsNullOrEmpty(idCliente))
+            {
+                MessageBox.Show("Debe seleccionar un cliente obligatoriamente para una consignación.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            DialogResult respuesta = MessageBox.Show("¿Desea generar la salida a consignación? Se descontará el inventario físico.", "Confirmar Consigna", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (respuesta != DialogResult.Yes) return;
+
+            GuardarConsignacion();
+        }
+
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
@@ -212,37 +267,26 @@ namespace BRUNO
 
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            try
+            if (e.ColumnIndex == 0 || e.ColumnIndex == 2)
             {
-                double cantidad = Convert.ToDouble(dataGridView1[0, e.RowIndex].Value.ToString());
-                double precio = Convert.ToDouble(dataGridView1[2, e.RowIndex].Value.ToString());
-                double monto = cantidad * precio;
-                dataGridView1.Rows[e.RowIndex].Cells[3].Value = String.Format("{0:0.00}", monto);
-            }
-            catch
-            {
-                MessageBox.Show("Solo puedes introducir números válidos.", "Alto", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                dataGridView1.Rows[e.RowIndex].Cells[0].Value = "1";
-                double cantidad = 1;
-                double precio = Convert.ToDouble(dataGridView1[2, e.RowIndex].Value.ToString());
-                double monto = cantidad * precio;
-                dataGridView1.Rows[e.RowIndex].Cells[3].Value = String.Format("{0:0.00}", monto);
-            }
-            lblTotal.Text = $"{RecalcularTotal:C}";
-            textBox1.Focus();
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            EliminarProductos();
-        }
-
-        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            // Índice 10 es el botón 'btnEliminar' con la X
-            if (e.ColumnIndex == 10 && e.RowIndex >= 0)
-            {
-                dataGridView1.Rows.RemoveAt(e.RowIndex);
+                try
+                {
+                    var row = dataGridView1.Rows[e.RowIndex];
+                    if (row.Cells[0].Value != null && row.Cells[2].Value != null)
+                    {
+                        double cantidad = Convert.ToDouble(row.Cells[0].Value);
+                        double precio = Convert.ToDouble(row.Cells[2].Value);
+                        double monto = cantidad * precio;
+                        row.Cells[3].Value = monto.ToString("0.00");
+                    }
+                }
+                catch
+                {
+                    MessageBox.Show("Solo puedes introducir números válidos.", "Alto", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    dataGridView1.Rows[e.RowIndex].Cells[0].Value = "1";
+                    double precio = Convert.ToDouble(dataGridView1.Rows[e.RowIndex].Cells[2].Value);
+                    dataGridView1.Rows[e.RowIndex].Cells[3].Value = precio.ToString("0.00");
+                }
                 lblTotal.Text = $"{RecalcularTotal:C}";
                 textBox1.Focus();
             }
@@ -273,41 +317,301 @@ namespace BRUNO
                 MessageBox.Show($"Error al eliminar filas: {ex.Message}");
             }
         }
-
-        // =========================================================================
-        // CLIENTE, EXTRAS Y GUARDADO DE CONSIGNA
-        // =========================================================================
-
-        private void btnBuscarCliente_Click(object sender, EventArgs e)
+        private void lblDatosCotizacion_Click(object sender, EventArgs e)
         {
-            using (frmBuscaCliente cliente = new frmBuscaCliente())
+            using (frmBase frmCaptura = new frmBase())
             {
-                if (cliente.ShowDialog() == DialogResult.OK)
+                frmCaptura.Text = "Captura de Datos Extra";
+                frmCaptura.StartPosition = FormStartPosition.CenterParent;
+                frmCaptura.MaximizeBox = true;
+                frmCaptura.MinimizeBox = false;
+                frmCaptura.ClientSize = new Size(500, 550); // Tamaño inicial cómodo
+                frmCaptura.MinimumSize = new Size(450, 400);
+
+                // --- 1. CREACIÓN DE PANELES PARA ARREGLAR EL SCROLL ---
+                Panel pnlBotones = new Panel();
+                pnlBotones.Height = 70;
+                pnlBotones.Dock = DockStyle.Bottom;
+
+                Panel pnlCampos = new Panel();
+                pnlCampos.Dock = DockStyle.Fill;
+                pnlCampos.AutoScroll = true;
+
+                frmCaptura.Controls.Add(pnlCampos);
+                frmCaptura.Controls.Add(pnlBotones);
+
+                // --- 2. LECTURA DE DATOS PREVIOS ---
+                int yPos = 20;
+                Dictionary<string, string> valoresExistentes = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(datos))
                 {
-                    idCliente = cliente.ID;
-                    lblCliente.Text = cliente.Nombre;
+                    string[] pares = datos.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (string par in pares)
+                    {
+                        string[] partes = par.Split(new[] { ':' }, 2);
+                        if (partes.Length == 2)
+                        {
+                            valoresExistentes[partes[0].Trim()] = partes[1].Trim();
+                        }
+                    }
+                }
+
+                List<TextBox> listaTextBoxes = new List<TextBox>();
+                List<string> listaEtiquetas = new List<string>();
+
+                // ---> NUEVO: OBTENER HISTORIAL Y CREAR COMBOBOX <---
+                var historialDatos = ObtenerHistorialDatosCliente(idCliente);
+                ComboBox cmbHistorial = null;
+
+                if (historialDatos.Count > 0)
+                {
+                    Label lblHistorial = new Label();
+                    lblHistorial.Text = "Historial:";
+                    lblHistorial.Left = 20;
+                    lblHistorial.Top = yPos;
+                    lblHistorial.Width = 120;
+                    lblHistorial.TextAlign = ContentAlignment.MiddleRight;
+                    lblHistorial.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+                    lblHistorial.ForeColor = Color.SteelBlue; // Para que resalte visualmente
+
+                    cmbHistorial = new ComboBox();
+                    cmbHistorial.Left = 150;
+                    cmbHistorial.Top = yPos - 3;
+                    cmbHistorial.Width = 300;
+                    cmbHistorial.DropDownStyle = ComboBoxStyle.DropDownList;
+                    cmbHistorial.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+                    cmbHistorial.Items.Add("-- Seleccione para rellenar --");
+                    foreach (var reg in historialDatos)
+                    {
+                        string resumen = string.Join(" | ", reg.Values.Where(v => !string.IsNullOrEmpty(v)).Take(3));
+                        cmbHistorial.Items.Add(resumen);
+                    }
+                    cmbHistorial.SelectedIndex = 0;
+
+                    pnlCampos.Controls.Add(lblHistorial);
+                    pnlCampos.Controls.Add(cmbHistorial);
+
+                    yPos += 45; // Bajamos el eje Y para los siguientes campos
+                }
+
+                // --- 3. CONSULTA A LA BASE DE DATOS ---
+                string query = "SELECT NombreEtiqueta FROM CotizacionCamposConfig WHERE Activo = 1 ORDER BY Orden";
+                try
+                {
+                    using (SqlConnection conn = new SqlConnection(Conexion.CadSQL))
+                    {
+                        conn.Open();
+                        using (SqlCommand cmd = new SqlCommand(query, conn))
+                        {
+                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    string etiqueta = reader["NombreEtiqueta"].ToString();
+                                    listaEtiquetas.Add(etiqueta);
+
+                                    Label lbl = new Label();
+                                    lbl.Text = etiqueta + ":";
+                                    lbl.Left = 20;
+                                    lbl.Top = yPos;
+                                    lbl.Width = 120;
+                                    lbl.TextAlign = ContentAlignment.MiddleRight;
+                                    lbl.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+
+                                    TextBox txt = new TextBox();
+                                    txt.Left = 150;
+                                    txt.Top = yPos - 3;
+                                    txt.Width = 300;
+                                    txt.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+                                    // Si existe la funcion EstilizarTextBox, descomentarla:
+                                    EstilizarTextBox(txt);
+
+                                    if (valoresExistentes.ContainsKey(etiqueta))
+                                    {
+                                        txt.Text = valoresExistentes[etiqueta];
+                                    }
+
+                                    pnlCampos.Controls.Add(lbl);
+                                    pnlCampos.Controls.Add(txt);
+                                    listaTextBoxes.Add(txt);
+
+                                    yPos += 45;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al cargar configuración de campos: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // ---> NUEVO: EVENTO DEL COMBOBOX PARA LLENAR TEXTBOXES <---
+                if (cmbHistorial != null)
+                {
+                    cmbHistorial.SelectedIndexChanged += (sCombo, evCombo) =>
+                    {
+                        if (cmbHistorial.SelectedIndex > 0)
+                        {
+                            var registroElegido = historialDatos[cmbHistorial.SelectedIndex - 1];
+                            for (int i = 0; i < listaEtiquetas.Count; i++)
+                            {
+                                string etiq = listaEtiquetas[i];
+                                if (registroElegido.ContainsKey(etiq))
+                                {
+                                    listaTextBoxes[i].Text = registroElegido[etiq];
+                                }
+                            }
+                        }
+                    };
+                }
+
+                // --- 4. CAMPO DE OBSERVACIONES ---
+                yPos += 10;
+                Label lblObs = new Label() { Text = "Observaciones (Ej. Detalles extra):", Left = 20, Top = yPos, Width = 380 };
+                lblObs.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+                yPos += 25;
+
+                TextBox txtObs = new TextBox()
+                {
+                    Left = 20,
+                    Top = yPos,
+                    Width = 430,
+                    Height = 90,
+                    Multiline = true,
+                    ScrollBars = ScrollBars.Vertical,
+                    Text = observaciones,
+                    Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+                };
+
+                EstilizarTextBox(txtObs);
+                pnlCampos.Controls.Add(lblObs);
+                pnlCampos.Controls.Add(txtObs);
+
+                // --- 5. BOTONES EN EL PANEL FIJO ---
+                Button btnAceptar = new Button() { Text = "Aceptar", Width = 90, Height = 40, DialogResult = DialogResult.OK };
+                Button btnCancelar = new Button() { Text = "Cancelar", Width = 90, Height = 40, DialogResult = DialogResult.Cancel };
+
+                btnAceptar.Top = 15;
+                btnCancelar.Top = 15;
+                btnAceptar.Left = pnlBotones.ClientSize.Width - 210;
+                btnCancelar.Left = pnlBotones.ClientSize.Width - 110;
+                btnAceptar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                btnCancelar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+
+                EstilizarBotonPrimario(btnAceptar);
+                EstilizarBotonPeligro(btnCancelar);
+
+                pnlBotones.Controls.Add(btnAceptar);
+                pnlBotones.Controls.Add(btnCancelar);
+
+                // --- 6. PROCESAR GUARDADO ---
+                frmCaptura.AcceptButton = btnAceptar;
+                frmCaptura.CancelButton = btnCancelar;
+
+                if (frmCaptura.ShowDialog() == DialogResult.OK)
+                {
+                    List<string> datosGuardar = new List<string>();
+
+                    for (int i = 0; i < listaTextBoxes.Count; i++)
+                    {
+                        string valorCapturado = listaTextBoxes[i].Text.Trim();
+                        if (!string.IsNullOrEmpty(valorCapturado))
+                        {
+                            datosGuardar.Add($"{listaEtiquetas[i]}: {valorCapturado}");
+                        }
+                    }
+
+                    datos = string.Join("; ", datosGuardar);
+                    observaciones = txtObs.Text.Trim();
+
+                    if (!string.IsNullOrEmpty(datos))
+                    {
+                        string textoVisual = datos.Replace(";", "   |   ");
+                        lblDatosCotizacion.Text = textoVisual;
+                        lblDatosCotizacion.Visible = true;
+                    }
+                    else
+                    {
+                        lblDatosCotizacion.Text = "[ Clic aquí para capturar datos extra ]";
+                        lblDatosCotizacion.Visible = true;
+                    }
+
+                    if (!string.IsNullOrEmpty(observaciones))
+                    {
+                        label9.Text = "Observaciones: " + observaciones;
+                        label9.Visible = true;
+                    }
+                    else
+                    {
+                        label9.Text = "";
+                        label9.Visible = false;
+                    }
                 }
             }
         }
 
-        private void btnGenerarConsigna_Click(object sender, EventArgs e)
+        private List<Dictionary<string, string>> ObtenerHistorialDatosCliente(string idClient)
         {
-            if (dataGridView1.RowCount == 0)
+            var historial = new List<Dictionary<string, string>>();
+
+            // Si no hay cliente seleccionado, no buscamos historial
+            if (string.IsNullOrEmpty(idClient) || idClient == "0") return historial;
+
+            try
             {
-                MessageBox.Show("No hay productos para consignar.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                using (SqlConnection con = new SqlConnection(Conexion.CadSQL))
+                {
+                    con.Open();
+                    // Buscamos el historial de los datos en las cotizaciones pasadas
+                    string query = "SELECT Datos FROM Cotizaciones WHERE ClienteId = @ClienteId AND Datos IS NOT NULL AND Datos <> ''";
+
+                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue("@ClienteId", idClient);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                string datosRaw = reader["Datos"].ToString();
+                                if (!string.IsNullOrWhiteSpace(datosRaw))
+                                {
+                                    var pares = datosRaw.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                                    var registro = new Dictionary<string, string>();
+
+                                    foreach (var par in pares)
+                                    {
+                                        var partes = par.Split(new[] { ':' }, 2);
+                                        if (partes.Length == 2)
+                                        {
+                                            string etiqueta = partes[0].Trim();
+                                            string valor = partes[1].Trim();
+
+                                            if (!string.IsNullOrWhiteSpace(valor))
+                                            {
+                                                registro[etiqueta] = valor;
+                                            }
+                                        }
+                                    }
+
+                                    // Evitamos agregar registros exactos duplicados
+                                    if (registro.Count > 0)
+                                    {
+                                        bool yaExiste = historial.Any(h => h.Count == registro.Count && !h.Except(registro).Any());
+                                        if (!yaExiste) historial.Add(registro);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
+            catch { /* Ignoramos si ocurre un error de conexión */ }
 
-            if (idCliente == "0" || string.IsNullOrEmpty(idCliente))
-            {
-                MessageBox.Show("Debe seleccionar un cliente obligatoriamente para una consignación.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            DialogResult respuesta = MessageBox.Show("¿Desea generar la salida a consignación? Se descontará el inventario físico.", "Confirmar Consigna", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (respuesta != DialogResult.Yes) return;
-
-            GuardarConsignacion();
+            return historial;
         }
 
         private void GuardarConsignacion()
@@ -315,9 +619,16 @@ namespace BRUNO
             try
             {
                 // 1. GENERAR FOLIO
-                string folioConsigna = "CON-" + DateTime.Now.ToString("yyMMddHHmmss");
+                int foli = 1;
                 int idConsignacionInsertada = 0;
-
+                using (OleDbCommand cmdFolio = new OleDbCommand("SELECT Numero FROM Folios WHERE Folio='consigna';", conectarAccess))
+                {
+                    object res = cmdFolio.ExecuteScalar();
+                    if (res != null && res != DBNull.Value)
+                    {
+                        foli = Convert.ToInt32(res);
+                    }
+                }
                 // 2. GUARDAR EN SQL SERVER
                 using (SqlConnection conSql = new SqlConnection(Conexion.CadSQL))
                 {
@@ -331,7 +642,7 @@ namespace BRUNO
                                               VALUES (@Folio, @CId, @CNom, GETDATE(), @Total, 'Pendiente', @Obs, @Dat)";
                         using (SqlCommand cmdSql = new SqlCommand(queryPadre, conSql, transaccionSql))
                         {
-                            cmdSql.Parameters.AddWithValue("@Folio", folioConsigna);
+                            cmdSql.Parameters.AddWithValue("@Folio", foli);
                             cmdSql.Parameters.AddWithValue("@CId", idCliente);
                             cmdSql.Parameters.AddWithValue("@CNom", lblCliente.Text);
                             cmdSql.Parameters.AddWithValue("@Total", total);
@@ -348,7 +659,7 @@ namespace BRUNO
                         {
                             using (SqlCommand cmdDet = new SqlCommand(queryDetalle, conSql, transaccionSql))
                             {
-                                cmdDet.Parameters.AddWithValue("@CId", idConsignacionInsertada);
+                                cmdDet.Parameters.AddWithValue("@CId", foli);
                                 cmdDet.Parameters.AddWithValue("@Cant", Convert.ToDouble(row.Cells[0].Value));
                                 cmdDet.Parameters.AddWithValue("@Desc", row.Cells[1].Value.ToString());
                                 cmdDet.Parameters.AddWithValue("@Pre", Convert.ToDecimal(row.Cells[2].Value));
@@ -367,7 +678,6 @@ namespace BRUNO
                 }
 
                 // 3. DESCONTAR INVENTARIO EN ACCESS
-                conectarAccess.Open();
                 OleDbTransaction transaccionAccess = conectarAccess.BeginTransaction();
                 try
                 {
@@ -383,13 +693,20 @@ namespace BRUNO
                             cmdAcc.ExecuteNonQuery();
                         }
 
-                        string descKardex = "SALIDA A CONSIGNACION FOLIO: " + folioConsigna;
+                        string descKardex = "SALIDA A CONSIGNACION FOLIO: " + foli;
                         string queryKardex = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) VALUES('" + idProd + "', 'SALIDA', '" + descKardex + "', " + existenciaActual + ", '" + nuevaExistencia + "', '" + DateTime.Now.ToString("dd/MM/yyyy HH:mm") + "');";
                         using (OleDbCommand cmdKar = new OleDbCommand(queryKardex, conectarAccess, transaccionAccess))
                         {
                             cmdKar.ExecuteNonQuery();
                         }
                     }
+                    MessageBox.Show("Consignación generada exitosamente con Folio: " + foli, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    foli++;
+                    using (OleDbCommand cmdUpdFolio = new OleDbCommand("UPDATE Folios SET Numero=" + foli + " WHERE Folio='consigna';", conectarAccess, transaccionAccess))
+                    {
+                        cmdUpdFolio.ExecuteNonQuery();
+                    }
+
                     transaccionAccess.Commit();
                 }
                 catch (Exception exAcc)
@@ -402,10 +719,9 @@ namespace BRUNO
                     conectarAccess.Close();
                 }
 
-                MessageBox.Show("Consignación generada exitosamente con Folio: " + folioConsigna, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                
 
-                // Imprimir Ticket 
-                // Aqui ira tu lógica de impresión adaptada a salida de consigna (sin desglosar cobro/cambio)
+                // TODO: Imprimir Ticket 
 
                 ReiniciarForm();
             }
@@ -429,3 +745,4 @@ namespace BRUNO
         }
     }
 }
+    

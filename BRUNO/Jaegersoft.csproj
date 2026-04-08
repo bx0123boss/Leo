@@ -168,12 +168,6 @@
     <Compile Include="frmAgregarCompras2.Designer.cs">
       <DependentUpon>frmAgregarCompras2.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmAgregarDinasti.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmAgregarDinasti.Designer.cs">
-      <DependentUpon>frmAgregarDinasti.cs</DependentUpon>
-    </Compile>
     <Compile Include="frmAgregarGasto.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -453,6 +447,18 @@
     <Compile Include="frmLineas.Designer.cs">
       <DependentUpon>frmLineas.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmLiquidarConsignacion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmLiquidarConsignacion.Designer.cs">
+      <DependentUpon>frmLiquidarConsignacion.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmListadoConsignaciones.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmListadoConsignaciones.Designer.cs">
+      <DependentUpon>frmListadoConsignaciones.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmListaPendientes.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -717,9 +723,6 @@
     <EmbeddedResource Include="frmAgregarCompras2.resx">
       <DependentUpon>frmAgregarCompras2.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmAgregarDinasti.resx">
-      <DependentUpon>frmAgregarDinasti.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="frmAgregarGasto.resx">
       <DependentUpon>frmAgregarGasto.cs</DependentUpon>
     </EmbeddedResource>
@@ -858,6 +861,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmLineas.resx">
       <DependentUpon>frmLineas.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmLiquidarConsignacion.resx">
+      <DependentUpon>frmLiquidarConsignacion.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmListaPendientes.resx">
       <DependentUpon>frmListaPendientes.cs</DependentUpon>

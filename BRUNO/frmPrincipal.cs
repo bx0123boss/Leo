@@ -42,10 +42,7 @@ namespace BRUNO
                 ProcessStartInfo info = new ProcessStartInfo();
                 info.FileName = rutaWebExe;
                 string puertoBascula = "COM4";
-
-                // Concatenamos el parámetro mock (true/false), un ESPACIO, y el puerto
                 info.Arguments = $"{(usarMock ? "true" : "false")} {puertoBascula}";
-                // ==========================
 
                 info.WindowStyle = ProcessWindowStyle.Hidden; 
                 info.CreateNoWindow = true;
@@ -90,8 +87,6 @@ namespace BRUNO
                 button7.Visible = true;
             }
         }
-
-        // === MÉTODO OPTIMIZADO PARA VERIFICAR SI UN FORMULARIO YA ESTÁ ABIERTO ===
         private bool FormularioEstaAbierto(Type tipoFormulario)
         {
             foreach (Form frm in Application.OpenForms)
@@ -99,7 +94,7 @@ namespace BRUNO
                 if (frm.GetType() == tipoFormulario)
                 {
                     MessageBox.Show("Este módulo ya se encuentra abierto.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    frm.BringToFront(); // Lo trae al frente si estaba escondido
+                    frm.BringToFront(); 
                     return true;
                 }
             }
@@ -242,7 +237,7 @@ namespace BRUNO
 
         private void button7_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start("firefox.exe", "https://www.cfdi.com.mx/login/");
+            Process.Start("https://www.cfdi.com.mx/login/");
         }
 
         private void button8_Click(object sender, EventArgs e)
@@ -276,8 +271,7 @@ namespace BRUNO
                 if (!File.Exists(rutaWebExe))
                 {
                     MessageBox.Show("Error iniciando servidor web");
-                    // Opcional: Loguear error
-                    return false; // El archivo no existe
+                    return false; 
                 }
 
                 ProcessStartInfo info = new ProcessStartInfo();
@@ -289,7 +283,6 @@ namespace BRUNO
 
                 _procesoWeb = Process.Start(info);
 
-                // Si _procesoWeb no es nulo, significa que Windows lanzó el EXE
                 if (_procesoWeb != null)
                 {
                     return true;
@@ -299,7 +292,7 @@ namespace BRUNO
             catch (Exception ex)
             {
                 Console.WriteLine("Error iniciando web: " + ex.Message);
-                return false; // Falló por excepción
+                return false;
             }
         }
 
@@ -341,6 +334,15 @@ namespace BRUNO
             else
             {
                 base.FrmBase_KeyDown(sender, e);
+            }
+        }
+
+        private void btnConsignacion_Click(object sender, EventArgs e)
+        {
+            if (!FormularioEstaAbierto(typeof(frmListadoConsignaciones)))
+            {
+                frmListadoConsignaciones config = new frmListadoConsignaciones();
+                config.Show();
             }
         }
     }
