@@ -14,11 +14,8 @@ namespace BRUNO
     public partial class frmAgregarUnidad : Form
     {
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
         OleDbCommand cmd;
         public string id;
-        OleDbDataAdapter da;
-        private DataSet ds;
 
         public frmAgregarUnidad()
         {

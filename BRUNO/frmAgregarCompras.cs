@@ -91,7 +91,7 @@ namespace BRUNO
                     txtCantidad.Focus();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             { }
         }
 

@@ -16,12 +16,8 @@ namespace BRUNO
     public partial class frmInventario : frmBase
     {
 
-        private DataSet ds;
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        //public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Jaeger Soft\Joyeria.accdb";
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
         OleDbCommand cmd;
-        OleDbDataAdapter da;
         public String usuario = "Admin";
         bool sinllenar = true;
 

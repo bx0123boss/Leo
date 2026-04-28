@@ -17,7 +17,6 @@ namespace BRUNO
         private DataSet ds;
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         OleDbDataAdapter da;
-
         public String usuario = "";
 
         // --- PARÁMETRO: Define si lee de Ventas o VentasB ---
@@ -35,7 +34,11 @@ namespace BRUNO
             EstilizarTextBox(textBox1);
             EstilizarBotonPrimario(this.button1);
             conectar.Open();
-
+            ds = new DataSet();
+            da = new OleDbDataAdapter("Select * from Ventas where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59# ORDER BY Fecha DESC;", conectar);
+            da.Fill(ds, "Id");
+            dataGridView1.DataSource = ds.Tables["Id"];
+            dataGridView1.Columns[0].Visible = false;
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
@@ -82,11 +85,11 @@ namespace BRUNO
 
             ds = new DataSet();
             da = new OleDbDataAdapter(query, conectar);
-            da.Fill(ds, "Id");
-            dataGridView1.DataSource = ds.Tables["Id"];
+            da = new OleDbDataAdapter("Select * from Ventas where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59# ORDER BY Fecha DESC;", conectar);
+
 
             // Ocultar siempre el ID
-            dataGridView1.Columns[0].Visible = false;
+            dataGridView1.DataSource = ds.Tables["Id"];
 
             // --- OCULTAR EL FOLIO REAL (FolioA) CUANDO ES VENTAS B ---
             if (ConsultaVentasB && dataGridView1.Columns.Contains("FolioA"))
@@ -116,11 +119,11 @@ namespace BRUNO
 
         private void button1_Click(object sender, EventArgs e)
         {
+        {
+
             try
             {
                 if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
-                {
-                    frmVentaDetallada detalles = new frmVentaDetallada();
                     if (ConsultaVentasB)
                     {
                         // Mandamos el Real a la variable oculta
@@ -134,12 +137,12 @@ namespace BRUNO
                         detalles.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
                     }
 
-                    double monto = Convert.ToDouble(dataGridView1[5, dataGridView1.CurrentRow.Index].Value.ToString());
-                    detalles.lblDescuento.Text = $"{monto:C}";
+                    detalles.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
+
+
 
                     detalles.lblPago.Text = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
                     detalles.lblFecha.Text = dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString();
-
                     if (dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString() == "CANCELADO")
                     {
                         detalles.button1.Visible = false;
@@ -150,7 +153,6 @@ namespace BRUNO
                         detalles.button1.Visible = true;
                         detalles.button2.Visible = true;
                     }
-
                     decimal montoTotal = Convert.ToDecimal(dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString());
                     detalles.lblMonto.Text = $"{montoTotal:C}";
                     detalles.monto = montoTotal;
@@ -164,10 +166,23 @@ namespace BRUNO
                 }
             }
             catch (Exception ex)
-            {
-                MessageBox.Show("Error: " + ex.Message);
             }
         }
+        private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == Convert.ToChar(Keys.Enter))
+            {
+                ds = new DataSet();
+                da = new OleDbDataAdapter("Select * from Ventas where Folio like '%" + textBox1.Text + "%';", conectar);
+                da.Fill(ds, "Id");
+                dataGridView1.DataSource = ds.Tables["Id"];
+                dataGridView1.Columns[0].Visible = false;
+                dataGridView1.Columns[0].Visible = false;
+
+            }
+        }
+
+
 
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {

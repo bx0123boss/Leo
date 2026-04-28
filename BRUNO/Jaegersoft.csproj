@@ -168,12 +168,6 @@
     <Compile Include="frmAgregarCompras2.Designer.cs">
       <DependentUpon>frmAgregarCompras2.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmAgregarDinasti.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmAgregarDinasti.Designer.cs">
-      <DependentUpon>frmAgregarDinasti.cs</DependentUpon>
-    </Compile>
     <Compile Include="frmAgregarGasto.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -338,6 +332,30 @@
     </Compile>
     <Compile Include="frmConfiguracionTicket.Designer.cs">
       <DependentUpon>frmConfiguracionTicket.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmConsigna.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmConsigna.Designer.cs">
+      <DependentUpon>frmConsigna.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmConsignaCobrar.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmConsignaCobrar.Designer.cs">
+      <DependentUpon>frmConsignaCobrar.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmConsignaDevolver.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmConsignaDevolver.Designer.cs">
+      <DependentUpon>frmConsignaDevolver.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmConsignaEntregar.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmConsignaEntregar.Designer.cs">
+      <DependentUpon>frmConsignaEntregar.cs</DependentUpon>
     </Compile>
     <Compile Include="frmCortePorFechas.cs">
       <SubType>Form</SubType>
@@ -718,9 +736,6 @@
     <EmbeddedResource Include="frmAgregarCompras2.resx">
       <DependentUpon>frmAgregarCompras2.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmAgregarDinasti.resx">
-      <DependentUpon>frmAgregarDinasti.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="frmAgregarGasto.resx">
       <DependentUpon>frmAgregarGasto.cs</DependentUpon>
     </EmbeddedResource>
@@ -799,6 +814,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmConfiguracionTicket.resx">
       <DependentUpon>frmConfiguracionTicket.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmConsigna.resx">
+      <DependentUpon>frmConsigna.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmConsignaCobrar.resx">
+      <DependentUpon>frmConsignaCobrar.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmConsignaEntregar.resx">
+      <DependentUpon>frmConsignaEntregar.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmCortePorFechas.resx">
       <DependentUpon>frmCortePorFechas.cs</DependentUpon>

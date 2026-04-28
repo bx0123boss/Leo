@@ -17,7 +17,6 @@ namespace BRUNO
         OleDbConnection conn;
         OleDbDataAdapter MyDataAdapter;
         DataTable dt;
-        OleDbCommand cmd;
         public frmFisico()
         {
             InitializeComponent();

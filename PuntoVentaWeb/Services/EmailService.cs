@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Mail;
-using System.Net.Mime; // Necesario para incrustar imágenes
 using System.Text;
 using PuntoVentaWeb.Models;
 
@@ -10,7 +9,6 @@ public class EmailService
 {
     private readonly CotizacionService _cotizacionService;
 
-    // RUTAS A TUS ARCHIVOS LOCALES
     private const string RUTA_LOGO_LOCAL = @"C:\Jaeger Soft\logo.png";
     private const string RUTA_WHATSAPP_LOCAL = @"C:\Jaeger Soft\whatsapp.png"; 
 
@@ -36,7 +34,6 @@ public class EmailService
                 return (false, "Falta configurar el correo emisor.");
             }
 
-            // Nota: Si usas Outlook, cambia a smtp.office365.com
             var smtpClient = new SmtpClient("smtp.gmail.com")
             {
                 Port = 587,
@@ -53,26 +50,19 @@ public class EmailService
 
             mailMessage.To.Add(destinatario);
 
-            // 1. Generar el HTML
-            string htmlBody = GenerarHtmlProfesional(nombreCliente, folio, config);
+            string htmlBody = GenerarHtml(nombreCliente, folio, config);
 
-            // 2. Crear la Vista HTML
-            // CORRECCIÓN AQUÍ: Usamos "text/html" manual o MediaTypeNames.Text.Html si funciona
             AlternateView htmlView = AlternateView.CreateAlternateViewFromString(htmlBody, Encoding.UTF8, "text/html");
 
-            // 3. INCRUSTAR LOGO (Si existe)
             if (File.Exists(RUTA_LOGO_LOCAL))
             {
-                // CORRECCIÓN: Usamos "image/png" manualmente
                 LinkedResource logoRes = new LinkedResource(RUTA_LOGO_LOCAL, "image/png");
                 logoRes.ContentId = "LogoImage";
                 htmlView.LinkedResources.Add(logoRes);
             }
 
-            // 4. INCRUSTAR WHATSAPP (Si existe)
             if (File.Exists(RUTA_WHATSAPP_LOCAL))
             {
-                // CORRECCIÓN: Usamos "image/png" manualmente
                 LinkedResource waRes = new LinkedResource(RUTA_WHATSAPP_LOCAL, "image/png");
                 waRes.ContentId = "WhatsappImage";
                 htmlView.LinkedResources.Add(waRes);
@@ -80,7 +70,6 @@ public class EmailService
 
             mailMessage.AlternateViews.Add(htmlView);
 
-            // 5. Adjuntar PDF
             using (var stream = new MemoryStream(pdfBytes))
             {
                 var attachment = new Attachment(stream, $"Cotizacion_{folio}.pdf", "application/pdf");
@@ -96,9 +85,8 @@ public class EmailService
             return (false, $"Error SMTP: {ex.Message}");
         }
     }
-    private string GenerarHtmlProfesional(string cliente, int folio, ConfiguracionNegocio config)
+    private string GenerarHtml(string cliente, int folio, ConfiguracionNegocio config)
     {
-        // Datos del negocio para el pie
         string footerText = "";
         if (config.PieDeTicket != null)
             footerText = string.Join("<br>", config.PieDeTicket.Select(linea => WebUtility.HtmlEncode(linea)));

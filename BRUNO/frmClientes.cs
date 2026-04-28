@@ -37,6 +37,7 @@ namespace BRUNO
             EstilizarBotonPrimario(button5);
             EstilizarBotonPrimario(button6);
             EstilizarBotonPrimario(button8);
+            EstilizarBotonPrimario(button9);
             EstilizarTextBox(textBox1);
 
             ds = new DataSet();
@@ -229,6 +230,23 @@ namespace BRUNO
         private void button8_Click(object sender, EventArgs e)
         {
         }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            if (dataGridView1.CurrentRow != null)
+            {
+                int idCliente = Convert.ToInt32(dataGridView1.CurrentRow.Cells["Id"].Value);
+                string nombreCliente = dataGridView1.CurrentRow.Cells["Nombre"].Value.ToString();
+
+                // Abrimos el panel principal de consignas de ESTE cliente
+                frmConsigna frm = new frmConsigna(idCliente, nombreCliente);
+                frm.ShowDialog(); // ShowDialog hace que no puedan tocar lo de atrás hasta que terminen
+            }
+            else
+            {
+                MessageBox.Show("Por favor seleccione un cliente primero.");
+            }
         }
+    }
     }
 

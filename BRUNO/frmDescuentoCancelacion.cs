@@ -15,8 +15,6 @@ namespace BRUNO
     {
         public string id;
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbDataAdapter da;
         OleDbCommand cmd;
         public frmDescuentoCancelacion()
         {
