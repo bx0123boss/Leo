@@ -16,6 +16,7 @@ namespace BRUNO
         {
             EstilizarDataGridView(this.dataGridView1);
             EstilizarBotonPrimario(this.btnVerDetalle);
+            EstilizarBotonPrimario(this.button1);
             EstilizarTextBox(this.txtBuscar);
 
             // 1. SELECCIONAMOS "TODAS" POR DEFECTO PRIMERO
@@ -138,6 +139,12 @@ namespace BRUNO
                     e.FormattingApplied = true;
                 }
             }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            frmNuevaConsignacion consigna = new frmNuevaConsignacion();
+            consigna.ShowDialog();
         }
     }
 }

@@ -49,7 +49,7 @@ namespace BRUNO
                 this.Close();
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
