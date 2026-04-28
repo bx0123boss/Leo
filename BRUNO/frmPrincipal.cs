@@ -337,13 +337,5 @@ namespace BRUNO
             }
         }
 
-        private void btnConsignacion_Click(object sender, EventArgs e)
-        {
-            if (!FormularioEstaAbierto(typeof(frmListadoConsignaciones)))
-            {
-                frmListadoConsignaciones config = new frmListadoConsignaciones();
-                config.Show();
-            }
-        }
     }
 }

@@ -471,18 +471,6 @@
     <Compile Include="frmLineas.Designer.cs">
       <DependentUpon>frmLineas.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmLiquidarConsignacion.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmLiquidarConsignacion.Designer.cs">
-      <DependentUpon>frmLiquidarConsignacion.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmListadoConsignaciones.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmListadoConsignaciones.Designer.cs">
-      <DependentUpon>frmListadoConsignaciones.cs</DependentUpon>
-    </Compile>
     <Compile Include="frmListaPendientes.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -494,12 +482,6 @@
     </Compile>
     <Compile Include="frmLogin.Designer.cs">
       <DependentUpon>frmLogin.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmNuevaConsignacion.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmNuevaConsignacion.Designer.cs">
-      <DependentUpon>frmNuevaConsignacion.cs</DependentUpon>
     </Compile>
     <Compile Include="frmPago.cs">
       <SubType>Form</SubType>
@@ -895,20 +877,11 @@
     <EmbeddedResource Include="frmLineas.resx">
       <DependentUpon>frmLineas.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmLiquidarConsignacion.resx">
-      <DependentUpon>frmLiquidarConsignacion.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmListadoConsignaciones.resx">
-      <DependentUpon>frmListadoConsignaciones.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="frmListaPendientes.resx">
       <DependentUpon>frmListaPendientes.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmLogin.resx">
       <DependentUpon>frmLogin.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmNuevaConsignacion.resx">
-      <DependentUpon>frmNuevaConsignacion.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmPago.resx">
       <DependentUpon>frmPago.cs</DependentUpon>

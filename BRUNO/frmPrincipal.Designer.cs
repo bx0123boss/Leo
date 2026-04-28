@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPrincipal));
             this.pnlMenu = new System.Windows.Forms.Panel();
+            this.btnConsignacion = new System.Windows.Forms.Button();
             this.BtnCobrar = new System.Windows.Forms.Button();
             this.BtnApartados = new System.Windows.Forms.Button();
             this.BtnDevoluciones = new System.Windows.Forms.Button();
@@ -48,7 +49,6 @@
             this.button7 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
-            this.btnConsignacion = new System.Windows.Forms.Button();
             this.pnlMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
@@ -76,6 +76,13 @@
             this.pnlMenu.Name = "pnlMenu";
             this.pnlMenu.Size = new System.Drawing.Size(1260, 785);
             this.pnlMenu.TabIndex = 0;
+            // 
+            // btnConsignacion
+            // 
+            this.btnConsignacion.Location = new System.Drawing.Point(0, 0);
+            this.btnConsignacion.Name = "btnConsignacion";
+            this.btnConsignacion.Size = new System.Drawing.Size(75, 23);
+            this.btnConsignacion.TabIndex = 0;
             // 
             // BtnCobrar
             // 
@@ -264,7 +271,7 @@
             this.button8.Location = new System.Drawing.Point(910, 52);
             this.button8.Margin = new System.Windows.Forms.Padding(4);
             this.button8.Name = "button8";
-            this.button8.Size = new System.Drawing.Size(257, 58);
+            this.button8.Size = new System.Drawing.Size(257, 118);
             this.button8.TabIndex = 21;
             this.button8.Text = "COTIZACIONES";
             this.button8.UseVisualStyleBackColor = true;
@@ -348,21 +355,6 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Visible = false;
             this.button2.Click += new System.EventHandler(this.button2_Click);
-            // 
-            // btnConsignacion
-            // 
-            this.btnConsignacion.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("btnConsignacion.BackgroundImage")));
-            this.btnConsignacion.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btnConsignacion.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnConsignacion.ForeColor = System.Drawing.Color.White;
-            this.btnConsignacion.Location = new System.Drawing.Point(910, 112);
-            this.btnConsignacion.Margin = new System.Windows.Forms.Padding(4);
-            this.btnConsignacion.Name = "btnConsignacion";
-            this.btnConsignacion.Size = new System.Drawing.Size(257, 58);
-            this.btnConsignacion.TabIndex = 22;
-            this.btnConsignacion.Text = "CONSIGNA";
-            this.btnConsignacion.UseVisualStyleBackColor = true;
-            this.btnConsignacion.Click += new System.EventHandler(this.btnConsignacion_Click);
             // 
             // frmPrincipal
             // 
