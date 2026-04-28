@@ -17,18 +17,71 @@ namespace BRUNO
     {
         private DataSet ds;
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
         OleDbDataAdapter da;
         OleDbCommand cmd;
         double existenciasTotales = 0;
         public String usuario = "";
         public decimal monto;
-
+        public bool esConsigna = false;
         public frmVentaDetallada()
         {
             InitializeComponent();
         }
+        public frmVentaDetallada(string folio)
+        {
+            InitializeComponent();
+            esConsigna = true;
+            lblFolio.Text = folio;
+            lblFolio.Visible = true;
+            label2.Visible = true;
+            try
+            {
+                using (OleDbConnection con = new OleDbConnection(Conexion.CadCon))
+                {
+                    con.Open();
+                    string query = "SELECT Monto, Fecha, Estatus, Descuento, Pago FROM Ventas WHERE Folio = ?";
+                    using (OleDbCommand cmdVenta = new OleDbCommand(query, con))
+                    {
+                        cmdVenta.Parameters.AddWithValue("?", folio);
+                        using (OleDbDataReader reader = cmdVenta.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                decimal montoTotal = Convert.ToDecimal(reader["Monto"]);
+                                decimal descuento = reader["Descuento"] != DBNull.Value ? Convert.ToDecimal(reader["Descuento"]) : 0;
+                                string estatus = reader["Estatus"].ToString();
 
+                                lblMonto.Text = $"{montoTotal:C}";
+                                this.monto = montoTotal; // Tu variable pública
+
+                                lblDescuento.Text = $"{descuento:C}";
+                                lblPago.Text = reader["Pago"].ToString();
+                                lblFecha.Text = reader["Fecha"].ToString();
+
+                                if (estatus == "CANCELADO")
+                                {
+                                    button1.Visible = false; 
+                                    button2.Visible = false;
+                                }
+                                else
+                                {
+                                    button1.Visible = true;
+                                    button2.Visible = true;
+                                }
+                            }
+                            else
+                            {
+                                MessageBox.Show("No se encontraron los datos generales de la venta.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al cargar los datos de la venta: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
         private void frmVentaDetallada_Load(object sender, EventArgs e)
         {
             EstilizarDataGridView(this.dataGridView1);
@@ -44,6 +97,7 @@ namespace BRUNO
             dataGridView1.Columns[1].Visible = false;
             dataGridView1.Columns[2].Visible = false;
             dataGridView1.Columns[6].Visible = false;
+
             if (usuario == "Invitado")
             {
                 button1.Hide();
@@ -61,43 +115,101 @@ namespace BRUNO
                 {
                     lblCliente.Text = "PUBLICO EN GENERAL";
                 }
-
+                reader.Close();
             }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-
-            DialogResult dialogResult = MessageBox.Show("¿Estas seguro de cancelar la venta?", "Alto!", MessageBoxButtons.YesNo);
+            DialogResult dialogResult = MessageBox.Show("¿Estas seguro de cancelar la venta?", "Alto!", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (dialogResult == DialogResult.Yes)
             {
-                for (int i = 0; i < dataGridView1.RowCount; i++)
-                {
-
-                    cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
-                    OleDbDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
-                    {
-                        existenciasTotales = Convert.ToDouble(dataGridView1[3, i].Value.ToString()) + Convert.ToDouble(Convert.ToString(reader[4].ToString()));
-                        cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
-                        cmd.ExecuteNonQuery();
-                        cmd = new OleDbCommand("UPDATE VentasContado set MontoTotal='0', Utilidad='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
-                        cmd.ExecuteNonQuery();
-                        cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','ENTRADA','CANCELACION DE VENTA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
-                        cmd.ExecuteNonQuery();
-                    }
-                    reader.Close();
-                }
-
-                cmd = new OleDbCommand("update Ventas set Estatus='CANCELADO' where Folio='" + lblFolio.Text + "';", conectar);
-                cmd.ExecuteNonQuery();
-
-                // =========================================================================
-                // NUEVA LÓGICA DE CANCELACIÓN EN CORTES (SOPORTE PARA PAGO MIXTO)
-                // =========================================================================
                 string folioCancelar = lblFolio.Text;
 
-                // 1. Buscamos si existen los pagos originales de este ticket en el Corte de hoy
+                // =========================================================================
+                // 1. VERIFICAR SI ESTA VENTA FUE UNA LIQUIDACIÓN DE CONSIGNA
+                // =========================================================================
+                bool esVentaConsigna = false;
+                cmd = new OleDbCommand("SELECT COUNT(*) FROM ConsignaMovimientos WHERE ReferenciaVentaId = '" + folioCancelar + "'", conectar);
+                if (Convert.ToInt32(cmd.ExecuteScalar()) > 0)
+                {
+                    esVentaConsigna = true;
+                }
+
+                if (esVentaConsigna)
+                {
+                    // ---> LÓGICA DE CANCELACIÓN PARA CONSIGNA <---
+
+                    // A) Leemos todos los movimientos que generó este folio
+                    DataTable dtMovs = new DataTable();
+                    cmd = new OleDbCommand("SELECT ClienteId, ProductoId, Cantidad, PrecioVigente FROM ConsignaMovimientos WHERE ReferenciaVentaId = '" + folioCancelar + "'", conectar);
+                    OleDbDataAdapter daMovs = new OleDbDataAdapter(cmd);
+                    daMovs.Fill(dtMovs);
+
+                    foreach (DataRow row in dtMovs.Rows)
+                    {
+                        int cId = Convert.ToInt32(row["ClienteId"]);
+                        string pId = row["ProductoId"].ToString();
+                        int cant = Convert.ToInt32(row["Cantidad"]);
+                        decimal precio = Convert.ToDecimal(row["PrecioVigente"]);
+
+                        // B) Rebotamos los saldos al cliente (Regresan a EnConsigna, se restan de Vendidos)
+                        cmd = new OleDbCommand("UPDATE ConsignaCliente SET EnConsigna = EnConsigna + ?, Vendidos = Vendidos - ? WHERE ClienteId = ? AND ProductoId = ? AND PrecioCongelado = ?", conectar);
+                        cmd.Parameters.AddWithValue("?", cant);
+                        cmd.Parameters.AddWithValue("?", cant);
+                        cmd.Parameters.AddWithValue("?", cId);
+                        cmd.Parameters.AddWithValue("?", pId);
+                        cmd.Parameters.AddWithValue("?", precio);
+                        cmd.ExecuteNonQuery();
+
+                        // C) Dejamos rastro en el Kardex de la Consigna
+                        cmd = new OleDbCommand("INSERT INTO ConsignaMovimientos (ClienteId, ProductoId, TipoMovimiento, Cantidad, PrecioVigente, Fecha, ReferenciaVentaId) VALUES (?, ?, 'CANCELACION', ?, ?, NOW(), ?)", conectar);
+                        cmd.Parameters.AddWithValue("?", cId);
+                        cmd.Parameters.AddWithValue("?", pId);
+                        cmd.Parameters.AddWithValue("?", cant);
+                        cmd.Parameters.AddWithValue("?", precio);
+                        cmd.Parameters.AddWithValue("?", folioCancelar);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // D) Borramos los totales en VentasContado como se hace normalmente
+                    for (int i = 0; i < dataGridView1.RowCount; i++)
+                    {
+                        cmd = new OleDbCommand("UPDATE VentasContado set MontoTotal='0', Utilidad='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                else
+                {
+                    // ---> LÓGICA ORIGINAL PARA VENTA NORMAL (Rebota a inventario tienda) <---
+                    for (int i = 0; i < dataGridView1.RowCount; i++)
+                    {
+                        cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
+                        OleDbDataReader reader = cmd.ExecuteReader();
+                        if (reader.Read())
+                        {
+                            existenciasTotales = Convert.ToDouble(dataGridView1[3, i].Value.ToString()) + Convert.ToDouble(Convert.ToString(reader[4].ToString()));
+
+                            cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
+                            cmd.ExecuteNonQuery();
+
+                            cmd = new OleDbCommand("UPDATE VentasContado set MontoTotal='0', Utilidad='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
+                            cmd.ExecuteNonQuery();
+
+                            cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','ENTRADA','CANCELACION DE VENTA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                            cmd.ExecuteNonQuery();
+                        }
+                        reader.Close(); // ¡Muy importante mantenerlo cerrado!
+                    }
+                }
+
+                // =========================================================================
+                // 2. ACTUALIZAR ESTADO A 'CANCELADO' Y REVERTIR CORTES (COMÚN PARA AMBOS)
+                // =========================================================================
+                cmd = new OleDbCommand("update Ventas set Estatus='CANCELADO' where Folio='" + folioCancelar + "';", conectar);
+                cmd.ExecuteNonQuery();
+
+                // Buscamos si existen los pagos originales de este ticket en el Corte de hoy
                 cmd = new OleDbCommand("SELECT Monto, Pago FROM Corte WHERE Concepto = 'Venta a contado folio " + folioCancelar + "';", conectar);
                 OleDbDataReader readerCorte = cmd.ExecuteReader();
 
@@ -109,15 +221,12 @@ namespace BRUNO
                     encontroPagosEnCorte = true;
                     double montoOriginal = Convert.ToDouble(readerCorte["Monto"]);
                     string pagoOriginal = readerCorte["Pago"].ToString();
-
-                    // Guardamos los datos para ejecutarlos después de cerrar el lector
                     pagosARevertir.Add(new Tuple<double, string>(montoOriginal, pagoOriginal));
                 }
-                readerCorte.Close(); // OBLIGATORIO: Cerrar lector en Access antes de hacer Inserts
+                readerCorte.Close(); // Cerrar antes de hacer Inserts
 
                 if (encontroPagosEnCorte)
                 {
-                    // 2. Si encontró los pagos, los inserta en negativo tal cual fueron hechos (Ej. Efectivo y Tarjeta)
                     foreach (var pago in pagosARevertir)
                     {
                         cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "'," + (pago.Item1 * -1) + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + pago.Item2 + "');", conectar);
@@ -126,31 +235,21 @@ namespace BRUNO
                 }
                 else
                 {
-                    // 3. Si NO encontró registros (El ticket es de otro día y el Corte ya se borró)
                     string metodoReembolso = lblPago.Text;
-
-                    // Si dice "MIXTO" no podemos guardarlo así, el reembolso físico sale del cajón de efectivo
-                    if (metodoReembolso == "MIXTO")
-                    {
-                        metodoReembolso = "01=EFECTIVO";
-                    }
+                    if (metodoReembolso == "MIXTO") metodoReembolso = "01=EFECTIVO";
 
                     cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "',-" + monto + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' ,'" + metodoReembolso + "');", conectar);
                     cmd.ExecuteNonQuery();
                 }
-                // =========================================================================
 
                 MessageBox.Show("VENTA CANCELADA CON EXITO", "CANCELADA!", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
-            }
-            else if (dialogResult == DialogResult.No)
-            {
-                //do something else
             }
         }
 
         private void frmVentaDetallada_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (esConsigna) return;
             frmReporteVentas repor = new frmReporteVentas();
             repor.Show();
         }
@@ -169,16 +268,18 @@ namespace BRUNO
                     Total = Convert.ToDouble(dataGridView1[5, i].Value.ToString()),
                 });
             }
-            // Elimina todo excepto números, punto y signo negativo (si aplica)
+
             string GetNumericValue(string input)
             {
                 return Regex.Replace(input, @"[^\d.-]", "");
             }
+
             double total = Convert.ToDouble(GetNumericValue(lblMonto.Text));
             Dictionary<string, double> totales = new Dictionary<string, double>();
             totales.Add("Subtotal", total / 1.16);
             totales.Add("IVA", (total / 1.16) * 0.16);
             totales.Add("Total", total);
+
             if (Conexion.impresionMediaCarta)
             {
                 try
@@ -219,7 +320,7 @@ namespace BRUNO
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
                 {
-                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.Value = value.ToString("C2");
                     e.FormattingApplied = true;
                 }
             }

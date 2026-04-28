@@ -37,6 +37,7 @@
             this.btnDevolver = new System.Windows.Forms.Button();
             this.btnCobrar = new System.Windows.Forms.Button();
             this.pnlBotones = new System.Windows.Forms.Panel();
+            this.btnDeshacer = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvBalance)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvKardex)).BeginInit();
             this.pnlBotones.SuspendLayout();
@@ -91,6 +92,7 @@
             this.dgvKardex.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgvKardex.Size = new System.Drawing.Size(883, 301);
             this.dgvKardex.TabIndex = 2;
+            this.dgvKardex.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvKardex_CellDoubleClick);
             // 
             // lblTituloBalance
             // 
@@ -166,14 +168,32 @@
             // pnlBotones
             // 
             this.pnlBotones.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlBotones.Controls.Add(this.btnDeshacer);
             this.pnlBotones.Controls.Add(this.btnCobrar);
             this.pnlBotones.Controls.Add(this.btnEntregar);
             this.pnlBotones.Controls.Add(this.btnDevolver);
             this.pnlBotones.Location = new System.Drawing.Point(912, 92);
             this.pnlBotones.Margin = new System.Windows.Forms.Padding(4);
             this.pnlBotones.Name = "pnlBotones";
-            this.pnlBotones.Size = new System.Drawing.Size(198, 262);
+            this.pnlBotones.Size = new System.Drawing.Size(198, 634);
             this.pnlBotones.TabIndex = 8;
+            // 
+            // btnDeshacer
+            // 
+            this.btnDeshacer.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnDeshacer.BackColor = System.Drawing.Color.DodgerBlue;
+            this.btnDeshacer.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnDeshacer.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDeshacer.ForeColor = System.Drawing.Color.White;
+            this.btnDeshacer.Location = new System.Drawing.Point(12, 571);
+            this.btnDeshacer.Margin = new System.Windows.Forms.Padding(4);
+            this.btnDeshacer.Name = "btnDeshacer";
+            this.btnDeshacer.Size = new System.Drawing.Size(175, 59);
+            this.btnDeshacer.TabIndex = 8;
+            this.btnDeshacer.Text = "Deshacer";
+            this.btnDeshacer.UseVisualStyleBackColor = false;
+            this.btnDeshacer.Click += new System.EventHandler(this.btnDeshacer_Click);
             // 
             // frmConsigna
             // 
@@ -210,5 +230,6 @@
         private System.Windows.Forms.Button btnDevolver;
         private System.Windows.Forms.Button btnCobrar;
         private System.Windows.Forms.Panel pnlBotones;
+        private System.Windows.Forms.Button btnDeshacer;
     }
 }
