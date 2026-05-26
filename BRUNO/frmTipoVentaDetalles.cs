@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmTipoVentaDetalles : frmBase
     {
@@ -77,6 +77,7 @@ namespace BRUNO
             EstilizarBotonAdvertencia(button2);
             EstilizarBotonAdvertencia(button4);
             EstilizarBotonAdvertencia(button6);
+            EstilizarBotonAdvertencia(button7);
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -138,6 +139,13 @@ namespace BRUNO
         {
             frmProductoMasVendido mas = new frmProductoMasVendido();
             mas.Show();
+            this.Close();
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            frmCortePorFechas fch = new frmCortePorFechas();
+            fch.Show();
             this.Close();
         }
     }

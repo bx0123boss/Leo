@@ -1,6 +1,6 @@
 ﻿using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     partial class frmCotizacion
     {

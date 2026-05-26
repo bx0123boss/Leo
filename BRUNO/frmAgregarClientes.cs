@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmAgregarClientes : Form
     {
@@ -30,7 +30,7 @@ namespace BRUNO
             {
                 if (txtAdeudo.Text!="" && textBox1.Text!="")
                 {
-                    cmd = new OleDbCommand("insert into Clientes(Nombre, Telefono, Direccion, Referencia, RFC,Correo, Adeudo, Limite, UltimoPago,Estatus, CP) values('" + txtNombre.Text + "','" + txtTelefono.Text + "','" + txtDireccion.Text + "','" + txtReferencia.Text + "','" + txtRFC.Text + "','" + txtCorreo.Text + "','" + txtAdeudo.Text + "','" + textBox1.Text + "','" + dateTimePicker1.Value.ToString() + "','ACTIVO','" + txtCP.Text + "');", conectar);
+                    cmd = new OleDbCommand("insert into Clientes(Nombre, Telefono, Direccion, Referencia, RFC,Correo, Adeudo, Limite, UltimoPago,Estatus, CP, Regimen) values('" + txtNombre.Text + "','" + txtTelefono.Text + "','" + txtDireccion.Text + "','" + txtReferencia.Text + "','" + txtRFC.Text + "','" + txtCorreo.Text + "','" + txtAdeudo.Text + "','" + textBox1.Text + "','" + dateTimePicker1.Value.ToString() + "','ACTIVO','" + txtCP.Text + "','" + txtRegimen.Text + "');", conectar);
                     cmd.ExecuteNonQuery();
                     cmd = new OleDbCommand("SELECT @@Identity;", conectar);
                     OleDbDataReader reader = cmd.ExecuteReader();
@@ -42,7 +42,7 @@ namespace BRUNO
                     
                     if (txtAdeudo.Text != "" || Convert.ToDouble(txtAdeudo.Text) > 0)
                     {
-                        cmd = new OleDbCommand("insert into VentasCredito(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha, Categoria) values(,'INI" + idCliente + "','0','1','ADEUDO INICIAL','" + txtAdeudo.Text + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "', 'ADEUDO INICIAL');", conectar);
+                        cmd = new OleDbCommand("insert into VentasCredito(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha, Categoria) values('INI" + idCliente + "','0','1','ADEUDO INICIAL','" + txtAdeudo.Text + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "', 'ADEUDO INICIAL');", conectar);
                         cmd.ExecuteNonQuery();
                         cmd = new OleDbCommand("insert into Ventas2(Monto,Fecha,Folio,IdCliente,Saldo) values('" + txtAdeudo.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','INI" + idCliente + "','" + idCliente + "','" + txtAdeudo.Text + "');", conectar);
                         cmd.ExecuteNonQuery();
@@ -68,7 +68,7 @@ namespace BRUNO
             }
             else
             {
-                cmd = new OleDbCommand("UPDATE Clientes set Nombre='" + txtNombre.Text + "', Telefono='" + txtTelefono.Text + "', Direccion='" + txtDireccion.Text + "', Referencia='" + txtReferencia.Text + "', RFC='" + txtRFC.Text + "', Correo='" + txtCorreo.Text + "', Limite='" + textBox1.Text + "', CP='"+txtCP.Text+"' where Id=" + lblID.Text + ";", conectar);
+                cmd = new OleDbCommand("UPDATE Clientes set Nombre='" + txtNombre.Text + "', Telefono='" + txtTelefono.Text + "', Direccion='" + txtDireccion.Text + "', Referencia='" + txtReferencia.Text + "', RFC='" + txtRFC.Text + "', Correo='" + txtCorreo.Text + "', Limite='" + textBox1.Text + "', CP='"+txtCP.Text+ "', Regimen='" + txtRegimen.Text + "' where Id=" + lblID.Text + ";", conectar);
                 cmd.ExecuteNonQuery();
                 MessageBox.Show("Se ha actualizado el cliente con exito", "AGREGADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();

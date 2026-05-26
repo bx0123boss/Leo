@@ -9,7 +9,7 @@ using System.Data.OleDb;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmAgregarProveedor : Form
     {

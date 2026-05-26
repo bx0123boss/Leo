@@ -11,7 +11,7 @@ using System.Windows.Forms;
 using Microsoft.Office.Interop.Excel;
 using System.Globalization;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmClientesCredito : Form
     {

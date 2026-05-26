@@ -8,7 +8,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmCorte : frmBase
     {
@@ -275,11 +275,10 @@ namespace BRUNO
                 }
             }
 
-            cmd = new OleDbCommand("select Numero from Folios where Folio='Corte';", conectar);
-            reader = cmd.ExecuteReader();
-            if (reader.Read())
+            using (OleDbCommand cmdMax = new OleDbCommand("SELECT MAX(Id) FROM histocortes", conectar))
             {
-                folio = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
+                object result = cmdMax.ExecuteScalar();
+                folio = (result == DBNull.Value || result == null) ? 1 : Convert.ToInt32(result) + 1;
             }
 
             ds = new DataSet();

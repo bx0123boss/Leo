@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmHistorialVentas : Form
     {
@@ -33,6 +33,7 @@ namespace BRUNO
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
             dataGridView1.Columns[4].Visible = false;
+            dataGridView1.Columns[5].Visible = false;
             lblAdeudo.Text = adeudo.ToString("#,#.00", CultureInfo.InvariantCulture);
         }
 
@@ -91,6 +92,7 @@ namespace BRUNO
                 dataGridView1.DataSource = ds.Tables["Id"];
                 dataGridView1.Columns[0].Visible = false;
                 dataGridView1.Columns[4].Visible = false;
+                dataGridView1.Columns[5].Visible = false;
             }
             else
             {
@@ -100,6 +102,7 @@ namespace BRUNO
                 dataGridView1.DataSource = ds.Tables["Id"];
                 dataGridView1.Columns[0].Visible = false;
                 dataGridView1.Columns[4].Visible = false;
+                dataGridView1.Columns[5].Visible = false;
             }                        
         }
 

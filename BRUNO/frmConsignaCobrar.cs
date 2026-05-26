@@ -1,20 +1,26 @@
-﻿using System;
+﻿using LibPrintTicket;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.OleDb;
 using System.Drawing;
-using System.Windows.Forms;
-using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmConsignaCobrar : frmBase
     {
         private int _idCliente;
         private string _nombreCliente;
-        private decimal _granTotal = 0; 
+        private decimal _granTotal = 0;
         private string datos = "";
         private string observaciones = "";
+
         public frmConsignaCobrar(int idCliente, string nombreCliente)
         {
             InitializeComponent();
@@ -28,8 +34,8 @@ namespace BRUNO
         {
             lblCliente.Text = _nombreCliente;
             EstilizarDataGridView(dgvProductos);
-            EstilizarBotonPeligro(btnCancelar); // Usa estilo de peligro (Rojo)
-            EstilizarBotonPrimario(btnCobrar);  // Usa estilo primario (Verde o Azul)
+            EstilizarBotonPeligro(btnCancelar);
+            EstilizarBotonPrimario(btnCobrar);
 
             CargarMercanciaPendiente();
         }
@@ -41,11 +47,13 @@ namespace BRUNO
                 using (OleDbConnection con = new OleDbConnection(Conexion.CadCon))
                 {
                     con.Open();
+                    // Agregamos PrecioOriginal oculto para no perder la referencia en BD
                     string query = @"
                         SELECT 
                             c.ProductoId, 
                             i.Nombre AS Producto, 
                             c.PrecioCongelado AS Precio, 
+                            c.PrecioCongelado AS PrecioOriginal,
                             c.EnConsigna AS [En Consigna]
                         FROM ConsignaCliente c
                         INNER JOIN Inventario i ON c.ProductoId = i.Id
@@ -64,16 +72,30 @@ namespace BRUNO
                         dgvProductos.DataSource = dt;
 
                         dgvProductos.Columns["ProductoId"].Visible = false;
+                        dgvProductos.Columns["PrecioOriginal"].Visible = false; // Lo ocultamos
+
                         dgvProductos.Columns["Precio"].DefaultCellStyle.Format = "C2";
 
-                        // Estilo para resaltar la columna donde el cajero escribe
                         dgvProductos.Columns["A Pagar"].DefaultCellStyle.BackColor = Color.LightYellow;
                         dgvProductos.Columns["A Pagar"].DefaultCellStyle.Font = new Font("Microsoft Sans Serif", 14F, FontStyle.Bold);
                         dgvProductos.Columns["A Pagar"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
+                        // Si es Turbo Llantas, pintamos también la columna Precio para que sepan que es editable
+                        if (Conexion.lugar == "TURBO LLANTAS")
+                        {
+                            dgvProductos.Columns["Precio"].DefaultCellStyle.BackColor = Color.LightYellow;
+                            dgvProductos.Columns["Precio"].DefaultCellStyle.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
+                        }
+
+                        // Lógica de ReadOnly
                         foreach (DataGridViewColumn col in dgvProductos.Columns)
                         {
-                            col.ReadOnly = (col.Name != "A Pagar");
+                            if (col.Name == "A Pagar")
+                                col.ReadOnly = false;
+                            else if (col.Name == "Precio" && Conexion.lugar == "TURBO LLANTAS")
+                                col.ReadOnly = false;
+                            else
+                                col.ReadOnly = true;
                         }
                     }
                 }
@@ -83,6 +105,7 @@ namespace BRUNO
                 MessageBox.Show("Error al cargar la mercancía: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
         private void lblDatosCotizacion_Click(object sender, EventArgs e)
         {
             using (frmBase frmCaptura = new frmBase())
@@ -91,7 +114,7 @@ namespace BRUNO
                 frmCaptura.StartPosition = FormStartPosition.CenterParent;
                 frmCaptura.MaximizeBox = true;
                 frmCaptura.MinimizeBox = false;
-                frmCaptura.ClientSize = new Size(500, 550); // Tamaño inicial cómodo
+                frmCaptura.ClientSize = new Size(500, 550);
                 frmCaptura.MinimumSize = new Size(450, 400);
 
                 // --- 1. CREACIÓN DE PANELES PARA ARREGLAR EL SCROLL ---
@@ -184,7 +207,7 @@ namespace BRUNO
                                     lbl.Width = 120;
                                     lbl.TextAlign = ContentAlignment.MiddleRight;
                                     lbl.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-                                    lbl.ForeColor = Color.White; // Para que se vea en el fondo negro de tu frmBase
+                                    lbl.ForeColor = Color.White;
 
                                     TextBox txt = new TextBox();
                                     txt.Left = 150;
@@ -317,6 +340,7 @@ namespace BRUNO
                 }
             }
         }
+
         private List<Dictionary<string, string>> ObtenerHistorialDatosCliente(string idClient)
         {
             var historial = new List<Dictionary<string, string>>();
@@ -373,10 +397,13 @@ namespace BRUNO
 
             return historial;
         }
+
         private void dgvProductos_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
         {
             e.Control.KeyPress -= new KeyPressEventHandler(ColumnNum_KeyPress);
-            if (dgvProductos.CurrentCell.ColumnIndex == dgvProductos.Columns["A Pagar"].Index)
+            // Aplicamos validación numérica si editan "A Pagar" o "Precio"
+            if (dgvProductos.CurrentCell.ColumnIndex == dgvProductos.Columns["A Pagar"].Index ||
+                dgvProductos.CurrentCell.ColumnIndex == dgvProductos.Columns["Precio"].Index)
             {
                 TextBox tb = e.Control as TextBox;
                 if (tb != null) tb.KeyPress += new KeyPressEventHandler(ColumnNum_KeyPress);
@@ -385,7 +412,15 @@ namespace BRUNO
 
         private void ColumnNum_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            // Permitimos números, retroceso (borrar) y el punto decimal (para el precio)
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != '.')
+            {
+                e.Handled = true;
+            }
+
+            // Evitamos que pongan más de un punto decimal
+            TextBox tb = sender as TextBox;
+            if (tb != null && e.KeyChar == '.' && tb.Text.IndexOf('.') > -1)
             {
                 e.Handled = true;
             }
@@ -393,23 +428,43 @@ namespace BRUNO
 
         private void dgvProductos_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == dgvProductos.Columns["A Pagar"].Index)
+            try
             {
-                int aPagar = 0;
-                int enConsigna = Convert.ToInt32(dgvProductos.Rows[e.RowIndex].Cells["En Consigna"].Value);
-
-                if (dgvProductos.Rows[e.RowIndex].Cells["A Pagar"].Value != DBNull.Value &&
-                    dgvProductos.Rows[e.RowIndex].Cells["A Pagar"].Value != null)
+                // Si editaron la columna "A Pagar"
+                if (e.ColumnIndex == dgvProductos.Columns["A Pagar"].Index)
                 {
-                    aPagar = Convert.ToInt32(dgvProductos.Rows[e.RowIndex].Cells["A Pagar"].Value);
+                    int aPagar = 0;
+                    int enConsigna = Convert.ToInt32(dgvProductos.Rows[e.RowIndex].Cells["En Consigna"].Value);
+
+                    if (dgvProductos.Rows[e.RowIndex].Cells["A Pagar"].Value != DBNull.Value)
+                        aPagar = Convert.ToInt32(dgvProductos.Rows[e.RowIndex].Cells["A Pagar"].Value);
+
+                    if (aPagar > enConsigna)
+                    {
+                        MessageBox.Show("No puede cobrar más piezas de las que el cliente tiene en consigna.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        dgvProductos.Rows[e.RowIndex].Cells["A Pagar"].Value = enConsigna;
+                    }
+                    else if (aPagar < 0) dgvProductos.Rows[e.RowIndex].Cells["A Pagar"].Value = 0;
                 }
 
-                if (aPagar > enConsigna)
+                // Si editaron la columna "Precio" (Turbo Llantas)
+                if (e.ColumnIndex == dgvProductos.Columns["Precio"].Index)
                 {
-                    MessageBox.Show("No puede cobrar más piezas de las que el cliente tiene en consigna.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    dgvProductos.Rows[e.RowIndex].Cells["A Pagar"].Value = enConsigna;
+                    if (dgvProductos.Rows[e.RowIndex].Cells["Precio"].Value == DBNull.Value ||
+                        string.IsNullOrWhiteSpace(dgvProductos.Rows[e.RowIndex].Cells["Precio"].Value.ToString()))
+                    {
+                        // Si lo dejan en blanco, regresamos el precio original
+                        dgvProductos.Rows[e.RowIndex].Cells["Precio"].Value = dgvProductos.Rows[e.RowIndex].Cells["PrecioOriginal"].Value;
+                    }
                 }
 
+                RecalcularTotal();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Dato inválido. Verifica las cantidades o precios ingresados.", "Alto", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (e.ColumnIndex == dgvProductos.Columns["A Pagar"].Index) dgvProductos.Rows[e.RowIndex].Cells["A Pagar"].Value = 0;
+                if (e.ColumnIndex == dgvProductos.Columns["Precio"].Index) dgvProductos.Rows[e.RowIndex].Cells["Precio"].Value = dgvProductos.Rows[e.RowIndex].Cells["PrecioOriginal"].Value;
                 RecalcularTotal();
             }
         }
@@ -507,9 +562,10 @@ namespace BRUNO
                             if (aPagar > 0)
                             {
                                 string idProducto = row.Cells["ProductoId"].Value.ToString();
-                                decimal precioCongelado = Convert.ToDecimal(row.Cells["Precio"].Value);
+                                decimal precioOriginal = Convert.ToDecimal(row.Cells["PrecioOriginal"].Value);
+                                decimal precioCobrado = Convert.ToDecimal(row.Cells["Precio"].Value);
                                 string nombreProd = row.Cells["Producto"].Value.ToString();
-                                double montoFila = Convert.ToDouble(precioCongelado) * aPagar;
+                                double montoFila = Convert.ToDouble(precioCobrado) * aPagar;
 
                                 // A) Obtener datos extra de Inventario para VentasContado (Sin afectar stock)
                                 double exis = 0;
@@ -529,7 +585,7 @@ namespace BRUNO
                                     }
                                 }
 
-                                // B) Afectar la Consigna (Descuenta saldo, suma a Vendidos)
+                                // B) Afectar la Consigna (Descuenta saldo, suma a Vendidos) -> USANDO PRECIO ORIGINAL
                                 string queryBalance = "UPDATE ConsignaCliente SET EnConsigna = EnConsigna - ?, Vendidos = Vendidos + ? WHERE ClienteId = ? AND ProductoId = ? AND PrecioCongelado = ?";
                                 using (OleDbCommand cmd = new OleDbCommand(queryBalance, con, transaccion))
                                 {
@@ -537,19 +593,19 @@ namespace BRUNO
                                     cmd.Parameters.AddWithValue("?", aPagar);
                                     cmd.Parameters.AddWithValue("?", _idCliente);
                                     cmd.Parameters.AddWithValue("?", idProducto);
-                                    cmd.Parameters.AddWithValue("?", precioCongelado);
+                                    cmd.Parameters.AddWithValue("?", precioOriginal);
                                     cmd.ExecuteNonQuery();
                                 }
 
-                                // C) Rastro en Kardex de Consigna
+                                // C) Rastro en Kardex de Consigna -> USANDO PRECIO COBRADO
                                 string queryKardexConsigna = "INSERT INTO ConsignaMovimientos (ClienteId, ProductoId, TipoMovimiento, Cantidad, PrecioVigente, Fecha, ReferenciaVentaId) VALUES (?, ?, 'VENTA', ?, ?, NOW(), ?)";
                                 using (OleDbCommand cmd = new OleDbCommand(queryKardexConsigna, con, transaccion))
                                 {
                                     cmd.Parameters.AddWithValue("?", _idCliente);
                                     cmd.Parameters.AddWithValue("?", idProducto);
                                     cmd.Parameters.AddWithValue("?", aPagar);
-                                    cmd.Parameters.AddWithValue("?", precioCongelado);
-                                    cmd.Parameters.AddWithValue("?", folioVenta); // Se guarda el folio correcto como lo pediste
+                                    cmd.Parameters.AddWithValue("?", precioCobrado);
+                                    cmd.Parameters.AddWithValue("?", folioVenta);
                                     cmd.ExecuteNonQuery();
                                 }
 
@@ -561,7 +617,7 @@ namespace BRUNO
                                 }
 
                                 // E) Guardar en VentasContado (Detalle de Venta)
-                                double utilidad = (Convert.ToDouble(precioCongelado) * aPagar) - (precioCompra * aPagar);
+                                double utilidad = (Convert.ToDouble(precioCobrado) * aPagar) - (precioCompra * aPagar);
                                 string queryVentasContado = "insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad, Categoria) values('" + folioVenta + "','" + idProducto + "','" + aPagar + "','" + nombreProd + "','" + montoFila + "','" + _idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + utilidad + "','" + categoria + "');";
                                 using (var cmd = new OleDbCommand(queryVentasContado, con, transaccion))
                                 {
@@ -573,7 +629,7 @@ namespace BRUNO
                                 {
                                     Nombre = nombreProd,
                                     Cantidad = aPagar,
-                                    PrecioUnitario = Convert.ToDouble(precioCongelado),
+                                    PrecioUnitario = Convert.ToDouble(precioCobrado),
                                     Total = montoFila
                                 });
                             }

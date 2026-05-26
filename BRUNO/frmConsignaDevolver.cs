@@ -3,7 +3,7 @@ using System.Data.OleDb;
 using System.Data.SqlClient;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmConsignaDevolver : frmBase
     {
@@ -37,6 +37,8 @@ namespace BRUNO
             // El máximo que puede devolver es lo que tiene en consigna
             nudCantidad.Maximum = _cantEnConsigna;
             nudCantidad.Minimum = 1;
+            EstilizarBotonPrimario(btnAceptar);
+            EstilizarBotonAdvertencia(btnCancelar);
         }
 
         private void btnAceptar_Click(object sender, EventArgs e)

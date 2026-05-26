@@ -11,7 +11,7 @@ using System.Windows.Forms;
 using Microsoft.Office.Interop.Excel;
 using System.Globalization;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmClientes : frmBase
     {
@@ -66,6 +66,19 @@ namespace BRUNO
                 }
                 lblAdeudo.Text = "$" + total.ToString("#,#.00", CultureInfo.InvariantCulture);
             }
+            if (dataGridView1.Rows.Count > 0)
+            {
+                dataGridView1.CurrentCell = dataGridView1.Rows[0].Cells[1];
+                dataGridView1.Rows[0].Selected = true;
+            }  
+
+
+
+
+
+
+
+             
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -172,6 +185,7 @@ namespace BRUNO
                 agregar.txtCorreo.Text = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
                 agregar.textBox1.Text = dataGridView1[8, dataGridView1.CurrentRow.Index].Value.ToString();
                 agregar.txtCP.Text = dataGridView1[11, dataGridView1.CurrentRow.Index].Value.ToString();
+                agregar.txtRegimen.Text = dataGridView1[12, dataGridView1.CurrentRow.Index].Value.ToString();
                 agregar.txtAdeudo.Enabled = false;
                 agregar.Show();
                 this.Close();

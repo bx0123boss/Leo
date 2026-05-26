@@ -1,4 +1,4 @@
-﻿namespace BRUNO
+﻿namespace JaegerSoft
 {
     partial class frmClientes
     {
@@ -110,7 +110,7 @@
             // button3
             // 
             this.button3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button3.Location = new System.Drawing.Point(1156, 823);
+            this.button3.Location = new System.Drawing.Point(1156, 711);
             this.button3.Margin = new System.Windows.Forms.Padding(4);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(182, 47);
@@ -185,7 +185,7 @@
             // button8
             // 
             this.button8.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold);
-            this.button8.Location = new System.Drawing.Point(1156, 764);
+            this.button8.Location = new System.Drawing.Point(1156, 652);
             this.button8.Margin = new System.Windows.Forms.Padding(4);
             this.button8.Name = "button8";
             this.button8.Size = new System.Drawing.Size(182, 51);
@@ -210,13 +210,13 @@
             this.dataGridView1.Margin = new System.Windows.Forms.Padding(4);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
-            this.dataGridView1.Size = new System.Drawing.Size(1135, 832);
+            this.dataGridView1.Size = new System.Drawing.Size(1135, 695);
             this.dataGridView1.TabIndex = 31;
             // 
             // button9
             // 
             this.button9.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold);
-            this.button9.Location = new System.Drawing.Point(1156, 697);
+            this.button9.Location = new System.Drawing.Point(1156, 585);
             this.button9.Margin = new System.Windows.Forms.Padding(4);
             this.button9.Name = "button9";
             this.button9.Size = new System.Drawing.Size(182, 59);
@@ -230,7 +230,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(1352, 910);
+            this.ClientSize = new System.Drawing.Size(1352, 778);
             this.Controls.Add(this.button9);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.button8);

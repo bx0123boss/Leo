@@ -11,7 +11,7 @@ using System.Data.OleDb;
 using LibPrintTicket;
 using System.Globalization;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmAbonoCliente : Form
     {

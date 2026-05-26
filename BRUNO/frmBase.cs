@@ -11,7 +11,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 using Document = iTextSharp.text.Document;
 using Excel = Microsoft.Office.Interop.Excel;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmBase : Form
     {

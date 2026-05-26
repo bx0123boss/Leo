@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data.OleDb;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmAsignarPermisos : frmBase
     {

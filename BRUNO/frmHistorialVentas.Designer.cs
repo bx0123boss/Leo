@@ -1,4 +1,4 @@
-﻿namespace BRUNO
+﻿namespace JaegerSoft
 {
     partial class frmHistorialVentas
     {

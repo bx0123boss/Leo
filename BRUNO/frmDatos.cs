@@ -8,9 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static BRUNO.frmInventario;
+using static JaegerSoft.frmInventario;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmDatos : Form
     {

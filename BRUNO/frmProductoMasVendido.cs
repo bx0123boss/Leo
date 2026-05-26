@@ -4,7 +4,7 @@ using System.Data.OleDb;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmProductoMasVendido : frmBase
     {

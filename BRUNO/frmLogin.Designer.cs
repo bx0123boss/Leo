@@ -1,4 +1,4 @@
-﻿namespace BRUNO
+﻿namespace JaegerSoft
 {
     partial class frmLogin
     {
@@ -95,7 +95,7 @@
             // 
             this.pictureBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.pictureBox2.BackColor = System.Drawing.Color.Transparent;
-            this.pictureBox2.Image = global::BRUNO.Properties.Resources.LOGO;
+            this.pictureBox2.Image = global::JaegerSoft.Properties.Resources.LOGO;
             this.pictureBox2.Location = new System.Drawing.Point(539, 483);
             this.pictureBox2.Margin = new System.Windows.Forms.Padding(4);
             this.pictureBox2.Name = "pictureBox2";

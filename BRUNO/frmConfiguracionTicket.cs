@@ -3,14 +3,12 @@ using System.Data.OleDb;
 using System.IO;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmConfiguracionTicket : Form
     {
-        // Puedes usar la cadena estática que ya tienes en tu clase Conexion
         private string CadCon = Conexion.CadCon;
-        private int idConfiguracion = 1; // Id fijo o configurable
-        private static string logoPath = @"C:\Jaeger Soft\logo.jpg";
+        private int idConfiguracion = 1;
         public frmConfiguracionTicket()
         {
             InitializeComponent();

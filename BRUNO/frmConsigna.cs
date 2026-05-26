@@ -5,7 +5,7 @@ using System.Data.SqlClient;
 using System.Windows.Forms;
 // using System.Data.OleDb; // o SqlClient, dependiendo de dónde crees las 2 tablas nuevas.
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmConsigna : frmBase
     {
@@ -45,8 +45,8 @@ namespace BRUNO
                         SELECT 
                         c.ProductoId, 
                         i.Nombre AS Producto, 
-                        c.PrecioCongelado AS Precio, 
-                        c.EnConsigna AS [En Consigna], 
+                        c.PrecioCongelado, 
+                        c.EnConsigna, 
                         c.Vendidos, 
                         c.Devueltos 
                     FROM

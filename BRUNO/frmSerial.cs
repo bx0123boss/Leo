@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Data.OleDb;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmSerial : Form
     {

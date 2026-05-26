@@ -1,4 +1,4 @@
-﻿namespace BRUNO
+﻿namespace JaegerSoft
 {
     partial class frmAgregarClientes
     {
@@ -51,6 +51,8 @@
             this.label8 = new System.Windows.Forms.Label();
             this.txtCP = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
+            this.txtRegimen = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // textBox1
@@ -105,10 +107,10 @@
             // button1
             // 
             this.button1.ForeColor = System.Drawing.Color.Black;
-            this.button1.Location = new System.Drawing.Point(240, 275);
+            this.button1.Location = new System.Drawing.Point(245, 301);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(129, 42);
-            this.button1.TabIndex = 10;
+            this.button1.TabIndex = 11;
             this.button1.Text = "Agregar";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
@@ -261,12 +263,32 @@
             this.label9.TabIndex = 69;
             this.label9.Text = "C.P.:";
             // 
+            // txtRegimen
+            // 
+            this.txtRegimen.Location = new System.Drawing.Point(153, 275);
+            this.txtRegimen.Name = "txtRegimen";
+            this.txtRegimen.Size = new System.Drawing.Size(384, 20);
+            this.txtRegimen.TabIndex = 10;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label10.ForeColor = System.Drawing.Color.White;
+            this.label10.Location = new System.Drawing.Point(65, 277);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(79, 18);
+            this.label10.TabIndex = 71;
+            this.label10.Text = "Regimen:";
+            // 
             // frmAgregarClientes
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.ClientSize = new System.Drawing.Size(566, 346);
+            this.ClientSize = new System.Drawing.Size(566, 351);
+            this.Controls.Add(this.txtRegimen);
+            this.Controls.Add(this.label10);
             this.Controls.Add(this.txtCP);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.label8);
@@ -324,5 +346,7 @@
         private System.Windows.Forms.Label label8;
         public System.Windows.Forms.TextBox txtCP;
         private System.Windows.Forms.Label label9;
+        public System.Windows.Forms.TextBox txtRegimen;
+        private System.Windows.Forms.Label label10;
     }
 }

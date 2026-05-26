@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmVentaDetallada : frmBase
     {
@@ -23,13 +23,15 @@ namespace BRUNO
         public String usuario = "";
         public decimal monto;
 
-        // --- NUEVA VARIABLE PARA EL FOLIO REAL (El de la Base de Datos) ---
+        // Variables para la integración con Consignas
+        public bool esConsigna = false;
         public string folioRealConsulta = "";
 
         public frmVentaDetallada()
         {
             InitializeComponent();
         }
+
         public frmVentaDetallada(string folio)
         {
             InitializeComponent();
@@ -37,6 +39,7 @@ namespace BRUNO
             lblFolio.Text = folio;
             lblFolio.Visible = true;
             label2.Visible = true;
+
             try
             {
                 using (OleDbConnection con = new OleDbConnection(Conexion.CadCon))
@@ -55,7 +58,7 @@ namespace BRUNO
                                 string estatus = reader["Estatus"].ToString();
 
                                 lblMonto.Text = $"{montoTotal:C}";
-                                this.monto = montoTotal; // Tu variable pública
+                                this.monto = montoTotal;
 
                                 lblDescuento.Text = $"{descuento:C}";
                                 lblPago.Text = reader["Pago"].ToString();
@@ -63,7 +66,7 @@ namespace BRUNO
 
                                 if (estatus == "CANCELADO")
                                 {
-                                    button1.Visible = false; 
+                                    button1.Visible = false;
                                     button2.Visible = false;
                                 }
                                 else
@@ -85,6 +88,7 @@ namespace BRUNO
                 MessageBox.Show("Error al cargar los datos de la venta: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
         private void frmVentaDetallada_Load(object sender, EventArgs e)
         {
             EstilizarDataGridView(this.dataGridView1);
@@ -95,7 +99,6 @@ namespace BRUNO
             conectar.Open();
 
             // --- LÓGICA PARA ELEGIR QUÉ FOLIO USAR PARA BUSCAR ---
-            // Si nos pasaron un Folio Real, usamos ese. Si no, usamos el que está en el Label (para retrocompatibilidad)
             string folioBaseDatos = string.IsNullOrEmpty(folioRealConsulta) ? lblFolio.Text : folioRealConsulta;
 
             da = new OleDbDataAdapter("select * from VentasContado where FolioVenta='" + folioBaseDatos + "';", conectar);
@@ -139,14 +142,14 @@ namespace BRUNO
                 // =========================================================================
                 // 1. VERIFICAR SI ESTA VENTA FUE UNA LIQUIDACIÓN DE CONSIGNA
                 // =========================================================================
-                bool esVentaConsigna = false;
+                bool esVentaConsignaLocal = false;
                 cmd = new OleDbCommand("SELECT COUNT(*) FROM ConsignaMovimientos WHERE ReferenciaVentaId = '" + folioCancelar + "'", conectar);
                 if (Convert.ToInt32(cmd.ExecuteScalar()) > 0)
                 {
-                    esVentaConsigna = true;
+                    esVentaConsignaLocal = true;
                 }
 
-                if (esVentaConsigna)
+                if (esVentaConsignaLocal)
                 {
                     // ---> LÓGICA DE CANCELACIÓN PARA CONSIGNA <---
 
@@ -182,7 +185,7 @@ namespace BRUNO
                         cmd.ExecuteNonQuery();
                     }
 
-                    // D) Borramos los totales en VentasContado como se hace normalmente
+                    // D) Borramos los totales en VentasContado
                     for (int i = 0; i < dataGridView1.RowCount; i++)
                     {
                         cmd = new OleDbCommand("UPDATE VentasContado set MontoTotal='0', Utilidad='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
@@ -209,12 +212,9 @@ namespace BRUNO
                             cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','ENTRADA','CANCELACION DE VENTA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
                             cmd.ExecuteNonQuery();
                         }
-                        reader.Close(); // ¡Muy importante mantenerlo cerrado!
+                        reader.Close();
                     }
                 }
-
-                cmd = new OleDbCommand("update Ventas set Estatus='CANCELADO' where Folio='" + lblFolio.Text + "';", conectar);
-                cmd.ExecuteNonQuery();
 
                 // =========================================================================
                 // 2. ACTUALIZAR ESTADO A 'CANCELADO' Y REVERTIR CORTES (COMÚN PARA AMBOS)
@@ -236,13 +236,13 @@ namespace BRUNO
                     string pagoOriginal = readerCorte["Pago"].ToString();
                     pagosARevertir.Add(new Tuple<double, string>(montoOriginal, pagoOriginal));
                 }
-                readerCorte.Close(); // Cerrar antes de hacer Inserts
+                readerCorte.Close();
 
                 if (encontroPagosEnCorte)
                 {
                     foreach (var pago in pagosARevertir)
                     {
-                        cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioVisual + "'," + (pago.Item1 * -1) + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + pago.Item2 + "');", conectar);
+                        cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "'," + (pago.Item1 * -1) + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + pago.Item2 + "');", conectar);
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -254,22 +254,20 @@ namespace BRUNO
                         metodoReembolso = "01=EFECTIVO";
                     }
 
-                    cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioVisual + "',-" + monto + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' ,'" + metodoReembolso + "');", conectar);
+                    cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "',-" + monto + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' ,'" + metodoReembolso + "');", conectar);
                     cmd.ExecuteNonQuery();
                 }
 
                 MessageBox.Show("VENTA CANCELADA CON EXITO", "CANCELADA!", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
             }
-            else if (dialogResult == DialogResult.No)
-            {
-                //do something else
-            }
         }
 
         private void frmVentaDetallada_FormClosing(object sender, FormClosingEventArgs e)
         {
+            // Evitamos que abra el reporte de ventas general si venimos del módulo de consigna
             if (esConsigna) return;
+
             frmReporteVentas repor = new frmReporteVentas();
             repor.Show();
         }
@@ -306,7 +304,7 @@ namespace BRUNO
                 {
                     TicketMediaCarta pdfTicket = new TicketMediaCarta(
                          productos,
-                         lblFolio.Text, // <-- En la impresión SÍ usamos el visual para el cliente
+                         lblFolio.Text,
                          0,
                          total,
                          lblCliente.Text,

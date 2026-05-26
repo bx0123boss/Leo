@@ -5,7 +5,7 @@ using System.Data.OleDb;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmApartadoDetallado : frmBase // Heredamos de frmBase para los estilos
     {

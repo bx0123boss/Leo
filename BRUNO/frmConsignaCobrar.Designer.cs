@@ -1,4 +1,4 @@
-﻿namespace BRUNO
+﻿namespace JaegerSoft
 {
     partial class frmConsignaCobrar
     {
@@ -89,12 +89,13 @@
             this.dgvProductos.DefaultCellStyle = dataGridViewCellStyle2;
             this.dgvProductos.GridColor = System.Drawing.SystemColors.ButtonHighlight;
             this.dgvProductos.Location = new System.Drawing.Point(20, 105);
-            this.dgvProductos.Margin = new System.Windows.Forms.Padding(5, 5, 5, 5);
+            this.dgvProductos.Margin = new System.Windows.Forms.Padding(5);
             this.dgvProductos.Name = "dgvProductos";
             this.dgvProductos.RowHeadersVisible = false;
             this.dgvProductos.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
             this.dgvProductos.Size = new System.Drawing.Size(1202, 353);
             this.dgvProductos.TabIndex = 2;
+//            this.dgvProductos.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dgvProductos_CellBeginEdit);
             this.dgvProductos.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvProductos_CellEndEdit);
             this.dgvProductos.EditingControlShowing += new System.Windows.Forms.DataGridViewEditingControlShowingEventHandler(this.dgvProductos_EditingControlShowing);
             // 
@@ -211,7 +212,7 @@
             this.Controls.Add(this.label4);
             this.Controls.Add(this.lblCliente);
             this.Controls.Add(this.lblTitulo);
-            this.Margin = new System.Windows.Forms.Padding(5, 5, 5, 5);
+            this.Margin = new System.Windows.Forms.Padding(5);
             this.MinimumSize = new System.Drawing.Size(1257, 681);
             this.Name = "frmConsignaCobrar";
             this.Text = "Cobro de Consigna";

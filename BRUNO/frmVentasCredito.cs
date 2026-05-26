@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmVentasCredito : frmBase
     {
@@ -93,191 +93,172 @@ namespace BRUNO
             }
         }
 
+        private bool procesando = false;
+
         private void button2_Click(object sender, EventArgs e)
         {
-            if (lblCliente.Text == "NO SELECCIONADO")
+            if (procesando) return;
+            procesando = true;
+            button2.Enabled = false;
+
+            OleDbTransaction trans = null;
+
+            try
             {
-                MessageBox.Show("Ingrese el cliente para poder hacer la venta", "Alto!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            else
-            {
+                if (lblCliente.Text == "NO SELECCIONADO")
+                {
+                    MessageBox.Show("Ingrese el cliente para poder hacer la venta", "Alto!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
                 double adeudo = Convert.ToDouble(lblAdeudo.Text);
                 double limite = Convert.ToDouble(lblLimite.Text);
                 double totalVentaCalculo = Convert.ToDouble(lblFinal.Text);
+
                 if (limite < (adeudo + totalVentaCalculo))
                 {
-                    MessageBox.Show("El limite sera excedido con la compra actual, favor de verificar", "ALTO!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("El limite sera excedido con la compra actual", "ALTO!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
                 }
-                else
+
+                // VALIDAR EXISTENCIAS
+                for (int i = 0; i < dataGridView1.RowCount; i++)
                 {
-                    double existencia = 0;
-                    bool mamo = false;
-                    string productosText = "En los siguientes productos se encuentra un error al vender las existencias: ";
-                    for (int i = 0; i < dataGridView1.RowCount; i++)
+                    double existencia = Convert.ToDouble(dataGridView1[4, i].Value);
+                    double cantidad = Convert.ToDouble(dataGridView1[0, i].Value);
+
+                    if (existencia - cantidad < 0)
                     {
-                        existencia = Convert.ToDouble(dataGridView1[4, i].Value.ToString()) - Convert.ToDouble(dataGridView1[0, i].Value.ToString());
-                        if (existencia < 0)
-                        {
-                            mamo = true;
-                            productosText = productosText + "\n" + dataGridView1[1, i].Value.ToString();
-                        }
-                    }
-                    if (mamo)
-                    {
-                        MessageBox.Show(productosText + "\nVerifique sus almacenes", "Alto", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    else
-                    {
-                        cmd = new OleDbCommand("select Numero from Folios where Folio='FolioCredito';", conectar);
-                        OleDbDataReader reader = cmd.ExecuteReader();
-                        if (reader.Read())
-                        {
-                            foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
-                        }
-
-                        lblFolio.Text = "C" + String.Format("{0:0000}", foli);
-
-                        List<Producto> productos = new List<Producto>();
-                        existencia = 0;
-                        for (int i = 0; i < dataGridView1.RowCount; i++)
-                        {
-                            string unidad = "0", categoria="";
-                            //Obtenemos existencias del articulo
-                            cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
-                            reader = cmd.ExecuteReader();
-                            if (reader.Read())
-                            {
-                                exis = Convert.ToDouble(Convert.ToString(reader[4].ToString()));
-                                unidad = Convert.ToString(reader[9].ToString());
-                                categoria = Convert.ToString(reader["Categoria"].ToString());
-                                if (unidad == "")
-                                {
-                                    unidad = "0";
-                                }
-                            }
-
-                            cmd = new OleDbCommand("select * from Unidades where Id=" + unidad + ";", conectar);
-                            reader = cmd.ExecuteReader();
-                            if (reader.Read())
-                            {
-                                unidad = Convert.ToString(reader[2].ToString());
-                            }
-                            else
-                                unidad = "";
-
-                            //Obtenemos existencias del articulo
-                            existencia = exis - Convert.ToDouble(dataGridView1[0, i].Value.ToString());
-
-                            //Actualizamos existencias
-                            cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existencia + "' Where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
-                            cmd.ExecuteNonQuery();
-
-                            //Insertamos en la venta a credito
-                            cmd = new OleDbCommand("insert into VentasCredito(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha, categoria) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+categoria+"');", conectar);
-                            cmd.ExecuteNonQuery();
-
-                            cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[5, i].Value.ToString() + "','SALIDA','VENTA DE ARTICULO FOLIO: " + lblFolio.Text + "'," + exis + ",'" + existencia + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
-                            cmd.ExecuteNonQuery();
-
-                            productos.Add(new Producto
-                            {
-                                Nombre = dataGridView1[1, i].Value.ToString(),
-                                Cantidad = Convert.ToDouble(dataGridView1[0, i].Value.ToString()),
-                                PrecioUnitario = Math.Round(Convert.ToDouble(dataGridView1[2, i].Value.ToString()) / 1.16, 2),
-                                Total = Convert.ToDouble(dataGridView1[3, i].Value.ToString()),
-                            });
-                        }
-
-                        total = Convert.ToDouble(lblFinal.Text);
-                        adeudo = Convert.ToDouble(lblFinal.Text) + Convert.ToDouble(lblAdeudo.Text);
-                        double saldo = total - Convert.ToDouble(txtAbono.Text);
-                        if(saldo>0)
-                        {
-                            cmd = new OleDbCommand("insert into Abonos(Abono,idCliente,Fecha,Nombre,Folio,Estatus) Values('" + txtAbono.Text + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblCliente.Text + "','" + lblFolio.Text + "','PAGADO');", conectar);
-                            cmd.ExecuteNonQuery();
-                        }
-                        
-                        cmd = new OleDbCommand("insert into Ventas2(Monto,Fecha,Folio,IdCliente,Estatus, Saldo) values('" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','" + idCliente + "','COBRADO'," + total + ");", conectar);
-                        cmd.ExecuteNonQuery();
-                        cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono de la venta a credito folio " + lblFolio.Text + "','" + txtAbono.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + cmbPago.Text + "');", conectar);
-                        cmd.ExecuteNonQuery();
-                        cmd = new OleDbCommand("UPDATE Clientes set Adeudo=" + adeudo + " Where Id=" + idCliente + ";", conectar);
-                        cmd.ExecuteNonQuery();
-
-                        foli = foli + 1;
-                        cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioCredito';", conectar);
-                        cmd.ExecuteNonQuery();
-
-                        // -- ÁREA DE IMPRESIÓN --
-                        Dictionary<string, double> totales = new Dictionary<string, double>();
-                        double totalVentaGrid = Convert.ToDouble(lblTotal.Text);
-                        double subTotalImpresion = totalVentaGrid - descuento;
-
-                        if (descuento != 0)
-                        {
-                            totales.Add("Descuento", descuento);
-                        }
-                        if (Conexion.ConIva)
-                        {
-                            totales.Add("Subtotal", subTotalImpresion / 1.16);
-                            totales.Add("IVA", (subTotalImpresion / 1.16) * 0.16);
-                        }
-                        totales.Add("Total", subTotalImpresion);
-                        totales.Add("Abono", Convert.ToDouble(txtAbono.Text));
-                        totales.Add("Restante", Convert.ToDouble(lblFinal.Text));
-
-                        if (Conexion.impresionMediaCarta)
-                        {
-                            try
-                            {
-                                DialogResult respuesta = MessageBox.Show(
-                                        "¿Deseas imprimir?",
-                                        "IMPRESIÓN",
-                                        MessageBoxButtons.YesNo,
-                                        MessageBoxIcon.Question);
-                                if (respuesta == DialogResult.Yes)
-                                {
-                                    TicketMediaCarta pdfTicket = new TicketMediaCarta(
-                                         productos,
-                                         lblFolio.Text,
-                                         descuento,
-                                         subTotalImpresion,
-                                         lblCliente.Text,
-                                         idCliente,
-                                         cmbPago.Text,
-                                         lblDatosCotizacion.Text, 
-                                         label10.Text, // observaciones
-                                         Conexion.lugar,
-                                         Conexion.logoPath,    // <--- Logo
-                                         Conexion.datosTicket, // <--- Encabezado del negocio
-                                         Conexion.pieDeTicket  // <--- Pie de página
-                                     );
-
-                                    pdfTicket.ImprimirDirectamente(Conexion.impresora);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                MessageBox.Show("Error al imprimir PDF Media Carta: " + ex.Message);
-                            }
-                        }
-                        else
-                        {
-                            TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", subTotalImpresion, false, totales, cmbPago.Text);
-                            ticketPrinter.ImprimirTicket();
-                        }
-                        // -- FIN ÁREA DE IMPRESIÓN --
-
-                        MessageBox.Show("Venta realizada con exito", "VENTA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        frmVentasCredito credito = new frmVentasCredito();
-                        credito.Show();
-                        this.Close();
-
+                        MessageBox.Show("Stock insuficiente en: " + dataGridView1[1, i].Value, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
                     }
                 }
+
+                // OBTENER FOLIO
+                cmd = new OleDbCommand("SELECT Numero FROM Folios WHERE Folio='FolioCredito'", conectar);
+                int foli = Convert.ToInt32(cmd.ExecuteScalar());
+                string folioVenta = "C" + String.Format("{0:0000}", foli);
+
+                // VALIDAR QUE NO EXISTA (doble ejecución)
+                cmd = new OleDbCommand("SELECT COUNT(*) FROM VentasCredito WHERE FolioVenta = ?", conectar);
+                cmd.Parameters.AddWithValue("@folio", folioVenta);
+                int existe = Convert.ToInt32(cmd.ExecuteScalar());
+
+                if (existe > 0)
+                {
+                    MessageBox.Show("Esta venta ya fue procesada.", "Duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // INICIAR TRANSACCIÓN
+                trans = conectar.BeginTransaction();
+
+                List<Producto> productos = new List<Producto>();
+
+                for (int i = 0; i < dataGridView1.RowCount; i++)
+                {
+                    string idProducto = dataGridView1[5, i].Value.ToString();
+                    double cantidad = Convert.ToDouble(dataGridView1[0, i].Value);
+                    double precio = Convert.ToDouble(dataGridView1[2, i].Value);
+                    double totalProd = Convert.ToDouble(dataGridView1[3, i].Value);
+
+                    // OBTENER DATOS EXTRA
+                    cmd = new OleDbCommand("SELECT Categoria FROM Inventario WHERE Id = ?", conectar, trans);
+                    cmd.Parameters.AddWithValue("@id", idProducto);
+                    string categoria = Convert.ToString(cmd.ExecuteScalar());
+
+                    // 🔥 BONUS: UPDATE DIRECTO (evita errores de concurrencia)
+                    cmd = new OleDbCommand("UPDATE Inventario SET Existencia = Existencia - ? WHERE Id = ?", conectar, trans);
+                    cmd.Parameters.AddWithValue("@cantidad", cantidad);
+                    cmd.Parameters.AddWithValue("@id", idProducto);
+                    cmd.ExecuteNonQuery();
+
+                    cmd = new OleDbCommand(@"
+                    INSERT INTO VentasCredito
+                    (FolioVenta, IdProducto, Cantidad, Producto, MontoTotal, IdCliente, Fecha, categoria)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)", conectar, trans);
+
+                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = folioVenta;
+                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = dataGridView1[5, i].Value.ToString().Trim();
+                    cmd.Parameters.Add("?", OleDbType.Double).Value = Convert.ToDouble(dataGridView1[0, i].Value);
+                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = dataGridView1[1, i].Value.ToString();
+                    cmd.Parameters.Add("?", OleDbType.Currency).Value = Convert.ToDecimal(dataGridView1[3, i].Value);
+                    cmd.Parameters.Add("?", OleDbType.Integer).Value = Convert.ToInt32(idCliente);
+                    cmd.Parameters.Add("?", OleDbType.Date).Value = DateTime.Now;
+                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = categoria ?? "";
+                    cmd.ExecuteNonQuery();
+                    
+                    
+                    //KARDEX
+                    cmd = new OleDbCommand(@"
+                    INSERT INTO Kardex 
+                    (IdProducto, Tipo, Descripcion, Fecha)
+                    VALUES (?, ?, ?, ?)", conectar, trans);
+                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = idProducto.ToString().Trim();
+                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = "SALIDA";
+                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = "VENTA FOLIO: " + folioVenta;
+                    cmd.Parameters.Add("?", OleDbType.Date).Value = DateTime.Now;
+                    cmd.ExecuteNonQuery();
+
+                    productos.Add(new Producto
+                    {
+                        Nombre = dataGridView1[1, i].Value.ToString(),
+                        Cantidad = cantidad,
+                        PrecioUnitario = Math.Round(precio / 1.16, 2),
+                        Total = totalProd
+                    });
+                }
+
+                double total = Convert.ToDouble(lblFinal.Text);
+                double abono = Convert.ToDouble(txtAbono.Text);
+                double nuevoAdeudo = adeudo + total;
+
+                if (abono > 0)
+                {
+                    cmd = new OleDbCommand(@"
+                        INSERT INTO Abonos (Abono,idCliente,Fecha,Nombre,Folio,Estatus)
+                        VALUES (?,?,?,?,?,?)", conectar, trans);
+
+                    cmd.Parameters.AddWithValue("?", txtAbono.Text);
+                    cmd.Parameters.AddWithValue("?", idCliente);
+                    cmd.Parameters.Add("?", OleDbType.Date).Value = DateTime.Now;
+                    cmd.Parameters.AddWithValue("?", lblCliente.Text);
+                    cmd.Parameters.AddWithValue("?", folioVenta);
+                    cmd.Parameters.AddWithValue("?", "PAGADO");
+
+                    cmd.ExecuteNonQuery();
+                }
+                cmd = new OleDbCommand("insert into Ventas2(Monto,Fecha,Folio,IdCliente,Estatus, Saldo) values('" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + folioVenta + "','" + idCliente + "','COBRADO'," + total + ");", conectar, trans);
+                cmd.ExecuteNonQuery();
+                cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono de la venta a credito folio " + folioVenta + "','" + txtAbono.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + cmbPago.Text + "');", conectar,trans);
+                cmd.ExecuteNonQuery();
+                cmd = new OleDbCommand("UPDATE Clientes SET Adeudo = ? WHERE Id = ?", conectar, trans);
+                cmd.Parameters.AddWithValue("@adeudo", nuevoAdeudo);
+                cmd.Parameters.AddWithValue("@id", idCliente);
+                cmd.ExecuteNonQuery();
+
+                // ACTUALIZAR FOLIO
+                cmd = new OleDbCommand("UPDATE Folios SET Numero = Numero + 1 WHERE Folio='FolioCredito'", conectar, trans);
+                cmd.ExecuteNonQuery();
+
+                // COMMIT
+                trans.Commit();
+
+                MessageBox.Show("Venta realizada con éxito", "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                try { trans?.Rollback(); } catch { }
+                MessageBox.Show("Error en la venta: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                procesando = false;
+                button2.Enabled = true;
             }
         }
-
         private void frmVentasCredito_Load(object sender, EventArgs e)
         {
             cmbPago.SelectedIndex = 0;

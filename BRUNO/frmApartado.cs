@@ -7,7 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmApartado : frmBase // Hereda de frmBase para los estilos
     {

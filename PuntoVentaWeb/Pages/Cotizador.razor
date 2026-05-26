@@ -546,6 +546,20 @@
             terminoBusqueda = "";
             resultadosBusqueda.Clear();
         }
+        else if (prod.Id == "00")
+        {
+            var detalle = new DetalleCotizacion
+            {
+                ProductoCodigo = "00",
+                Descripcion = "REFACCIÓN GENERICA",
+                Cantidad = 1,
+                PrecioUnitario = 0
+            };
+            nuevaCotizacion.Detalles.Add(detalle);
+            productoSeleccionado = null;
+            terminoBusqueda = "";
+            resultadosBusqueda.Clear();
+        }
         else
         {
             if (configNegocio != null && configNegocio.NombreLugar == "TURBO LLANTAS")

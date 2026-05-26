@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using System.Data.OleDb;
 using System.Globalization;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmAgregarInventario : Form
     {

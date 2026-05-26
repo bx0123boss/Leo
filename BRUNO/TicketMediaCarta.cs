@@ -13,7 +13,7 @@ using System.Windows.Forms;
 // Alias para evitar conflictos
 using QImage = QuestPDF.Infrastructure.Image;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     // Cambiamos el nombre de la clase a TicketCarta
     public class TicketMediaCarta

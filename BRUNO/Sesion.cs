@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public static class Sesion
     {

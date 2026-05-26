@@ -6,7 +6,7 @@ using System.Windows.Forms;
 using Microsoft.Office.Interop.Excel;
 using LibPrintTicket;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmDetalleCorte : frmBase
     {

@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Net.Sockets;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmPrincipal : frmBase
     {
@@ -65,6 +65,7 @@ namespace BRUNO
 
         private void frmPrincipal_Load(object sender, EventArgs e)
         {
+             
             try
             {
                 string bgPath = @"C:\Jaeger Soft\w2.jpg";
@@ -76,6 +77,7 @@ namespace BRUNO
             catch (Exception) { }
             if (IsPuntoB) return;
             BtnInventario.Visible = Sesion.TienePermiso("MOD_INVENTARIO");
+            BtnAlmacenes.Visible = Sesion.TienePermiso("MOD_INVENTARIO");
             BtnCobrar.Visible = Sesion.TienePermiso("MOD_VENTAS");
             BtnDevoluciones.Visible = Sesion.TienePermiso("MOD_REPORTES");
             BtnClientes.Visible = Sesion.TienePermiso("MOD_CLIENTES");
@@ -122,6 +124,15 @@ namespace BRUNO
                 frmInventario invent = new frmInventario();
                 invent.usuario = usuario;
                 invent.Show();
+            }
+        }
+
+        private void BtnAlmacenes_Click(object sender, EventArgs e)
+        {
+            if (!FormularioEstaAbierto(typeof(frmAlmacenes)))
+            {
+                frmAlmacenes almacenes = new frmAlmacenes();
+                almacenes.Show();
             }
         }
 

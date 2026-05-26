@@ -1,4 +1,4 @@
-﻿namespace BRUNO
+﻿namespace JaegerSoft
 {
     partial class frmConsignaDevolver
     {
@@ -33,7 +33,8 @@
             // 
             this.lblProducto.AutoSize = true;
             this.lblProducto.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblProducto.Location = new System.Drawing.Point(20, 20);
+            this.lblProducto.Location = new System.Drawing.Point(23, 26);
+            this.lblProducto.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblProducto.Name = "lblProducto";
             this.lblProducto.Size = new System.Drawing.Size(86, 20);
             this.lblProducto.TabIndex = 0;
@@ -43,9 +44,10 @@
             // 
             this.lblPrecio.AutoSize = true;
             this.lblPrecio.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblPrecio.Location = new System.Drawing.Point(21, 50);
+            this.lblPrecio.Location = new System.Drawing.Point(24, 65);
+            this.lblPrecio.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblPrecio.Name = "lblPrecio";
-            this.lblPrecio.Size = new System.Drawing.Size(120, 16);
+            this.lblPrecio.Size = new System.Drawing.Size(119, 16);
             this.lblPrecio.TabIndex = 1;
             this.lblPrecio.Text = "Precio Congelado:";
             // 
@@ -54,42 +56,43 @@
             this.lblEnConsigna.AutoSize = true;
             this.lblEnConsigna.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblEnConsigna.ForeColor = System.Drawing.Color.DimGray;
-            this.lblEnConsigna.Location = new System.Drawing.Point(21, 75);
+            this.lblEnConsigna.Location = new System.Drawing.Point(24, 98);
+            this.lblEnConsigna.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblEnConsigna.Name = "lblEnConsigna";
-            this.lblEnConsigna.Size = new System.Drawing.Size(117, 16);
+            this.lblEnConsigna.Size = new System.Drawing.Size(119, 16);
             this.lblEnConsigna.TabIndex = 2;
             this.lblEnConsigna.Text = "Tiene en su poder:";
-            // 
-            // panelFondo
-            // 
-            this.panelFondo.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.panelFondo.Controls.Add(this.nudCantidad);
-            this.panelFondo.Controls.Add(this.lblInstruccion);
-            this.panelFondo.Location = new System.Drawing.Point(24, 110);
-            this.panelFondo.Name = "panelFondo";
-            this.panelFondo.Size = new System.Drawing.Size(340, 80);
-            this.panelFondo.TabIndex = 3;
             // 
             // lblInstruccion
             // 
             this.lblInstruccion.AutoSize = true;
             this.lblInstruccion.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblInstruccion.Location = new System.Drawing.Point(15, 30);
+            this.lblInstruccion.Location = new System.Drawing.Point(18, 39);
+            this.lblInstruccion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblInstruccion.Name = "lblInstruccion";
-            this.lblInstruccion.Size = new System.Drawing.Size(193, 18);
+            this.lblInstruccion.Size = new System.Drawing.Size(191, 18);
             this.lblInstruccion.TabIndex = 0;
             this.lblInstruccion.Text = "¿Cuántas piezas devuelve?:";
             // 
             // nudCantidad
             // 
             this.nudCantidad.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.nudCantidad.Location = new System.Drawing.Point(214, 25);
-            this.nudCantidad.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            this.nudCantidad.Location = new System.Drawing.Point(250, 33);
+            this.nudCantidad.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.nudCantidad.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.nudCantidad.Name = "nudCantidad";
-            this.nudCantidad.Size = new System.Drawing.Size(100, 29);
+            this.nudCantidad.Size = new System.Drawing.Size(117, 29);
             this.nudCantidad.TabIndex = 1;
             this.nudCantidad.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.nudCantidad.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            this.nudCantidad.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             // 
             // btnAceptar
             // 
@@ -97,9 +100,10 @@
             this.btnAceptar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnAceptar.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnAceptar.ForeColor = System.Drawing.Color.White;
-            this.btnAceptar.Location = new System.Drawing.Point(234, 210);
+            this.btnAceptar.Location = new System.Drawing.Point(273, 275);
+            this.btnAceptar.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.btnAceptar.Name = "btnAceptar";
-            this.btnAceptar.Size = new System.Drawing.Size(130, 40);
+            this.btnAceptar.Size = new System.Drawing.Size(152, 52);
             this.btnAceptar.TabIndex = 4;
             this.btnAceptar.Text = "Registrar";
             this.btnAceptar.UseVisualStyleBackColor = false;
@@ -111,20 +115,32 @@
             this.btnCancelar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCancelar.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnCancelar.ForeColor = System.Drawing.Color.White;
-            this.btnCancelar.Location = new System.Drawing.Point(98, 210);
+            this.btnCancelar.Location = new System.Drawing.Point(114, 275);
+            this.btnCancelar.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.btnCancelar.Name = "btnCancelar";
-            this.btnCancelar.Size = new System.Drawing.Size(130, 40);
+            this.btnCancelar.Size = new System.Drawing.Size(152, 52);
             this.btnCancelar.TabIndex = 5;
             this.btnCancelar.Text = "Cancelar";
             this.btnCancelar.UseVisualStyleBackColor = false;
             this.btnCancelar.Click += new System.EventHandler(this.btnCancelar_Click);
             // 
+            // panelFondo
+            // 
+            this.panelFondo.BackColor = System.Drawing.Color.Black;
+            this.panelFondo.Controls.Add(this.nudCantidad);
+            this.panelFondo.Controls.Add(this.lblInstruccion);
+            this.panelFondo.Location = new System.Drawing.Point(28, 144);
+            this.panelFondo.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.panelFondo.Name = "panelFondo";
+            this.panelFondo.Size = new System.Drawing.Size(397, 105);
+            this.panelFondo.TabIndex = 3;
+            // 
             // frmConsignaDevolver
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(394, 271);
+            this.BackColor = System.Drawing.Color.Black;
+            this.ClientSize = new System.Drawing.Size(460, 354);
             this.Controls.Add(this.btnCancelar);
             this.Controls.Add(this.btnAceptar);
             this.Controls.Add(this.panelFondo);
@@ -132,10 +148,10 @@
             this.Controls.Add(this.lblPrecio);
             this.Controls.Add(this.lblProducto);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "frmConsignaDevolver";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Devolución de Mercancía";
             this.Load += new System.EventHandler(this.frmConsignaDevolver_Load);
             ((System.ComponentModel.ISupportInitialize)(this.nudCantidad)).EndInit();

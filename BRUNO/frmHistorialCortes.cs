@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmHistorialCortes : frmBase
     {
@@ -120,11 +120,6 @@ namespace BRUNO
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if (dataGridView1.CurrentRow == null || dataGridView1.CurrentRow.Index < 0)
-            {
-                MessageBox.Show("Por favor, seleccione un registro de la lista primero.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
             frmCortePorFechas fch = new frmCortePorFechas();
             fch.Show();
             this.Close();

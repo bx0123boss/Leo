@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmReporteVentas : frmBase
     {
@@ -19,7 +19,6 @@ namespace BRUNO
         OleDbDataAdapter da;
         public String usuario = "";
 
-        // --- PARÁMETRO: Define si lee de Ventas o VentasB ---
         public bool ConsultaVentasB { get; set; } = false;
 
         public frmReporteVentas()
@@ -34,16 +33,10 @@ namespace BRUNO
             EstilizarTextBox(textBox1);
             EstilizarBotonPrimario(this.button1);
             conectar.Open();
-            ds = new DataSet();
-            da = new OleDbDataAdapter("Select * from Ventas where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59# ORDER BY Fecha DESC;", conectar);
-            da.Fill(ds, "Id");
-            dataGridView1.DataSource = ds.Tables["Id"];
-            dataGridView1.Columns[0].Visible = false;
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
 
-            // Cargamos los datos iniciales
             CargarDatos();
         }
 
@@ -54,49 +47,51 @@ namespace BRUNO
         {
             string fechaInicio = dateTimePicker1.Value.ToString("MM/dd/yyyy 00:00:00");
             string fechaFin = dateTimePicker1.Value.ToString("MM/dd/yyyy 23:59:59");
-            string query = "";
+
+            string query;
 
             if (ConsultaVentasB)
             {
-                // Consulta para VentasB: 
-                // FolioB se disfraza como "Folio" para que el usuario lo vea.
-                // FolioA (El real) lo traemos al final para ocultarlo.
-                if (string.IsNullOrEmpty(filtro))
+                query = $@"
+                    SELECT Id, Monto, Fecha, FolioB AS Folio, Estatus, Descuento, Pago, FolioA 
+                    FROM VentasB 
+                    WHERE Fecha >= #{fechaInicio}# AND Fecha <= #{fechaFin}#";
+
+                if (!string.IsNullOrEmpty(filtro))
                 {
-                    query = $"SELECT Id, Monto, Fecha, FolioB AS Folio, Estatus, Descuento, Pago, FolioA FROM VentasB WHERE Fecha >= #{fechaInicio}# AND Fecha <= #{fechaFin}# ORDER BY Fecha DESC;";
-                }
-                else
-                {
-                    query = $"SELECT Id, Monto, Fecha, FolioB AS Folio, Estatus, Descuento, Pago, FolioA FROM VentasB WHERE FolioA LIKE '%{filtro}%' OR FolioB LIKE '%{filtro}%' ORDER BY Fecha DESC;";
+                    query += $" AND (FolioA LIKE '%{filtro}%' OR FolioB LIKE '%{filtro}%')";
                 }
             }
             else
             {
-                // Consulta normal para Ventas
-                if (string.IsNullOrEmpty(filtro))
+                query = $@"
+                    SELECT * 
+                    FROM Ventas 
+                    WHERE Fecha >= #{fechaInicio}# AND Fecha <= #{fechaFin}#";
+
+                if (!string.IsNullOrEmpty(filtro))
                 {
-                    query = $"SELECT * FROM Ventas WHERE Fecha >= #{fechaInicio}# AND Fecha <= #{fechaFin}# ORDER BY Fecha DESC;";
-                }
-                else
-                {
-                    query = $"SELECT * FROM Ventas WHERE Folio LIKE '%{filtro}%' ORDER BY Fecha DESC;";
+                    query += $" AND Folio LIKE '%{filtro}%'";
                 }
             }
+
+            query += " ORDER BY Fecha DESC";
 
             ds = new DataSet();
             da = new OleDbDataAdapter(query, conectar);
-            da = new OleDbDataAdapter("Select * from Ventas where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59# ORDER BY Fecha DESC;", conectar);
+            da.Fill(ds, "Tabla");
 
+            dataGridView1.DataSource = ds.Tables["Tabla"];
 
-            // Ocultar siempre el ID
-            dataGridView1.DataSource = ds.Tables["Id"];
+            // Ocultar ID
+            if (dataGridView1.Columns.Contains("Id"))
+                dataGridView1.Columns["Id"].Visible = false;
 
-            // --- OCULTAR EL FOLIO REAL (FolioA) CUANDO ES VENTAS B ---
+            // Ocultar FolioA en VentasB
             if (ConsultaVentasB && dataGridView1.Columns.Contains("FolioA"))
-            {
-                dataGridView1.Columns["FolioA"].Visible = false; // ¡El usuario nunca lo ve!
-            }
+                dataGridView1.Columns["FolioA"].Visible = false;
 
+            // Seleccionar primera fila
             if (dataGridView1.Rows.Count > 0)
             {
                 dataGridView1.CurrentCell = dataGridView1.Rows[0].Cells[1];
@@ -119,14 +114,14 @@ namespace BRUNO
 
         private void button1_Click(object sender, EventArgs e)
         {
-        {
 
             try
             {
                 if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
+                { 
+                    frmVentaDetallada detalles = new frmVentaDetallada();
                     if (ConsultaVentasB)
                     {
-                        // Mandamos el Real a la variable oculta
                         detalles.folioRealConsulta = dataGridView1.Rows[dataGridView1.CurrentRow.Index].Cells["FolioA"].Value.ToString();
                         // Y ponemos el Visual en la etiqueta
                         detalles.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
@@ -165,24 +160,9 @@ namespace BRUNO
                     MessageBox.Show("Por favor, seleccione un registro de la lista.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
-            catch (Exception ex)
-            }
+            catch (Exception)
+            { }
         }
-        private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == Convert.ToChar(Keys.Enter))
-            {
-                ds = new DataSet();
-                da = new OleDbDataAdapter("Select * from Ventas where Folio like '%" + textBox1.Text + "%';", conectar);
-                da.Fill(ds, "Id");
-                dataGridView1.DataSource = ds.Tables["Id"];
-                dataGridView1.Columns[0].Visible = false;
-                dataGridView1.Columns[0].Visible = false;
-
-            }
-        }
-
-
 
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -11,7 +11,7 @@ using System.Data.OleDb;
 using System.Globalization;
 using Microsoft.Office.Interop.Excel;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmInventario : frmBase
     {
@@ -19,7 +19,6 @@ namespace BRUNO
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
         OleDbCommand cmd;
         public String usuario = "Admin";
-        bool sinllenar = true;
 
 
         private List<ProductoInventario> listaCompletaInventario;
@@ -64,27 +63,18 @@ namespace BRUNO
 
         private void frmInventario_Load(object sender, EventArgs e)
         {
+            // 1. Estilizar Controles y DataGridView2 (Estilo Base)
+            EstilizarComboBox(this.comboBox2);
             EstilizarDataGridView(this.dataGridView2);
-            EstilizarTextBox(this.textBox1);
-            EstilizarTextBox(this.textBox2);
+            this.dataGridView2.DataBindingComplete += DataGridView2_DataBindingComplete;
+            this.dataGridView2.ReadOnly = true;
+            this.dataGridView2.AllowUserToAddRows = false;
+            this.dataGridView2.AllowUserToDeleteRows = false;
 
-            EstilizarBotonPrimario(this.button6);
-            EstilizarBotonPrimario(this.button8);
-            EstilizarBotonPrimario(this.button7);
-            EstilizarBotonPrimario(this.button13);
-            EstilizarBotonPrimario(this.button10);
-            EstilizarBotonPrimario(this.button4);
-            EstilizarBotonPrimario(this.button11);
-            EstilizarBotonPrimario(this.btnPrimero);
-            EstilizarBotonPrimario(this.btnAnterior);
-            EstilizarBotonPrimario(this.btnSiguiente);
-            EstilizarBotonPrimario(this.button14);
-            EstilizarBotonPrimario(this.btnUltimo);
-            EstilizarBotonPrimario(this.BtnApartados);    // Botón "Agregar"
-            EstilizarBotonPeligro(this.button1);
-            EstilizarBotonPeligro(this.button12);  // Botón "Eliminar"
-            EstilizarBotonAdvertencia(this.button2);
-            EstilizarBotonAdvertencia(this.button18);// Botón "Editar Contraseña"
+            EstilizarBotonPaginador(btnPrimero);
+            EstilizarBotonPaginador(btnAnterior);
+            EstilizarBotonPaginador(btnSiguiente);
+            EstilizarBotonPaginador(btnUltimo);
             //ds = new DataSet();
             conectar.Open();
             System.Data.DataTable dt = new System.Data.DataTable();
@@ -126,6 +116,9 @@ namespace BRUNO
             }
             listaFiltradaInventario = new List<ProductoInventario>(listaCompletaInventario); 
             totalPaginas = (int)Math.Ceiling((double)listaCompletaInventario.Count / tamanoPagina);
+
+            // 3. Actualizar valores de KPIs
+            ActualizarKpiValues();
 
             // 4. Cargar la primera página
             CargarPagina();
@@ -338,6 +331,8 @@ namespace BRUNO
                         listaCompletaInventario.Remove(itemAEliminar);
                         listaFiltradaInventario.Remove(itemAEliminar);
                     }
+
+                    ActualizarKpiValues();
 
                     paginaActual = 1;
                     CargarDatosPaginados();
@@ -554,7 +549,6 @@ namespace BRUNO
 
         private void button6_Click(object sender, EventArgs e)
         {
-            // 1. Asegurarnos de que la lista principal de productos esté cargada
             if (listaCompletaInventario == null || listaCompletaInventario.Count == 0)
             {
                 MessageBox.Show("No hay datos de inventario para procesar.", "Aviso",
@@ -562,102 +556,20 @@ namespace BRUNO
                 return;
             }
 
-            // 2. La magia de LINQ: Agrupar por Categoría y Sumar
-            // (Recuerda que listaCompletaInventario es tu List<ProductoInventario>)
             var resumen = listaCompletaInventario
-                .GroupBy(p => p.Categoria) // Agrupamos todos los productos por su 'Categoria'
-                .Select(grupo => new ResumenCategoria // Para cada grupo, creamos un objeto de resumen
+                .GroupBy(p => p.Categoria)
+                .Select(grupo => new ResumenCategoria 
                 {
-                    Categoria = grupo.Key, // El nombre de la categoría (ej. "Ferreteria")
-
-                    // Sumamos la existencia de todos los productos en este grupo
+                    Categoria = grupo.Key, 
                     TotalExistencia = grupo.Sum(p => p.Existencia),
-
-                    // (Basado en tu código: Venta = Existencia * PrecioVenta)
                     TotalVenta = grupo.Sum(p => p.Existencia * p.PrecioVenta),
-
-                    // (Basado en tu código: Inversión = Existencia * Col[7])
-                    // En tu clase, la col[7] es 'Especial'. Usaremos esa propiedad.
                     TotalInversion = grupo.Sum(p => p.Existencia * p.Especial),
-
-                    // Calculamos la utilidad directamente
                     Utilidad = grupo.Sum(p => (p.Existencia * p.PrecioVenta) - (p.Existencia * p.Especial))
                 })
-                .OrderBy(r => r.Categoria) // Opcional: ordenar alfabéticamente por categoría
-                .ToList(); // Convertimos el resultado a una Lista
-
-            // 3. Crear y mostrar el nuevo formulario, pasándole los datos
+                .OrderBy(r => r.Categoria)
+                .ToList(); 
             frmDatos formularioResumen = new frmDatos(resumen);
-            formularioResumen.Show(); // O .ShowDialog() si quieres que la ventana sea modal
-
-            //button6.Visible = false;
-
-            //else if (usuario == "Admin")
-            //{
-            //    for (int i = 0; i < dataGridView2.RowCount; i++)
-            //    {
-            //        try
-            //        {
-            //            if (dataGridView2[6, i].Value.ToString() == "ARMAZONES")
-            //            {
-            //                piezasArmazones += Convert.ToInt32(dataGridView2[4, i].Value.ToString());
-            //            }
-            //            if (dataGridView2[6, i].Value.ToString() == "LENTE DE CONTACTO")
-            //            {
-            //                piezasLenteContacto += Convert.ToInt32(dataGridView2[4, i].Value.ToString());
-            //            }
-            //            if (dataGridView2[6, i].Value.ToString() == "ESTUCHES DE LENTE DE CONTACTO")
-            //            {
-            //                piezasEstucheLenteContacto += Convert.ToInt32(dataGridView2[4, i].Value.ToString());
-            //            }
-            //            if (dataGridView2[6, i].Value.ToString() == "SOLUCION DE LENTE DE CONTACTO")
-            //            {
-            //                piezasSolucionLenteContacto += Convert.ToInt32(dataGridView2[4, i].Value.ToString());
-            //            }
-            //            if (dataGridView2[6, i].Value.ToString() == "MICAS")
-            //            {
-            //                piezasMicas += Convert.ToInt32(dataGridView2[4, i].Value.ToString());
-            //            }
-            //            if (dataGridView2[6, i].Value.ToString() == "60 ml")
-            //            {
-            //                piezas60 += Convert.ToInt32(dataGridView2[4, i].Value.ToString());
-            //            }
-            //            if (dataGridView2[6, i].Value.ToString() == "90ml")
-            //            {
-            //                piezas90 += Convert.ToInt32(dataGridView2[4, i].Value.ToString());
-            //            }
-            //            if (dataGridView2[6, i].Value.ToString() == "120ml")
-            //            {
-            //                piezas120 += Convert.ToInt32(dataGridView2[4, i].Value.ToString());
-            //            }
-            //            if (dataGridView2[6, i].Value.ToString() == "500ml")
-            //            {
-            //                piezas500 += Convert.ToInt32(dataGridView2[4, i].Value.ToString());
-            //            }
-            //            if (dataGridView2[6, i].Value.ToString() == "LENTE DE LECTURA")
-            //            {
-            //                piezasLectura += Convert.ToInt32(dataGridView2[4, i].Value.ToString());
-            //            }
-            //        }
-            //        catch (Exception ex)
-            //        {
-            //            //MessageBox.Show("ERROR EN PRODUCTO: " + dataGridView2[1, i].Value.ToString() + "\n" + ex);
-            //        }
-            //    }
-
-            //    lblPiezasR.Text = "" + piezasArmazones;
-            //    lblLenteContacto.Text = "" + piezasLenteContacto;
-            //    lblEstuLenteContacto.Text = "" + piezasEstucheLenteContacto;
-            //    lblSoluLenteContac.Text = "" + piezasSolucionLenteContacto;
-            //    lblMicas.Text = "" + piezasMicas;
-            //    lbl60.Text = "" + piezas60;
-            //    lbl90.Text = "" + piezas90;
-            //    lbl120.Text = "" + piezas120;
-            //    lbl500.Text = "" + piezas500;
-            //    lblLectura.Text =""+ piezasLectura;
-            //    panel5.Visible = true;
-            //    button6.Visible = false;
-            //}
+            formularioResumen.ShowDialog(); 
         }
 
         private void button7_Click(object sender, EventArgs e)
@@ -670,7 +582,7 @@ namespace BRUNO
                 kar.Show();
                 this.Close();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
             }
@@ -946,6 +858,112 @@ namespace BRUNO
             {
                 tamanoPagina = nuevoTamano;
             }
+        }
+
+        // =====================================================================
+        // ELEMENTOS DE DISEÑO PREMIUM (DASHBOARD REDESIGN)
+        // =====================================================================
+        private void ActualizarKpiValues()
+        {
+            if (listaCompletaInventario == null) return;
+
+            int totalArticulos = listaCompletaInventario.Count;
+            decimal totalStock = listaCompletaInventario.Sum(p => p.Existencia);
+            int totalCategorias = listaCompletaInventario.Select(p => p.Categoria).Distinct().Count();
+
+            if (lblKpiArticulos != null) lblKpiArticulos.Text = totalArticulos.ToString();
+            if (lblKpiStock != null) lblKpiStock.Text = totalStock.ToString("N0", CultureInfo.InvariantCulture);
+            if (lblKpiCategorias != null) lblKpiCategorias.Text = totalCategorias.ToString();
+        }
+
+
+
+        private void DataGridView2_DataBindingComplete(object sender, System.Windows.Forms.DataGridViewBindingCompleteEventArgs e)
+        {
+            if (dataGridView2.Columns.Count > 0)
+            {
+                dataGridView2.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.None;
+
+                foreach (System.Windows.Forms.DataGridViewColumn col in dataGridView2.Columns)
+                {
+                    col.HeaderCell.Style.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+                    
+                    if (col.Name == "PrecioVenta" || col.Name == "PrecioVentaMayoreo" || col.Name == "Especial")
+                    {
+                        col.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+                        col.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+                    }
+                    else if (col.Name == "Existencia" || col.Name == "Limite")
+                    {
+                        col.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+                        col.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+                    }
+                    else if (col.Name == "Id")
+                    {
+                        col.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+                        col.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+                    }
+                    else if (col.Name == "Nombre")
+                    {
+                        col.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+                        col.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+                    }
+                    else
+                    {
+                        col.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+                        col.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+                    }
+
+                    switch (col.Name)
+                    {
+                        case "Id": col.HeaderText = "ID/Código"; break;
+                        case "Nombre": col.HeaderText = "Descripción del Producto"; break;
+                        case "PrecioVentaMayoreo": col.HeaderText = "Precio Mayoreo"; break;
+                        case "PrecioVenta": col.HeaderText = "Precio Público"; break;
+                        case "Existencia": col.HeaderText = "Stock Actual"; break;
+                        case "Limite": col.HeaderText = "Mínimo/Límite"; break;
+                        case "Categoria": col.HeaderText = "Categoría"; break;
+                        case "Especial": col.HeaderText = "Precio Especial"; break;
+                        case "IVA": col.HeaderText = "Impuesto"; break;
+                        case "Unidad": col.HeaderText = "Unidad Medida"; break;
+                        case "Uni": col.HeaderText = "Abrev."; break;
+                    }
+                }
+            }
+        }
+
+        private void EstilizarBotonPaginador(System.Windows.Forms.Button btn)
+        {
+            btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            btn.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
+            btn.FlatAppearance.BorderSize = 1;
+            btn.Cursor = System.Windows.Forms.Cursors.Hand;
+            btn.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+
+            System.EventHandler enabledHandler = null;
+            enabledHandler = (s, e) =>
+            {
+                if (btn.Enabled)
+                {
+                    btn.BackColor = System.Drawing.Color.FromArgb(45, 45, 45);
+                    btn.ForeColor = System.Drawing.Color.White;
+                    btn.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(70, 70, 70);
+                    btn.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(60, 60, 60);
+                    btn.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(30, 30, 30);
+                }
+                else
+                {
+                    btn.BackColor = System.Drawing.Color.FromArgb(25, 25, 25);
+                    btn.ForeColor = System.Drawing.Color.FromArgb(80, 80, 80);
+                    btn.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(40, 40, 40);
+                    btn.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(25, 25, 25);
+                    btn.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(25, 25, 25);
+                }
+            };
+
+            btn.EnabledChanged += enabledHandler;
+            // Ejecutar la primera vez
+            enabledHandler(btn, EventArgs.Empty);
         }
     }
 }

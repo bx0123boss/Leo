@@ -1,4 +1,4 @@
-﻿namespace BRUNO
+namespace JaegerSoft
 {
     partial class frmAgregarPoliza
     {
@@ -20,6 +20,8 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.label9 = new System.Windows.Forms.Label();
+            this.lblAlmacenDestino = new System.Windows.Forms.Label();
+            this.cmbAlmacenDestino = new System.Windows.Forms.ComboBox();
             this.txtFolio = new System.Windows.Forms.TextBox();
             this.lblTotal = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
@@ -552,7 +554,30 @@
             this.panelHeader.Controls.Add(this.lblProveedor);
             this.panelHeader.Controls.Add(this.textBox1);
             this.panelHeader.Controls.Add(this.button5);
+            this.panelHeader.Controls.Add(this.lblAlmacenDestino);
+            this.panelHeader.Controls.Add(this.cmbAlmacenDestino);
             this.panelHeader.Location = new System.Drawing.Point(0, 0);
+            // 
+            // lblAlmacenDestino
+            // 
+            this.lblAlmacenDestino.AutoSize = true;
+            this.lblAlmacenDestino.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Bold);
+            this.lblAlmacenDestino.ForeColor = System.Drawing.Color.White;
+            this.lblAlmacenDestino.Location = new System.Drawing.Point(870, 13);
+            this.lblAlmacenDestino.Name = "lblAlmacenDestino";
+            this.lblAlmacenDestino.Size = new System.Drawing.Size(124, 20);
+            this.lblAlmacenDestino.TabIndex = 81;
+            this.lblAlmacenDestino.Text = "Almacén Destino:";
+            // 
+            // cmbAlmacenDestino
+            // 
+            this.cmbAlmacenDestino.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbAlmacenDestino.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.cmbAlmacenDestino.FormattingEnabled = true;
+            this.cmbAlmacenDestino.Location = new System.Drawing.Point(1000, 11);
+            this.cmbAlmacenDestino.Name = "cmbAlmacenDestino";
+            this.cmbAlmacenDestino.Size = new System.Drawing.Size(150, 25);
+            this.cmbAlmacenDestino.TabIndex = 82;
             this.panelHeader.Name = "panelHeader";
             this.panelHeader.Size = new System.Drawing.Size(1362, 80);
             this.panelHeader.TabIndex = 86;
@@ -662,5 +687,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn PrecioVentaCol;
         private System.Windows.Forms.Panel panelHeader;
         private System.Windows.Forms.Panel panelInput;
+        private System.Windows.Forms.Label lblAlmacenDestino;
+        private System.Windows.Forms.ComboBox cmbAlmacenDestino;
     }
 }

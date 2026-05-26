@@ -6,9 +6,9 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
-    public partial class frmLogin : frmBase // Heredamos de frmBase para el diseño unificado
+    public partial class frmLogin : frmBase 
     {
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         OleDbCommand cmd;
@@ -22,16 +22,11 @@ namespace BRUNO
 
         private void AplicarEstilos()
         {
-            // Aplicamos los estilos modernos que programaste en frmBase
             EstilizarComboBox(this.txtUsuario);
             EstilizarTextBox(this.txtContraseña);
-            EstilizarBotonPrimario(this.button1); // Botón "Ingresar"
-
-            // Botón de activación de producto se mantiene en rojo para alerta
+            EstilizarBotonPrimario(this.button1); 
             button2.FlatStyle = FlatStyle.Flat;
             button2.FlatAppearance.BorderSize = 0;
-
-            // Aseguramos transparencia para no arruinar la imagen de fondo
             label1.BackColor = Color.Transparent;
             label2.BackColor = Color.Transparent;
             pictureBox1.BackColor = Color.Transparent;
@@ -42,14 +37,12 @@ namespace BRUNO
         {
             try
             {
-                // Validación segura: Solo carga si el archivo realmente existe
                 string rutaImagen = @"C:\Jaeger Soft\w1.jpg";
                 if (File.Exists(rutaImagen))
                 {
                     this.BackgroundImage = Image.FromFile(rutaImagen);
                 }
 
-                // Generación de log de acceso
                 StreamWriter sw = new StreamWriter(@"MODIFICACION.txt");
                 sw.WriteLine(DateTime.Now.ToShortDateString() + " ");
                 sw.WriteLine(DateTime.Now.ToShortTimeString());
@@ -68,14 +61,12 @@ namespace BRUNO
             txtUsuario.DisplayMember = "Usuario";
             txtUsuario.ValueMember = "Id";
             txtUsuario.DataSource = dt;
-            txtUsuario.SelectedIndex = -1; // Para que no seleccione nada al cargar
+            txtUsuario.SelectedIndex = -1;
             ValidarCajaYLicencia();
 
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             txtUsuario.Focus();
         }
-
-        // Nuevo evento: Permitir pasar del Usuario a la Contraseña presionando Enter
         private void txtUsuario_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)Keys.Enter)
@@ -106,16 +97,15 @@ namespace BRUNO
                 MessageBox.Show("Por favor, ingresa el usuario y la contraseña.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            else if (Conexion.PuntoB)
+            else if ((string.IsNullOrEmpty(txtUsuario.Text) || string.IsNullOrEmpty(txtContraseña.Text)) && Conexion.PuntoB)
             {
                 frmPrincipal menu = new frmPrincipal();
                 menu.IsPuntoB = true;
                 menu.Show();
                 this.Hide();
+                return;
             }
-
-                // Validar caja #1
-                cmd = new OleDbCommand("select * from Fech where Id=1;", conectar);
+            cmd = new OleDbCommand("select * from Fech where Id=1;", conectar);
             OleDbDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
@@ -164,10 +154,8 @@ namespace BRUNO
                 {
                     MessageBox.Show("Error al cargar permisos: " + exPermisos.Message);
                 }
-
-                // 3. ¡Listo! Ahora sí abrimos el menú principal
                 frmPrincipal menu = new frmPrincipal();
-                menu.usuario = Sesion.NombreUsuario; // Para compatibilidad con tu código actual
+                menu.usuario = Sesion.NombreUsuario; 
                 menu.Show();
                 this.Hide();
             }
@@ -240,14 +228,6 @@ namespace BRUNO
 
         private void pictureBox2_Click(object sender, EventArgs e)
         {
-            // Backdoor
-            if (txtUsuario.Text == ":v" && txtContraseña.Text == "")
-            {
-                frmPrincipal principal = new frmPrincipal();
-                principal.usuario = "Admin";
-                principal.Show();
-                this.Hide();
-            }
         }
 
         private void label1_Click(object sender, EventArgs e)

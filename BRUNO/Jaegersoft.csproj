@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -7,7 +7,7 @@
     <ProjectGuid>{2245F717-F86F-455B-9099-8F2AEE91AB28}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BRUNO</RootNamespace>
+    <RootNamespace>JaegerSoft</RootNamespace>
     <AssemblyName>JaegerSoft BreackPoint</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -25,7 +25,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>44</ApplicationRevision>
+    <ApplicationRevision>50</ApplicationRevision>
     <ApplicationVersion>2.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -75,7 +75,7 @@
       <HintPath>..\packages\iTextSharp.5.5.13.5\lib\net461\itextsharp.dll</HintPath>
     </Reference>
     <Reference Include="LibPrintTicket">
-      <HintPath>..\..\..\..\IMPRESORA\LibPrintTicket\Release\LibPrintTicket.dll</HintPath>
+      <HintPath>..\LibPrintTicket.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Office.Interop.Excel.15.0.4795.1001\lib\net20\Microsoft.Office.Interop.Excel.dll</HintPath>
@@ -549,6 +549,12 @@
     <Compile Include="frmInventario.Designer.cs">
       <DependentUpon>frmInventario.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmAlmacenes.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmAlmacenes.Designer.cs">
+      <DependentUpon>frmAlmacenes.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmCorte.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -821,6 +827,9 @@
     <EmbeddedResource Include="frmConsignaCobrar.resx">
       <DependentUpon>frmConsignaCobrar.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="frmConsignaDevolver.resx">
+      <DependentUpon>frmConsignaDevolver.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="frmConsignaEntregar.resx">
       <DependentUpon>frmConsignaEntregar.cs</DependentUpon>
     </EmbeddedResource>
@@ -911,6 +920,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmPrincipal.resx">
       <DependentUpon>frmPrincipal.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="frmCotizacion.resx">
       <DependentUpon>frmCotizacion.cs</DependentUpon>
@@ -920,6 +930,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmInventario.resx">
       <DependentUpon>frmInventario.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmAlmacenes.resx">
+      <DependentUpon>frmAlmacenes.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmCorte.resx">
       <DependentUpon>frmCorte.cs</DependentUpon>

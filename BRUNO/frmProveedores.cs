@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.OleDb;
 using System.Windows.Forms;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmProveedores : frmBase // Hereda de frmBase
     {

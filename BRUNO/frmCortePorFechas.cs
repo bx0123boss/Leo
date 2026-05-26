@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 
-namespace BRUNO
+namespace JaegerSoft
 {
     public partial class frmCortePorFechas : frmBase
     {
@@ -25,7 +25,7 @@ namespace BRUNO
 
             ConfigurarDisenoGrafico(chart1, "TENDENCIA DE VENTAS EN CAJA (+)");
             ConfigurarDisenoGrafico(chart2, "COSTO DE INVERSIÓN VENDIDA (-)");
-            ConfigurarDisenoGrafico(chart3, "UTILIDAD BRUTA OBTENIDA (+)");
+            ConfigurarDisenoGrafico(chart3, "UTILIDAD NETA OBTENIDA (+)");
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -35,16 +35,16 @@ namespace BRUNO
             DateTime fechaInicio = dateTimePicker1.Value.Date;
             DateTime fechaFin = dateTimePicker2.Value.Date.AddDays(1).AddSeconds(-1);
 
-            // 1. OBTENER HISTORIAL DE CORTES PARA GRÁFICAS
-            string queryCortes = "SELECT * FROM histocortes WHERE Fecha >= @inicio AND Fecha <= @fin ORDER BY Fecha ASC";
+            // 1. OBTENER HISTORIAL DE CORTES PARA GRÁFICAS (Usando ?)
+            string queryCortes = "SELECT * FROM histocortes WHERE Fecha >= ? AND Fecha <= ? ORDER BY Fecha ASC";
 
             using (OleDbConnection conectar = new OleDbConnection(Conexion.CadCon))
             {
                 conectar.Open();
                 using (OleDbCommand cmd = new OleDbCommand(queryCortes, conectar))
                 {
-                    cmd.Parameters.AddWithValue("@inicio", fechaInicio);
-                    cmd.Parameters.AddWithValue("@fin", fechaFin);
+                    cmd.Parameters.AddWithValue("?", fechaInicio);
+                    cmd.Parameters.AddWithValue("?", fechaFin);
 
                     using (OleDbDataAdapter da = new OleDbDataAdapter(cmd))
                     {
@@ -52,7 +52,7 @@ namespace BRUNO
                     }
                 }
 
-                // 2. OBTENER TOTAL DE TICKETS PARA EL TICKET PROMEDIO
+                // 2. OBTENER TOTAL DE TICKETS PARA EL TICKET PROMEDIO (Usando ?)
                 string queryTickets = "SELECT COUNT(Id) AS NumTickets FROM Ventas WHERE Fecha >= ? AND Fecha <= ? AND Estatus = 'COBRADO'";
                 int numTickets = 0;
 
@@ -68,7 +68,40 @@ namespace BRUNO
                     }
                 }
 
-                // PROCESAR DATOS DE CORTES
+                // =========================================================================
+                // 3. CONSULTA Y CÁLCULO DE GASTOS DETALLADOS POR PERIODO (Usando ?)
+                // =========================================================================
+                decimal totalGastos = 0m;
+
+                string queryGastos = "SELECT Total FROM GastosDetallados WHERE Fecha >= ? AND Fecha <= ?";
+
+                using (OleDbCommand cmdGastos = new OleDbCommand(queryGastos, conectar))
+                {
+                    // Agregamos explícitamente el tipo OleDbType.Date y en el orden correcto
+                    cmdGastos.Parameters.Add("@fechaInicio", OleDbType.Date).Value = fechaInicio;
+                    cmdGastos.Parameters.Add("@fechaFin", OleDbType.Date).Value = fechaFin;
+
+                    using (OleDbDataReader readerGastos = cmdGastos.ExecuteReader())
+                    {
+                        while (readerGastos.Read())
+                        {
+                            if (readerGastos["Total"] != DBNull.Value)
+                            {
+                                string strGasto = readerGastos["Total"].ToString();
+                                // Limpiamos el texto por si tiene signos de moneda o letras
+                                string gastoLimpio = Regex.Replace(strGasto, @"[^\d.-]", "");
+
+                                if (decimal.TryParse(gastoLimpio, out decimal montoGasto))
+                                {
+                                    totalGastos += montoGasto;
+                                }
+                            }
+                        }
+                    }
+                }
+                // =========================================================================
+
+                // PROCESAR DATOS DE CORTES EN EL GRID
                 dataGridView1.DataSource = ds.Tables["Id"];
 
                 if (dataGridView1.Columns.Count > 0)
@@ -90,11 +123,20 @@ namespace BRUNO
 
                 Series serieVentas = chart1.Series.Add("Ventas");
                 Series serieInversion = chart2.Series.Add("Inversión");
-                Series serieUtilidad = chart3.Series.Add("Utilidad");
+                Series serieUtilidad = chart3.Series.Add("Utilidad Neta");
 
                 ConfigurarSerieBarras(serieVentas, Color.MediumSeaGreen);
                 ConfigurarSerieBarras(serieInversion, Color.Tomato);
                 ConfigurarSerieBarras(serieUtilidad, Color.DeepSkyBlue);
+
+                int diasConCorte = 0;
+                for (int i = 0; i < dataGridView1.RowCount; i++)
+                {
+                    if (!dataGridView1.Rows[i].IsNewRow) diasConCorte++;
+                }
+                if (diasConCorte <= 0) diasConCorte = 1;
+
+                decimal gastoDiarioParaGrafica = totalGastos / diasConCorte;
 
                 for (int i = 0; i < dataGridView1.RowCount; i++)
                 {
@@ -110,19 +152,24 @@ namespace BRUNO
                     decimal inversionDia = Convert.ToDecimal(Regex.Replace(strInversion, @"[^\d.-]", ""));
 
                     granTotalVentas += ventaDia;
-                    granTotalUtilidad += utilidadDia;
                     granTotalInversion += inversionDia;
+
+                    // Restamos el gasto promedio diario de la utilidad del día
+                    decimal utilidadNetaDia = utilidadDia - gastoDiarioParaGrafica;
+                    granTotalUtilidad += utilidadNetaDia;
 
                     if (fecha.Length > 10) fecha = fecha.Substring(0, 10);
 
                     serieVentas.Points.AddXY(fecha, Math.Round(ventaDia));
                     serieInversion.Points.AddXY(fecha, Math.Round(inversionDia));
-                    serieUtilidad.Points.AddXY(fecha, Math.Round(utilidadDia));
+                    serieUtilidad.Points.AddXY(fecha, Math.Round(utilidadNetaDia));
                 }
 
-                // 3. MOSTRAR KPIS FINANCIEROS (Fila de arriba)
+                // 4. MOSTRAR KPIS FINANCIEROS ACTUALIZADOS
                 lblVentas.Text = granTotalVentas.ToString("C2");
                 lblInversion.Text = granTotalInversion.ToString("C2");
+
+                lblGastos.Text = totalGastos.ToString("C2");
                 lblUtilidad.Text = granTotalUtilidad.ToString("C2");
 
                 decimal margen = 0m;
@@ -132,7 +179,7 @@ namespace BRUNO
                 }
                 lblMargen.Text = margen.ToString("F2") + "%";
 
-                // 4. MOSTRAR KPIS DE VENTAS (Fila de abajo: Ticket Promedio)
+                // 5. MOSTRAR KPIS DE VENTAS
                 decimal ticketPromedio = 0m;
                 if (numTickets > 0)
                 {
