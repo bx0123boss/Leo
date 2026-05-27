@@ -41,6 +41,7 @@ namespace JaegerSoft
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.label14 = new System.Windows.Forms.Label();
             this.panel6 = new System.Windows.Forms.Panel();
+            this.btnAlmacenes = new System.Windows.Forms.Button();
             this.lblOperaciones = new System.Windows.Forms.Label();
             this.lblCatalogos = new System.Windows.Forms.Label();
             this.button11 = new System.Windows.Forms.Button();
@@ -57,12 +58,14 @@ namespace JaegerSoft
             this.button16 = new System.Windows.Forms.Button();
             this.button17 = new System.Windows.Forms.Button();
             this.button15 = new System.Windows.Forms.Button();
+            this.button19 = new System.Windows.Forms.Button();
             this.lblEstado = new System.Windows.Forms.Label();
             this.btnPrimero = new System.Windows.Forms.Button();
             this.btnAnterior = new System.Windows.Forms.Button();
             this.btnUltimo = new System.Windows.Forms.Button();
             this.btnSiguiente = new System.Windows.Forms.Button();
             this.panelHeader = new System.Windows.Forms.Panel();
+            this.panelKpiContainer = new System.Windows.Forms.Panel();
             this.cardArticulos = new System.Windows.Forms.Panel();
             this.lblKpiArticulosTitulo = new System.Windows.Forms.Label();
             this.lblKpiArticulos = new System.Windows.Forms.Label();
@@ -72,14 +75,52 @@ namespace JaegerSoft
             this.cardCategorias = new System.Windows.Forms.Panel();
             this.lblKpiCategoriasTitulo = new System.Windows.Forms.Label();
             this.lblKpiCategorias = new System.Windows.Forms.Label();
+            this.cardInversion = new System.Windows.Forms.Panel();
+            this.lblKpiInversionTitulo = new System.Windows.Forms.Label();
+            this.lblKpiInversion = new System.Windows.Forms.Label();
+            this.cardVentaPotencial = new System.Windows.Forms.Panel();
+            this.lblKpiVentaPotencialTitulo = new System.Windows.Forms.Label();
+            this.lblKpiVentaPotencial = new System.Windows.Forms.Label();
+            this.cardUtilidad = new System.Windows.Forms.Panel();
+            this.lblKpiUtilidadTitulo = new System.Windows.Forms.Label();
+            this.lblKpiUtilidad = new System.Windows.Forms.Label();
+            this.cardMargen = new System.Windows.Forms.Panel();
+            this.lblKpiMargenTitulo = new System.Windows.Forms.Label();
+            this.lblKpiMargen = new System.Windows.Forms.Label();
+            this.cardStockCritico = new System.Windows.Forms.Panel();
+            this.lblKpiStockCriticoTitulo = new System.Windows.Forms.Label();
+            this.lblKpiStockCritico = new System.Windows.Forms.Label();
+            this.cardCapitalInmovilizado = new System.Windows.Forms.Panel();
+            this.lblKpiCapitalInmovilizadoTitulo = new System.Windows.Forms.Label();
+            this.lblKpiCapitalInmovilizado = new System.Windows.Forms.Label();
             this.panelPaginador = new System.Windows.Forms.Panel();
+            this.panelAnalitico = new System.Windows.Forms.Panel();
+            this.lblFinancieroTitulo = new System.Windows.Forms.Label();
+            this.lblFinancieroInversion = new System.Windows.Forms.Label();
+            this.lblFinancieroVenta = new System.Windows.Forms.Label();
+            this.lblFinancieroUtilidad = new System.Windows.Forms.Label();
+            this.lblFinancieroMargen = new System.Windows.Forms.Label();
+            this.lblFinancieroInmovilizado = new System.Windows.Forms.Label();
+            this.lblRiesgoTitulo = new System.Windows.Forms.Label();
+            this.lblRiesgoCriticos = new System.Windows.Forms.Label();
+            this.lblRiesgoSobrestock = new System.Windows.Forms.Label();
+            this.lblRiesgoRotacion = new System.Windows.Forms.Label();
+            this.lblRiesgoReposicion = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
             this.panel6.SuspendLayout();
             this.panelHeader.SuspendLayout();
+            this.panelKpiContainer.SuspendLayout();
             this.cardArticulos.SuspendLayout();
             this.cardStock.SuspendLayout();
             this.cardCategorias.SuspendLayout();
+            this.cardInversion.SuspendLayout();
+            this.cardVentaPotencial.SuspendLayout();
+            this.cardUtilidad.SuspendLayout();
+            this.cardMargen.SuspendLayout();
+            this.cardStockCritico.SuspendLayout();
+            this.cardCapitalInmovilizado.SuspendLayout();
             this.panelPaginador.SuspendLayout();
+            this.panelAnalitico.SuspendLayout();
             this.SuspendLayout();
             // 
             // dataGridView2
@@ -90,11 +131,11 @@ namespace JaegerSoft
             this.dataGridView2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.dataGridView2.Location = new System.Drawing.Point(10, 111);
+            this.dataGridView2.Location = new System.Drawing.Point(10, 285);
             this.dataGridView2.Margin = new System.Windows.Forms.Padding(4);
             this.dataGridView2.Name = "dataGridView2";
             this.dataGridView2.ReadOnly = true;
-            this.dataGridView2.Size = new System.Drawing.Size(1293, 822);
+            this.dataGridView2.Size = new System.Drawing.Size(1293, 654);
             this.dataGridView2.TabIndex = 26;
             this.dataGridView2.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView2_CellFormatting);
             // 
@@ -240,6 +281,7 @@ namespace JaegerSoft
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel6.AutoScroll = true;
             this.panel6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
+            this.panel6.Controls.Add(this.btnAlmacenes);
             this.panel6.Controls.Add(this.lblOperaciones);
             this.panel6.Controls.Add(this.BtnApartados);
             this.panel6.Controls.Add(this.button2);
@@ -259,12 +301,30 @@ namespace JaegerSoft
             this.panel6.Controls.Add(this.button16);
             this.panel6.Controls.Add(this.button17);
             this.panel6.Controls.Add(this.button15);
-            this.panel6.Location = new System.Drawing.Point(1311, 127);
+            this.panel6.Controls.Add(this.button19);
+            this.panel6.Location = new System.Drawing.Point(1311, 285);
             this.panel6.Margin = new System.Windows.Forms.Padding(4);
             this.panel6.Name = "panel6";
             this.panel6.Padding = new System.Windows.Forms.Padding(10);
-            this.panel6.Size = new System.Drawing.Size(236, 876);
+            this.panel6.Size = new System.Drawing.Size(236, 690);
             this.panel6.TabIndex = 50;
+            // 
+            // btnAlmacenes
+            // 
+            this.btnAlmacenes.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.btnAlmacenes.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(70)))), ((int)(((byte)(70)))), ((int)(((byte)(70)))));
+            this.btnAlmacenes.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(50)))), ((int)(((byte)(50)))));
+            this.btnAlmacenes.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnAlmacenes.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
+            this.btnAlmacenes.ForeColor = System.Drawing.Color.White;
+            this.btnAlmacenes.Location = new System.Drawing.Point(10, 372);
+            this.btnAlmacenes.Margin = new System.Windows.Forms.Padding(4);
+            this.btnAlmacenes.Name = "btnAlmacenes";
+            this.btnAlmacenes.Size = new System.Drawing.Size(200, 36);
+            this.btnAlmacenes.TabIndex = 61;
+            this.btnAlmacenes.Text = "ALMACENES";
+            this.btnAlmacenes.UseVisualStyleBackColor = false;
+            this.btnAlmacenes.Click += new System.EventHandler(this.btnAlmacenes_Click);
             // 
             // lblOperaciones
             // 
@@ -361,7 +421,7 @@ namespace JaegerSoft
             this.lblReportes.AutoSize = true;
             this.lblReportes.Font = new System.Drawing.Font("Segoe UI Semibold", 7.5F, System.Drawing.FontStyle.Bold);
             this.lblReportes.ForeColor = System.Drawing.Color.Gray;
-            this.lblReportes.Location = new System.Drawing.Point(10, 388);
+            this.lblReportes.Location = new System.Drawing.Point(10, 430);
             this.lblReportes.Name = "lblReportes";
             this.lblReportes.Size = new System.Drawing.Size(117, 12);
             this.lblReportes.TabIndex = 59;
@@ -375,7 +435,7 @@ namespace JaegerSoft
             this.button7.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button7.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
             this.button7.ForeColor = System.Drawing.Color.White;
-            this.button7.Location = new System.Drawing.Point(10, 408);
+            this.button7.Location = new System.Drawing.Point(10, 450);
             this.button7.Margin = new System.Windows.Forms.Padding(4);
             this.button7.Name = "button7";
             this.button7.Size = new System.Drawing.Size(200, 36);
@@ -392,7 +452,7 @@ namespace JaegerSoft
             this.button8.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button8.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
             this.button8.ForeColor = System.Drawing.Color.White;
-            this.button8.Location = new System.Drawing.Point(10, 450);
+            this.button8.Location = new System.Drawing.Point(10, 492);
             this.button8.Margin = new System.Windows.Forms.Padding(4);
             this.button8.Name = "button8";
             this.button8.Size = new System.Drawing.Size(200, 36);
@@ -409,7 +469,7 @@ namespace JaegerSoft
             this.button4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button4.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
             this.button4.ForeColor = System.Drawing.Color.White;
-            this.button4.Location = new System.Drawing.Point(10, 492);
+            this.button4.Location = new System.Drawing.Point(10, 534);
             this.button4.Margin = new System.Windows.Forms.Padding(4);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(200, 36);
@@ -426,7 +486,7 @@ namespace JaegerSoft
             this.button14.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button14.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
             this.button14.ForeColor = System.Drawing.Color.White;
-            this.button14.Location = new System.Drawing.Point(10, 534);
+            this.button14.Location = new System.Drawing.Point(10, 576);
             this.button14.Margin = new System.Windows.Forms.Padding(4);
             this.button14.Name = "button14";
             this.button14.Size = new System.Drawing.Size(200, 36);
@@ -443,7 +503,7 @@ namespace JaegerSoft
             this.button6.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button6.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
             this.button6.ForeColor = System.Drawing.Color.White;
-            this.button6.Location = new System.Drawing.Point(10, 576);
+            this.button6.Location = new System.Drawing.Point(10, 618);
             this.button6.Margin = new System.Windows.Forms.Padding(4);
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(200, 36);
@@ -460,7 +520,7 @@ namespace JaegerSoft
             this.button18.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button18.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
             this.button18.ForeColor = System.Drawing.Color.White;
-            this.button18.Location = new System.Drawing.Point(10, 618);
+            this.button18.Location = new System.Drawing.Point(10, 660);
             this.button18.Margin = new System.Windows.Forms.Padding(4);
             this.button18.Name = "button18";
             this.button18.Size = new System.Drawing.Size(200, 36);
@@ -504,6 +564,23 @@ namespace JaegerSoft
             this.button15.UseVisualStyleBackColor = true;
             this.button15.Visible = false;
             this.button15.Click += new System.EventHandler(this.button15_Click);
+            // 
+            // button19
+            // 
+            this.button19.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(41)))), ((int)(((byte)(128)))), ((int)(((byte)(185)))));
+            this.button19.FlatAppearance.BorderSize = 0;
+            this.button19.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(152)))), ((int)(((byte)(219)))));
+            this.button19.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button19.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
+            this.button19.ForeColor = System.Drawing.Color.White;
+            this.button19.Location = new System.Drawing.Point(10, 702);
+            this.button19.Margin = new System.Windows.Forms.Padding(4);
+            this.button19.Name = "button19";
+            this.button19.Size = new System.Drawing.Size(200, 36);
+            this.button19.TabIndex = 60;
+            this.button19.Text = "RESUMEN FINANCIERO";
+            this.button19.UseVisualStyleBackColor = false;
+            this.button19.Visible = false;
             // 
             // lblEstado
             // 
@@ -580,13 +657,30 @@ namespace JaegerSoft
             this.panelHeader.Controls.Add(this.label5);
             this.panelHeader.Controls.Add(this.comboBox2);
             this.panelHeader.Controls.Add(this.checkBox1);
-            this.panelHeader.Controls.Add(this.cardArticulos);
-            this.panelHeader.Controls.Add(this.cardStock);
-            this.panelHeader.Controls.Add(this.cardCategorias);
+            this.panelHeader.Controls.Add(this.panelKpiContainer);
             this.panelHeader.Location = new System.Drawing.Point(0, 0);
             this.panelHeader.Name = "panelHeader";
-            this.panelHeader.Size = new System.Drawing.Size(1530, 110);
+            this.panelHeader.Size = new System.Drawing.Size(1530, 195);
             this.panelHeader.TabIndex = 0;
+            // 
+            // panelKpiContainer
+            // 
+            this.panelKpiContainer.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panelKpiContainer.BackColor = System.Drawing.Color.Transparent;
+            this.panelKpiContainer.Controls.Add(this.cardArticulos);
+            this.panelKpiContainer.Controls.Add(this.cardStock);
+            this.panelKpiContainer.Controls.Add(this.cardCategorias);
+            this.panelKpiContainer.Controls.Add(this.cardInversion);
+            this.panelKpiContainer.Controls.Add(this.cardVentaPotencial);
+            this.panelKpiContainer.Controls.Add(this.cardUtilidad);
+            this.panelKpiContainer.Controls.Add(this.cardMargen);
+            this.panelKpiContainer.Controls.Add(this.cardStockCritico);
+            this.panelKpiContainer.Controls.Add(this.cardCapitalInmovilizado);
+            this.panelKpiContainer.Location = new System.Drawing.Point(510, 0);
+            this.panelKpiContainer.Name = "panelKpiContainer";
+            this.panelKpiContainer.Size = new System.Drawing.Size(1020, 195);
+            this.panelKpiContainer.TabIndex = 57;
             // 
             // cardArticulos
             // 
@@ -595,7 +689,7 @@ namespace JaegerSoft
             this.cardArticulos.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.cardArticulos.Controls.Add(this.lblKpiArticulosTitulo);
             this.cardArticulos.Controls.Add(this.lblKpiArticulos);
-            this.cardArticulos.Location = new System.Drawing.Point(1320, 15);
+            this.cardArticulos.Location = new System.Drawing.Point(420, 17);
             this.cardArticulos.Name = "cardArticulos";
             this.cardArticulos.Size = new System.Drawing.Size(180, 75);
             this.cardArticulos.TabIndex = 48;
@@ -629,7 +723,7 @@ namespace JaegerSoft
             this.cardStock.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.cardStock.Controls.Add(this.lblKpiStockTitulo);
             this.cardStock.Controls.Add(this.lblKpiStock);
-            this.cardStock.Location = new System.Drawing.Point(1120, 15);
+            this.cardStock.Location = new System.Drawing.Point(220, 17);
             this.cardStock.Name = "cardStock";
             this.cardStock.Size = new System.Drawing.Size(180, 75);
             this.cardStock.TabIndex = 49;
@@ -663,7 +757,7 @@ namespace JaegerSoft
             this.cardCategorias.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.cardCategorias.Controls.Add(this.lblKpiCategoriasTitulo);
             this.cardCategorias.Controls.Add(this.lblKpiCategorias);
-            this.cardCategorias.Location = new System.Drawing.Point(920, 15);
+            this.cardCategorias.Location = new System.Drawing.Point(20, 17);
             this.cardCategorias.Name = "cardCategorias";
             this.cardCategorias.Size = new System.Drawing.Size(180, 75);
             this.cardCategorias.TabIndex = 50;
@@ -690,6 +784,204 @@ namespace JaegerSoft
             this.lblKpiCategorias.TabIndex = 1;
             this.lblKpiCategorias.Text = "0";
             // 
+            // cardInversion
+            // 
+            this.cardInversion.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.cardInversion.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.cardInversion.Controls.Add(this.lblKpiInversionTitulo);
+            this.cardInversion.Controls.Add(this.lblKpiInversion);
+            this.cardInversion.Location = new System.Drawing.Point(20, 110);
+            this.cardInversion.Name = "cardInversion";
+            this.cardInversion.Size = new System.Drawing.Size(180, 75);
+            this.cardInversion.TabIndex = 51;
+            // 
+            // lblKpiInversionTitulo
+            // 
+            this.lblKpiInversionTitulo.AutoSize = true;
+            this.lblKpiInversionTitulo.Font = new System.Drawing.Font("Segoe UI Semibold", 8F, System.Drawing.FontStyle.Bold);
+            this.lblKpiInversionTitulo.ForeColor = System.Drawing.Color.DarkGray;
+            this.lblKpiInversionTitulo.Location = new System.Drawing.Point(10, 10);
+            this.lblKpiInversionTitulo.Name = "lblKpiInversionTitulo";
+            this.lblKpiInversionTitulo.Size = new System.Drawing.Size(106, 13);
+            this.lblKpiInversionTitulo.TabIndex = 0;
+            this.lblKpiInversionTitulo.Text = "INVERSIÓN ACTUAL";
+            // 
+            // lblKpiInversion
+            // 
+            this.lblKpiInversion.AutoSize = true;
+            this.lblKpiInversion.Font = new System.Drawing.Font("Segoe UI", 15F, System.Drawing.FontStyle.Bold);
+            this.lblKpiInversion.ForeColor = System.Drawing.Color.White;
+            this.lblKpiInversion.Location = new System.Drawing.Point(8, 28);
+            this.lblKpiInversion.Name = "lblKpiInversion";
+            this.lblKpiInversion.Size = new System.Drawing.Size(65, 28);
+            this.lblKpiInversion.TabIndex = 1;
+            this.lblKpiInversion.Text = "$0.00";
+            // 
+            // cardVentaPotencial
+            // 
+            this.cardVentaPotencial.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.cardVentaPotencial.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.cardVentaPotencial.Controls.Add(this.lblKpiVentaPotencialTitulo);
+            this.cardVentaPotencial.Controls.Add(this.lblKpiVentaPotencial);
+            this.cardVentaPotencial.Location = new System.Drawing.Point(215, 110);
+            this.cardVentaPotencial.Name = "cardVentaPotencial";
+            this.cardVentaPotencial.Size = new System.Drawing.Size(180, 75);
+            this.cardVentaPotencial.TabIndex = 52;
+            // 
+            // lblKpiVentaPotencialTitulo
+            // 
+            this.lblKpiVentaPotencialTitulo.AutoSize = true;
+            this.lblKpiVentaPotencialTitulo.Font = new System.Drawing.Font("Segoe UI Semibold", 8F, System.Drawing.FontStyle.Bold);
+            this.lblKpiVentaPotencialTitulo.ForeColor = System.Drawing.Color.DarkGray;
+            this.lblKpiVentaPotencialTitulo.Location = new System.Drawing.Point(10, 10);
+            this.lblKpiVentaPotencialTitulo.Name = "lblKpiVentaPotencialTitulo";
+            this.lblKpiVentaPotencialTitulo.Size = new System.Drawing.Size(99, 13);
+            this.lblKpiVentaPotencialTitulo.TabIndex = 0;
+            this.lblKpiVentaPotencialTitulo.Text = "VENTA POTENCIAL";
+            // 
+            // lblKpiVentaPotencial
+            // 
+            this.lblKpiVentaPotencial.AutoSize = true;
+            this.lblKpiVentaPotencial.Font = new System.Drawing.Font("Segoe UI", 15F, System.Drawing.FontStyle.Bold);
+            this.lblKpiVentaPotencial.ForeColor = System.Drawing.Color.White;
+            this.lblKpiVentaPotencial.Location = new System.Drawing.Point(8, 28);
+            this.lblKpiVentaPotencial.Name = "lblKpiVentaPotencial";
+            this.lblKpiVentaPotencial.Size = new System.Drawing.Size(65, 28);
+            this.lblKpiVentaPotencial.TabIndex = 1;
+            this.lblKpiVentaPotencial.Text = "$0.00";
+            // 
+            // cardUtilidad
+            // 
+            this.cardUtilidad.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.cardUtilidad.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.cardUtilidad.Controls.Add(this.lblKpiUtilidadTitulo);
+            this.cardUtilidad.Controls.Add(this.lblKpiUtilidad);
+            this.cardUtilidad.Location = new System.Drawing.Point(410, 110);
+            this.cardUtilidad.Name = "cardUtilidad";
+            this.cardUtilidad.Size = new System.Drawing.Size(180, 75);
+            this.cardUtilidad.TabIndex = 53;
+            // 
+            // lblKpiUtilidadTitulo
+            // 
+            this.lblKpiUtilidadTitulo.AutoSize = true;
+            this.lblKpiUtilidadTitulo.Font = new System.Drawing.Font("Segoe UI Semibold", 8F, System.Drawing.FontStyle.Bold);
+            this.lblKpiUtilidadTitulo.ForeColor = System.Drawing.Color.DarkGray;
+            this.lblKpiUtilidadTitulo.Location = new System.Drawing.Point(10, 10);
+            this.lblKpiUtilidadTitulo.Name = "lblKpiUtilidadTitulo";
+            this.lblKpiUtilidadTitulo.Size = new System.Drawing.Size(111, 13);
+            this.lblKpiUtilidadTitulo.TabIndex = 0;
+            this.lblKpiUtilidadTitulo.Text = "UTILIDAD ESPERADA";
+            // 
+            // lblKpiUtilidad
+            // 
+            this.lblKpiUtilidad.AutoSize = true;
+            this.lblKpiUtilidad.Font = new System.Drawing.Font("Segoe UI", 15F, System.Drawing.FontStyle.Bold);
+            this.lblKpiUtilidad.ForeColor = System.Drawing.Color.White;
+            this.lblKpiUtilidad.Location = new System.Drawing.Point(8, 28);
+            this.lblKpiUtilidad.Name = "lblKpiUtilidad";
+            this.lblKpiUtilidad.Size = new System.Drawing.Size(65, 28);
+            this.lblKpiUtilidad.TabIndex = 1;
+            this.lblKpiUtilidad.Text = "$0.00";
+            // 
+            // cardMargen
+            // 
+            this.cardMargen.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.cardMargen.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.cardMargen.Controls.Add(this.lblKpiMargenTitulo);
+            this.cardMargen.Controls.Add(this.lblKpiMargen);
+            this.cardMargen.Location = new System.Drawing.Point(605, 110);
+            this.cardMargen.Name = "cardMargen";
+            this.cardMargen.Size = new System.Drawing.Size(180, 75);
+            this.cardMargen.TabIndex = 54;
+            // 
+            // lblKpiMargenTitulo
+            // 
+            this.lblKpiMargenTitulo.AutoSize = true;
+            this.lblKpiMargenTitulo.Font = new System.Drawing.Font("Segoe UI Semibold", 8F, System.Drawing.FontStyle.Bold);
+            this.lblKpiMargenTitulo.ForeColor = System.Drawing.Color.DarkGray;
+            this.lblKpiMargenTitulo.Location = new System.Drawing.Point(10, 10);
+            this.lblKpiMargenTitulo.Name = "lblKpiMargenTitulo";
+            this.lblKpiMargenTitulo.Size = new System.Drawing.Size(53, 13);
+            this.lblKpiMargenTitulo.TabIndex = 0;
+            this.lblKpiMargenTitulo.Text = "MARGEN";
+            // 
+            // lblKpiMargen
+            // 
+            this.lblKpiMargen.AutoSize = true;
+            this.lblKpiMargen.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold);
+            this.lblKpiMargen.ForeColor = System.Drawing.Color.White;
+            this.lblKpiMargen.Location = new System.Drawing.Point(8, 26);
+            this.lblKpiMargen.Name = "lblKpiMargen";
+            this.lblKpiMargen.Size = new System.Drawing.Size(49, 32);
+            this.lblKpiMargen.TabIndex = 1;
+            this.lblKpiMargen.Text = "0%";
+            // 
+            // cardStockCritico
+            // 
+            this.cardStockCritico.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.cardStockCritico.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.cardStockCritico.Controls.Add(this.lblKpiStockCriticoTitulo);
+            this.cardStockCritico.Controls.Add(this.lblKpiStockCritico);
+            this.cardStockCritico.Location = new System.Drawing.Point(800, 110);
+            this.cardStockCritico.Name = "cardStockCritico";
+            this.cardStockCritico.Size = new System.Drawing.Size(180, 75);
+            this.cardStockCritico.TabIndex = 55;
+            // 
+            // lblKpiStockCriticoTitulo
+            // 
+            this.lblKpiStockCriticoTitulo.AutoSize = true;
+            this.lblKpiStockCriticoTitulo.Font = new System.Drawing.Font("Segoe UI Semibold", 8F, System.Drawing.FontStyle.Bold);
+            this.lblKpiStockCriticoTitulo.ForeColor = System.Drawing.Color.DarkGray;
+            this.lblKpiStockCriticoTitulo.Location = new System.Drawing.Point(10, 10);
+            this.lblKpiStockCriticoTitulo.Name = "lblKpiStockCriticoTitulo";
+            this.lblKpiStockCriticoTitulo.Size = new System.Drawing.Size(85, 13);
+            this.lblKpiStockCriticoTitulo.TabIndex = 0;
+            this.lblKpiStockCriticoTitulo.Text = "STOCK CRÍTICO";
+            // 
+            // lblKpiStockCritico
+            // 
+            this.lblKpiStockCritico.AutoSize = true;
+            this.lblKpiStockCritico.Font = new System.Drawing.Font("Segoe UI", 15F, System.Drawing.FontStyle.Bold);
+            this.lblKpiStockCritico.ForeColor = System.Drawing.Color.White;
+            this.lblKpiStockCritico.Location = new System.Drawing.Point(8, 28);
+            this.lblKpiStockCritico.Name = "lblKpiStockCritico";
+            this.lblKpiStockCritico.Size = new System.Drawing.Size(148, 28);
+            this.lblKpiStockCritico.TabIndex = 1;
+            this.lblKpiStockCritico.Text = "0 PRODUCTOS";
+            // 
+            // cardCapitalInmovilizado
+            // 
+            this.cardCapitalInmovilizado.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.cardCapitalInmovilizado.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.cardCapitalInmovilizado.Controls.Add(this.lblKpiCapitalInmovilizadoTitulo);
+            this.cardCapitalInmovilizado.Controls.Add(this.lblKpiCapitalInmovilizado);
+            this.cardCapitalInmovilizado.Location = new System.Drawing.Point(800, 12);
+            this.cardCapitalInmovilizado.Name = "cardCapitalInmovilizado";
+            this.cardCapitalInmovilizado.Size = new System.Drawing.Size(180, 75);
+            this.cardCapitalInmovilizado.TabIndex = 56;
+            // 
+            // lblKpiCapitalInmovilizadoTitulo
+            // 
+            this.lblKpiCapitalInmovilizadoTitulo.AutoSize = true;
+            this.lblKpiCapitalInmovilizadoTitulo.Font = new System.Drawing.Font("Segoe UI Semibold", 8F, System.Drawing.FontStyle.Bold);
+            this.lblKpiCapitalInmovilizadoTitulo.ForeColor = System.Drawing.Color.DarkGray;
+            this.lblKpiCapitalInmovilizadoTitulo.Location = new System.Drawing.Point(10, 10);
+            this.lblKpiCapitalInmovilizadoTitulo.Name = "lblKpiCapitalInmovilizadoTitulo";
+            this.lblKpiCapitalInmovilizadoTitulo.Size = new System.Drawing.Size(126, 13);
+            this.lblKpiCapitalInmovilizadoTitulo.TabIndex = 0;
+            this.lblKpiCapitalInmovilizadoTitulo.Text = "CAPITAL INMOVILIZADO";
+            // 
+            // lblKpiCapitalInmovilizado
+            // 
+            this.lblKpiCapitalInmovilizado.AutoSize = true;
+            this.lblKpiCapitalInmovilizado.Font = new System.Drawing.Font("Segoe UI", 15F, System.Drawing.FontStyle.Bold);
+            this.lblKpiCapitalInmovilizado.ForeColor = System.Drawing.Color.White;
+            this.lblKpiCapitalInmovilizado.Location = new System.Drawing.Point(8, 28);
+            this.lblKpiCapitalInmovilizado.Name = "lblKpiCapitalInmovilizado";
+            this.lblKpiCapitalInmovilizado.Size = new System.Drawing.Size(65, 28);
+            this.lblKpiCapitalInmovilizado.TabIndex = 1;
+            this.lblKpiCapitalInmovilizado.Text = "$0.00";
+            // 
             // panelPaginador
             // 
             this.panelPaginador.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
@@ -705,6 +997,148 @@ namespace JaegerSoft
             this.panelPaginador.Size = new System.Drawing.Size(1293, 62);
             this.panelPaginador.TabIndex = 60;
             // 
+            // panelAnalitico
+            // 
+            this.panelAnalitico.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panelAnalitico.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(28)))));
+            this.panelAnalitico.Controls.Add(this.lblFinancieroTitulo);
+            this.panelAnalitico.Controls.Add(this.lblFinancieroInversion);
+            this.panelAnalitico.Controls.Add(this.lblFinancieroVenta);
+            this.panelAnalitico.Controls.Add(this.lblFinancieroUtilidad);
+            this.panelAnalitico.Controls.Add(this.lblFinancieroMargen);
+            this.panelAnalitico.Controls.Add(this.lblFinancieroInmovilizado);
+            this.panelAnalitico.Controls.Add(this.lblRiesgoTitulo);
+            this.panelAnalitico.Controls.Add(this.lblRiesgoCriticos);
+            this.panelAnalitico.Controls.Add(this.lblRiesgoSobrestock);
+            this.panelAnalitico.Controls.Add(this.lblRiesgoRotacion);
+            this.panelAnalitico.Controls.Add(this.lblRiesgoReposicion);
+            this.panelAnalitico.Location = new System.Drawing.Point(0, 196);
+            this.panelAnalitico.Name = "panelAnalitico";
+            this.panelAnalitico.Size = new System.Drawing.Size(1530, 85);
+            this.panelAnalitico.TabIndex = 10;
+            // 
+            // lblFinancieroTitulo
+            // 
+            this.lblFinancieroTitulo.AutoSize = true;
+            this.lblFinancieroTitulo.Font = new System.Drawing.Font("Segoe UI Semibold", 8.5F, System.Drawing.FontStyle.Bold);
+            this.lblFinancieroTitulo.ForeColor = System.Drawing.Color.DarkGray;
+            this.lblFinancieroTitulo.Location = new System.Drawing.Point(20, 10);
+            this.lblFinancieroTitulo.Name = "lblFinancieroTitulo";
+            this.lblFinancieroTitulo.Size = new System.Drawing.Size(149, 15);
+            this.lblFinancieroTitulo.TabIndex = 0;
+            this.lblFinancieroTitulo.Text = "INVENTARIO FINANCIERO";
+            // 
+            // lblFinancieroInversion
+            // 
+            this.lblFinancieroInversion.AutoSize = true;
+            this.lblFinancieroInversion.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblFinancieroInversion.ForeColor = System.Drawing.Color.White;
+            this.lblFinancieroInversion.Location = new System.Drawing.Point(20, 35);
+            this.lblFinancieroInversion.Name = "lblFinancieroInversion";
+            this.lblFinancieroInversion.Size = new System.Drawing.Size(114, 19);
+            this.lblFinancieroInversion.TabIndex = 1;
+            this.lblFinancieroInversion.Text = "Inversión: $0.00";
+            // 
+            // lblFinancieroVenta
+            // 
+            this.lblFinancieroVenta.AutoSize = true;
+            this.lblFinancieroVenta.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblFinancieroVenta.ForeColor = System.Drawing.Color.White;
+            this.lblFinancieroVenta.Location = new System.Drawing.Point(180, 35);
+            this.lblFinancieroVenta.Name = "lblFinancieroVenta";
+            this.lblFinancieroVenta.Size = new System.Drawing.Size(116, 19);
+            this.lblFinancieroVenta.TabIndex = 2;
+            this.lblFinancieroVenta.Text = "Venta Est.: $0.00";
+            // 
+            // lblFinancieroUtilidad
+            // 
+            this.lblFinancieroUtilidad.AutoSize = true;
+            this.lblFinancieroUtilidad.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblFinancieroUtilidad.ForeColor = System.Drawing.Color.White;
+            this.lblFinancieroUtilidad.Location = new System.Drawing.Point(350, 35);
+            this.lblFinancieroUtilidad.Name = "lblFinancieroUtilidad";
+            this.lblFinancieroUtilidad.Size = new System.Drawing.Size(145, 19);
+            this.lblFinancieroUtilidad.TabIndex = 3;
+            this.lblFinancieroUtilidad.Text = "Ganancia Pot.: $0.00";
+            // 
+            // lblFinancieroMargen
+            // 
+            this.lblFinancieroMargen.AutoSize = true;
+            this.lblFinancieroMargen.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblFinancieroMargen.ForeColor = System.Drawing.Color.White;
+            this.lblFinancieroMargen.Location = new System.Drawing.Point(540, 35);
+            this.lblFinancieroMargen.Name = "lblFinancieroMargen";
+            this.lblFinancieroMargen.Size = new System.Drawing.Size(89, 19);
+            this.lblFinancieroMargen.TabIndex = 4;
+            this.lblFinancieroMargen.Text = "Margen: 0%";
+            // 
+            // lblFinancieroInmovilizado
+            // 
+            this.lblFinancieroInmovilizado.AutoSize = true;
+            this.lblFinancieroInmovilizado.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblFinancieroInmovilizado.ForeColor = System.Drawing.Color.White;
+            this.lblFinancieroInmovilizado.Location = new System.Drawing.Point(660, 35);
+            this.lblFinancieroInmovilizado.Name = "lblFinancieroInmovilizado";
+            this.lblFinancieroInmovilizado.Size = new System.Drawing.Size(140, 19);
+            this.lblFinancieroInmovilizado.TabIndex = 5;
+            this.lblFinancieroInmovilizado.Text = "Inmovilizado: $0.00";
+            // 
+            // lblRiesgoTitulo
+            // 
+            this.lblRiesgoTitulo.AutoSize = true;
+            this.lblRiesgoTitulo.Font = new System.Drawing.Font("Segoe UI Semibold", 8.5F, System.Drawing.FontStyle.Bold);
+            this.lblRiesgoTitulo.ForeColor = System.Drawing.Color.DarkGray;
+            this.lblRiesgoTitulo.Location = new System.Drawing.Point(850, 10);
+            this.lblRiesgoTitulo.Name = "lblRiesgoTitulo";
+            this.lblRiesgoTitulo.Size = new System.Drawing.Size(115, 15);
+            this.lblRiesgoTitulo.TabIndex = 6;
+            this.lblRiesgoTitulo.Text = "RIESGO OPERATIVO";
+            // 
+            // lblRiesgoCriticos
+            // 
+            this.lblRiesgoCriticos.AutoSize = true;
+            this.lblRiesgoCriticos.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblRiesgoCriticos.ForeColor = System.Drawing.Color.White;
+            this.lblRiesgoCriticos.Location = new System.Drawing.Point(850, 35);
+            this.lblRiesgoCriticos.Name = "lblRiesgoCriticos";
+            this.lblRiesgoCriticos.Size = new System.Drawing.Size(116, 19);
+            this.lblRiesgoCriticos.TabIndex = 7;
+            this.lblRiesgoCriticos.Text = "Críticos: 0 Prod.";
+            // 
+            // lblRiesgoSobrestock
+            // 
+            this.lblRiesgoSobrestock.AutoSize = true;
+            this.lblRiesgoSobrestock.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblRiesgoSobrestock.ForeColor = System.Drawing.Color.White;
+            this.lblRiesgoSobrestock.Location = new System.Drawing.Point(1000, 35);
+            this.lblRiesgoSobrestock.Name = "lblRiesgoSobrestock";
+            this.lblRiesgoSobrestock.Size = new System.Drawing.Size(142, 19);
+            this.lblRiesgoSobrestock.TabIndex = 8;
+            this.lblRiesgoSobrestock.Text = "Sobrestock: 0 Prod.";
+            // 
+            // lblRiesgoRotacion
+            // 
+            this.lblRiesgoRotacion.AutoSize = true;
+            this.lblRiesgoRotacion.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblRiesgoRotacion.ForeColor = System.Drawing.Color.White;
+            this.lblRiesgoRotacion.Location = new System.Drawing.Point(1170, 35);
+            this.lblRiesgoRotacion.Name = "lblRiesgoRotacion";
+            this.lblRiesgoRotacion.Size = new System.Drawing.Size(158, 19);
+            this.lblRiesgoRotacion.TabIndex = 9;
+            this.lblRiesgoRotacion.Text = "Baja Rotación: 0 Prod.";
+            // 
+            // lblRiesgoReposicion
+            // 
+            this.lblRiesgoReposicion.AutoSize = true;
+            this.lblRiesgoReposicion.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblRiesgoReposicion.ForeColor = System.Drawing.Color.White;
+            this.lblRiesgoReposicion.Location = new System.Drawing.Point(1340, 35);
+            this.lblRiesgoReposicion.Name = "lblRiesgoReposicion";
+            this.lblRiesgoReposicion.Size = new System.Drawing.Size(179, 19);
+            this.lblRiesgoReposicion.TabIndex = 10;
+            this.lblRiesgoReposicion.Text = "Reposición Próx.: 0 Prod.";
+            // 
             // frmInventario
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
@@ -713,6 +1147,7 @@ namespace JaegerSoft
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(20)))), ((int)(((byte)(20)))), ((int)(((byte)(20)))));
             this.ClientSize = new System.Drawing.Size(1530, 1061);
             this.Controls.Add(this.panelHeader);
+            this.Controls.Add(this.panelAnalitico);
             this.Controls.Add(this.panelPaginador);
             this.Controls.Add(this.dataGridView2);
             this.Controls.Add(this.panel6);
@@ -728,14 +1163,29 @@ namespace JaegerSoft
             this.panel6.PerformLayout();
             this.panelHeader.ResumeLayout(false);
             this.panelHeader.PerformLayout();
+            this.panelKpiContainer.ResumeLayout(false);
             this.cardArticulos.ResumeLayout(false);
             this.cardArticulos.PerformLayout();
             this.cardStock.ResumeLayout(false);
             this.cardStock.PerformLayout();
             this.cardCategorias.ResumeLayout(false);
             this.cardCategorias.PerformLayout();
+            this.cardInversion.ResumeLayout(false);
+            this.cardInversion.PerformLayout();
+            this.cardVentaPotencial.ResumeLayout(false);
+            this.cardVentaPotencial.PerformLayout();
+            this.cardUtilidad.ResumeLayout(false);
+            this.cardUtilidad.PerformLayout();
+            this.cardMargen.ResumeLayout(false);
+            this.cardMargen.PerformLayout();
+            this.cardStockCritico.ResumeLayout(false);
+            this.cardStockCritico.PerformLayout();
+            this.cardCapitalInmovilizado.ResumeLayout(false);
+            this.cardCapitalInmovilizado.PerformLayout();
             this.panelPaginador.ResumeLayout(false);
             this.panelPaginador.PerformLayout();
+            this.panelAnalitico.ResumeLayout(false);
+            this.panelAnalitico.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -773,6 +1223,7 @@ namespace JaegerSoft
         private System.Windows.Forms.Button btnUltimo;
         private System.Windows.Forms.Button btnSiguiente;
         private System.Windows.Forms.Panel panelHeader;
+        private System.Windows.Forms.Panel panelKpiContainer;
         private System.Windows.Forms.Panel panelPaginador;
         private System.Windows.Forms.Panel cardArticulos;
         private System.Windows.Forms.Panel cardStock;
@@ -786,5 +1237,37 @@ namespace JaegerSoft
         private System.Windows.Forms.Label lblOperaciones;
         private System.Windows.Forms.Label lblCatalogos;
         private System.Windows.Forms.Label lblReportes;
+        private System.Windows.Forms.Button button19;
+        private System.Windows.Forms.Panel cardInversion;
+        private System.Windows.Forms.Label lblKpiInversionTitulo;
+        private System.Windows.Forms.Label lblKpiInversion;
+        private System.Windows.Forms.Panel cardVentaPotencial;
+        private System.Windows.Forms.Label lblKpiVentaPotencialTitulo;
+        private System.Windows.Forms.Label lblKpiVentaPotencial;
+        private System.Windows.Forms.Panel cardUtilidad;
+        private System.Windows.Forms.Label lblKpiUtilidadTitulo;
+        private System.Windows.Forms.Label lblKpiUtilidad;
+        private System.Windows.Forms.Panel cardMargen;
+        private System.Windows.Forms.Label lblKpiMargenTitulo;
+        private System.Windows.Forms.Label lblKpiMargen;
+        private System.Windows.Forms.Panel cardStockCritico;
+        private System.Windows.Forms.Label lblKpiStockCriticoTitulo;
+        private System.Windows.Forms.Label lblKpiStockCritico;
+        private System.Windows.Forms.Panel cardCapitalInmovilizado;
+        private System.Windows.Forms.Label lblKpiCapitalInmovilizadoTitulo;
+        private System.Windows.Forms.Label lblKpiCapitalInmovilizado;
+        private System.Windows.Forms.Panel panelAnalitico;
+        private System.Windows.Forms.Label lblFinancieroTitulo;
+        private System.Windows.Forms.Label lblFinancieroInversion;
+        private System.Windows.Forms.Label lblFinancieroVenta;
+        private System.Windows.Forms.Label lblFinancieroUtilidad;
+        private System.Windows.Forms.Label lblFinancieroMargen;
+        private System.Windows.Forms.Label lblFinancieroInmovilizado;
+        private System.Windows.Forms.Label lblRiesgoTitulo;
+        private System.Windows.Forms.Label lblRiesgoCriticos;
+        private System.Windows.Forms.Label lblRiesgoSobrestock;
+        private System.Windows.Forms.Label lblRiesgoRotacion;
+        private System.Windows.Forms.Label lblRiesgoReposicion;
+        private System.Windows.Forms.Button btnAlmacenes;
     }
 }

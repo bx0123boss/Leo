@@ -1,4 +1,4 @@
-﻿using LibPrintTicket;
+using LibPrintTicket;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -624,7 +624,14 @@ namespace JaegerSoft
                                     cmd.ExecuteNonQuery();
                                 }
 
-                                // F) Agregar a la lista para imprimir el ticket
+                                // F) Actualizar FechaUltimaVenta en Inventario
+                                string queryUpdInv = "UPDATE Inventario SET FechaUltimaVenta = NOW() WHERE Id = '" + idProducto + "';";
+                                using (var cmd = new OleDbCommand(queryUpdInv, con, transaccion))
+                                {
+                                    cmd.ExecuteNonQuery();
+                                }
+
+                                // G) Agregar a la lista para imprimir el ticket
                                 productosTicket.Add(new Producto
                                 {
                                     Nombre = nombreProd,

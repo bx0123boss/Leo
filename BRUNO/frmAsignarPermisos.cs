@@ -20,6 +20,8 @@ namespace JaegerSoft
             { "MOD_VENTAS", "Módulo de Ventas / Cobro" },
             { "MOD_VENTAS_CREDITO", "Módulo de Ventas Credito" },
             { "MOD_INVENTARIO", "Módulo de Inventario" },
+            { "VER_ANALITICO_INVENTARIO", "Analiticos de Inventario" },
+            { "MOD_ALMACENES", "Módulo de Almacenes" },
             { "EXISTENCIAS", "Ver existencias actuales" },
             { "MOD_DEVOLUCIONES", "Módulo de Devoluciones" },
             { "MOD_CLIENTES", "Gestión de Clientes" },

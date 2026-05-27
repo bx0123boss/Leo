@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.OleDb;
 using System.Data.SqlClient;
@@ -657,11 +657,17 @@ namespace JaegerSoft
                 {
                     cmd = new OleDbCommand("insert into VentasApartados(FolioVenta,idProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha,Estatus) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','PENDIENTE');", conectar);
                     cmd.ExecuteNonQuery();
+
+                    // Actualizar FechaUltimaVenta
+                    using (var cmdUpd = new OleDbCommand("UPDATE Inventario SET FechaUltimaVenta = NOW() WHERE Id = '" + dataGridView1[5, i].Value.ToString() + "';", conectar))
+                    {
+                        cmdUpd.ExecuteNonQuery();
+                    }
                 }
                 else
                 {
                     // Actualizamos existencias
-                    cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existencia + "' Where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
+                    cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existencia + "', FechaUltimaVenta = NOW() Where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
                     cmd.ExecuteNonQuery();
 
                     // Insertamos en la venta apartados

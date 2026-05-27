@@ -378,7 +378,7 @@ namespace JaegerSoft
                                     // Actualizar Inventario (Costo Real actualiza Especial si es mayor)
                                     double nuevoEspecial = costoReal > precioDB ? costoReal : precioDB;
 
-                                    string updInv = "UPDATE Inventario SET Especial = @Esp, Existencia = @Exis, PrecioVenta = @PVenta WHERE Id = @Id";
+                                    string updInv = "UPDATE Inventario SET Especial = @Esp, Existencia = @Exis, PrecioVenta = @PVenta, FechaUltimaCompra = NOW() WHERE Id = @Id";
                                     using (OleDbCommand cmdUpd = new OleDbCommand(updInv, conn, transaction))
                                     {
                                         cmdUpd.Parameters.AddWithValue("@Esp", nuevoEspecial);
@@ -403,8 +403,8 @@ namespace JaegerSoft
                                 }
                                 else
                                 {
-                                    // Insertar nuevo en inventario (Seguimos tu orden exacto de indices: Id, Nombre, IVA(6), Especial(5), Existencia(2), '0')
-                                    string insInv = "INSERT INTO Inventario VALUES (@Id, @Nom, @Iva, @CReal, @Exis, '0')";
+                                    // Insertar nuevo en inventario
+                                    string insInv = "INSERT INTO Inventario (Id, Nombre, IVA, Especial, Existencia, Unidad, Activo, FechaUltimaCompra, PrecioVenta) VALUES (@Id, @Nom, @Iva, @CReal, @Exis, '0', Yes, NOW(), @PVenta)";
                                     using (OleDbCommand cmdIns = new OleDbCommand(insInv, conn, transaction))
                                     {
                                         cmdIns.Parameters.AddWithValue("@Id", idProd);
@@ -412,6 +412,7 @@ namespace JaegerSoft
                                         cmdIns.Parameters.AddWithValue("@Iva", iva);
                                         cmdIns.Parameters.AddWithValue("@CReal", costoReal);
                                         cmdIns.Parameters.AddWithValue("@Exis", cant);
+                                        cmdIns.Parameters.AddWithValue("@PVenta", precioVenta);
                                         cmdIns.ExecuteNonQuery();
                                     }
 
@@ -439,7 +440,7 @@ namespace JaegerSoft
                                     // Actualizar precios en maestro de Inventario (pero no incrementar existencia principal)
                                     double nuevoEspecial = costoReal > precioDB ? costoReal : precioDB;
 
-                                    string updInv = "UPDATE Inventario SET Especial = @Esp, PrecioVenta = @PVenta WHERE Id = @Id";
+                                    string updInv = "UPDATE Inventario SET Especial = @Esp, PrecioVenta = @PVenta, FechaUltimaCompra = NOW() WHERE Id = @Id";
                                     using (OleDbCommand cmdUpd = new OleDbCommand(updInv, conn, transaction))
                                     {
                                         cmdUpd.Parameters.AddWithValue("@Esp", nuevoEspecial);
@@ -451,13 +452,14 @@ namespace JaegerSoft
                                 else
                                 {
                                     // Registrar metadatos en Inventario principal con existencia 0
-                                    string insInv = "INSERT INTO Inventario VALUES (@Id, @Nom, @Iva, @CReal, 0, '0')";
+                                    string insInv = "INSERT INTO Inventario (Id, Nombre, IVA, Especial, Existencia, Unidad, Activo, FechaUltimaCompra, PrecioVenta) VALUES (@Id, @Nom, @Iva, @CReal, 0, '0', Yes, NOW(), @PVenta)";
                                     using (OleDbCommand cmdIns = new OleDbCommand(insInv, conn, transaction))
                                     {
                                         cmdIns.Parameters.AddWithValue("@Id", idProd);
                                         cmdIns.Parameters.AddWithValue("@Nom", nombreProd);
                                         cmdIns.Parameters.AddWithValue("@Iva", iva);
                                         cmdIns.Parameters.AddWithValue("@CReal", costoReal);
+                                        cmdIns.Parameters.AddWithValue("@PVenta", precioVenta);
                                         cmdIns.ExecuteNonQuery();
                                     }
                                 }

@@ -43,7 +43,6 @@ namespace JaegerSoft
             this.button4 = new System.Windows.Forms.Button();
             this.button6 = new System.Windows.Forms.Button();
             this.button8 = new System.Windows.Forms.Button();
-            this.BtnAlmacenes = new System.Windows.Forms.Button();
             this.button5 = new System.Windows.Forms.Button();
             this.BtnTipodecambio = new System.Windows.Forms.Button();
             this.button7 = new System.Windows.Forms.Button();
@@ -70,7 +69,6 @@ namespace JaegerSoft
             this.pnlMenu.Controls.Add(this.button4);
             this.pnlMenu.Controls.Add(this.button6);
             this.pnlMenu.Controls.Add(this.button8);
-            this.pnlMenu.Controls.Add(this.BtnAlmacenes);
             this.pnlMenu.Location = new System.Drawing.Point(58, 52);
             this.pnlMenu.Margin = new System.Windows.Forms.Padding(4);
             this.pnlMenu.Name = "pnlMenu";
@@ -280,22 +278,6 @@ namespace JaegerSoft
             this.button8.Visible = false;
             this.button8.Click += new System.EventHandler(this.button8_Click);
             // 
-            // BtnAlmacenes
-            // 
-            this.BtnAlmacenes.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("BtnAlmacenes.BackgroundImage")));
-            this.BtnAlmacenes.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.BtnAlmacenes.Font = new System.Drawing.Font("Modern No. 20", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BtnAlmacenes.ForeColor = System.Drawing.Color.White;
-            this.BtnAlmacenes.Location = new System.Drawing.Point(47, 649);
-            this.BtnAlmacenes.Margin = new System.Windows.Forms.Padding(4);
-            this.BtnAlmacenes.Name = "BtnAlmacenes";
-            this.BtnAlmacenes.Size = new System.Drawing.Size(257, 118);
-            this.BtnAlmacenes.TabIndex = 22;
-            this.BtnAlmacenes.Text = "ALMACENES";
-            this.BtnAlmacenes.UseVisualStyleBackColor = true;
-            this.BtnAlmacenes.Visible = false;
-            this.BtnAlmacenes.Click += new System.EventHandler(this.BtnAlmacenes_Click);
-            // 
             // button5
             // 
             this.button5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -417,7 +399,6 @@ namespace JaegerSoft
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Button button6;
         private System.Windows.Forms.Button button8;
-        private System.Windows.Forms.Button BtnAlmacenes;
 
         // Botones ocultos / Opcionales
         private System.Windows.Forms.Button button2;

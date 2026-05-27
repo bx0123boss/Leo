@@ -15,17 +15,16 @@ namespace JaegerSoft
 {
     public partial class frmInventario : frmBase
     {
-
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
+        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         OleDbCommand cmd;
         public String usuario = "Admin";
 
-
         private List<ProductoInventario> listaCompletaInventario;
         private List<ProductoInventario> listaFiltradaInventario;
-        private int tamanoPagina = 30; 
+        private int tamanoPagina = 30;
         private int paginaActual = 1;
         private int totalPaginas = 0;
+
         public class ProductoInventario
         {
             public string Id { get; set; }
@@ -33,13 +32,46 @@ namespace JaegerSoft
             public decimal PrecioVentaMayoreo { get; set; }
             public decimal PrecioVenta { get; set; }
             public decimal Existencia { get; set; }
-            public decimal Limite { get; set; } 
+            public decimal Limite { get; set; }
             public string Categoria { get; set; }
-            public decimal Especial {  get; set; }
+            public decimal Especial { get; set; }
             public string IVA { get; set; }
             public string Unidad { get; set; }
             public string Uni { get; set; }
+
+            // New fields
+            public string ProveedorPrincipal { get; set; }
+            public DateTime? FechaUltimaCompra { get; set; }
+            public DateTime? FechaUltimaVenta { get; set; }
+            public double VentasMes { get; set; }
+            public double VentasAnio { get; set; }
+            public double StockMaximo { get; set; }
+            public int DiasReposicion { get; set; }
+
+            // Calculated fields
+            public string EstadoInventario
+            {
+                get
+                {
+                    if (Existencia < Limite) return "COMPRAR";
+                    if (StockMaximo > 0 && Existencia > (decimal)StockMaximo) return "SOBRESTOCK";
+                    return "NORMAL";
+                }
+            }
+
+            public string NivelRotacion
+            {
+                get
+                {
+                    if (Existencia <= 0) return "BAJA";
+                    double rotacion = VentasMes / (double)Existencia;
+                    if (rotacion >= 1.5) return "ALTA ROTACIÓN";
+                    if (rotacion >= 0.5) return "MEDIA";
+                    return "BAJA";
+                }
+            }
         }
+
         public class ResumenCategoria
         {
             public string Categoria { get; set; }
@@ -48,10 +80,11 @@ namespace JaegerSoft
             public decimal TotalVenta { get; set; }
             public decimal Utilidad { get; set; }
         }
+
         public frmInventario()
         {
             InitializeComponent();
-            this.MinimumSize = new Size(1346,805);
+            this.MinimumSize = new Size(1346, 805);
         }
 
         private void BtnApartados_Click(object sender, EventArgs e)
@@ -75,7 +108,7 @@ namespace JaegerSoft
             EstilizarBotonPaginador(btnAnterior);
             EstilizarBotonPaginador(btnSiguiente);
             EstilizarBotonPaginador(btnUltimo);
-            //ds = new DataSet();
+
             conectar.Open();
             System.Data.DataTable dt = new System.Data.DataTable();
             cmd = new OleDbCommand("Select Id,Nombre from Categorias;", conectar);
@@ -86,15 +119,19 @@ namespace JaegerSoft
             comboBox2.DataSource = dt;
             DataSet ds = new DataSet();
             da = new OleDbDataAdapter("select * from Inventario order by Nombre;", conectar);
-            da.Fill(ds, "Inventario"); // Usamos "Inventario" como nombre de tabla
+            da.Fill(ds, "Inventario");
+
+            // Permisos de visibilidad en interfaz
+            bool tienePermisoAnalitico = Sesion.TienePermiso("VER_ANALITICO_INVENTARIO");
+            btnAlmacenes.Visible = Sesion.TienePermiso("MOD_ALMACENES");
+            panelAnalitico.Visible = tienePermisoAnalitico;
+            panelKpiContainer.Visible = tienePermisoAnalitico;
 
             // 2. Convertir el DataSet (DataTable) a una List<ProductoInventario>
             listaCompletaInventario = new List<ProductoInventario>();
 
-            // Verificamos que la tabla se haya cargado
             if (ds.Tables.Count > 0 && ds.Tables["Inventario"].Rows.Count > 0)
             {
-                // Iteramos por cada fila (DataRow) en la tabla
                 foreach (DataRow row in ds.Tables["Inventario"].Rows)
                 {
                     ProductoInventario prod = new ProductoInventario();
@@ -111,48 +148,106 @@ namespace JaegerSoft
                     prod.Unidad = row["Unidad"] == DBNull.Value ? "" : row["Unidad"].ToString();
                     prod.Uni = row["Uni"] == DBNull.Value ? "" : row["Uni"].ToString();
 
+                    prod.ProveedorPrincipal = row.Table.Columns.Contains("ProveedorPrincipal") && row["ProveedorPrincipal"] != DBNull.Value ? row["ProveedorPrincipal"].ToString() : "";
+                    prod.FechaUltimaCompra = row.Table.Columns.Contains("FechaUltimaCompra") && row["FechaUltimaCompra"] != DBNull.Value ? Convert.ToDateTime(row["FechaUltimaCompra"]) : (DateTime?)null;
+                    prod.FechaUltimaVenta = row.Table.Columns.Contains("FechaUltimaVenta") && row["FechaUltimaVenta"] != DBNull.Value ? Convert.ToDateTime(row["FechaUltimaVenta"]) : (DateTime?)null;
+                    prod.StockMaximo = row.Table.Columns.Contains("StockMaximo") && row["StockMaximo"] != DBNull.Value ? Convert.ToDouble(row["StockMaximo"]) : 0.0;
+                    prod.DiasReposicion = row.Table.Columns.Contains("DiasReposicion") && row["DiasReposicion"] != DBNull.Value ? Convert.ToInt32(row["DiasReposicion"]) : 0;
+
                     listaCompletaInventario.Add(prod);
                 }
             }
-            listaFiltradaInventario = new List<ProductoInventario>(listaCompletaInventario); 
+
+            // OPTIMIZACIÓN: Solo ejecutar la query pesada de ventas si el usuario va a ver el dashboard analítico
+            if (tienePermisoAnalitico)
+            {
+                CargarVentasDinamicas(listaCompletaInventario);
+            }
+
+            listaFiltradaInventario = new List<ProductoInventario>(listaCompletaInventario);
             totalPaginas = (int)Math.Ceiling((double)listaCompletaInventario.Count / tamanoPagina);
 
-            // 3. Actualizar valores de KPIs
-            ActualizarKpiValues();
+            // OPTIMIZACIÓN: Omitir los pesados bucles de cálculo de KPIs matemáticos (.Sum, .Where, etc.)
+            if (tienePermisoAnalitico)
+            {
+                ActualizarKpiValues();
+                this.Resize += FrmInventario_Resize;
+                AjustarDisenoAnalitico();
+            }
 
-            // 4. Cargar la primera página
             CargarPagina();
         }
+
+        private void FrmInventario_Resize(object sender, EventArgs e)
+        {
+            if (Sesion.TienePermiso("VER_ANALITICO_INVENTARIO"))
+            {
+                AjustarDisenoAnalitico();
+            }
+        }
+
+        private void AjustarDisenoAnalitico()
+        {
+            if (panelAnalitico == null || !panelAnalitico.Visible) return;
+
+            int W = panelAnalitico.Width;
+            if (W <= 0) return;
+
+            if (lblFinancieroTitulo != null) lblFinancieroTitulo.Location = new System.Drawing.Point(20, 6);
+
+            if (lblFinancieroInversion != null) lblFinancieroInversion.Location = new System.Drawing.Point(20, 25);
+            if (lblFinancieroVenta != null) lblFinancieroVenta.Location = new System.Drawing.Point(240, 25);
+            if (lblFinancieroUtilidad != null) lblFinancieroUtilidad.Location = new System.Drawing.Point(460, 25);
+
+            if (lblFinancieroMargen != null) lblFinancieroMargen.Location = new System.Drawing.Point(20, 52);
+            if (lblFinancieroInmovilizado != null) lblFinancieroInmovilizado.Location = new System.Drawing.Point(240, 52);
+
+            int RS = (W / 2) + 20;
+
+            if (lblRiesgoTitulo != null) lblRiesgoTitulo.Location = new System.Drawing.Point(RS, 6);
+
+            if (lblRiesgoCriticos != null) lblRiesgoCriticos.Location = new System.Drawing.Point(RS, 25);
+            if (lblRiesgoSobrestock != null) lblRiesgoSobrestock.Location = new System.Drawing.Point(RS + 240, 25);
+
+            if (lblRiesgoRotacion != null) lblRiesgoRotacion.Location = new System.Drawing.Point(RS, 52);
+            if (lblRiesgoReposicion != null) lblRiesgoReposicion.Location = new System.Drawing.Point(RS + 240, 52);
+        }
+
         #region PAGINACION
         private void CargarPagina()
         {
-            // (Validación de paginaActual - sin cambios)
             if (paginaActual < 1) paginaActual = 1;
             if (paginaActual > totalPaginas && totalPaginas > 0) paginaActual = totalPaginas;
 
-            var datosPaginados = listaFiltradaInventario // ¡Usamos la filtrada!
+            var datosPaginados = listaFiltradaInventario
                 .Skip((paginaActual - 1) * tamanoPagina)
                 .Take(tamanoPagina)
                 .ToList();
 
-            // Asignar al DataGridView (sin cambios)
             dataGridView2.DataSource = datosPaginados;
             totalPaginas = (int)Math.Ceiling((double)listaFiltradaInventario.Count / tamanoPagina);
-            // Actualizar controles (sin cambios)
             ActualizarControlesPaginacion();
         }
+
+        private void UpdateKpiSafe()
+        {
+            if (Sesion.TienePermiso("VER_ANALITICO_INVENTARIO"))
+            {
+                ActualizarKpiValues();
+            }
+        }
+
         private void ActualizarControlesPaginacion()
         {
-            // Actualizar etiqueta
             lblEstado.Text = $"Página {paginaActual} de {totalPaginas}";
 
-            // Habilitar o deshabilitar botones según la página actual
             btnPrimero.Enabled = (paginaActual > 1);
             btnAnterior.Enabled = (paginaActual > 1);
 
             btnSiguiente.Enabled = (paginaActual < totalPaginas);
             btnUltimo.Enabled = (paginaActual < totalPaginas);
         }
+
         private void btnPrimero_Click(object sender, EventArgs e)
         {
             if (paginaActual > 1)
@@ -188,9 +283,9 @@ namespace JaegerSoft
                 CargarDatosPaginados();
             }
         }
+
         private void CargarDatosPaginados()
         {
-            // CAMBIO 1: Validamos contra la lista FILTRADA
             if (listaFiltradaInventario == null || listaFiltradaInventario.Count == 0)
             {
                 dataGridView2.DataSource = null;
@@ -199,37 +294,24 @@ namespace JaegerSoft
                 return;
             }
 
-            // CAMBIO 2: Calculamos las páginas según los resultados FILTRADOS
             totalPaginas = (int)Math.Ceiling((double)listaFiltradaInventario.Count / tamanoPagina);
 
-            // Asegurarse de que la página actual esté dentro de los límites
-            if (paginaActual > totalPaginas)
-            {
-                paginaActual = totalPaginas;
-            }
-            if (paginaActual < 1)
-            {
-                paginaActual = 1;
-            }
+            if (paginaActual > totalPaginas) paginaActual = totalPaginas;
+            if (paginaActual < 1) paginaActual = 1;
 
-            // CAMBIO 3: Hacemos el Skip y Take sobre la lista FILTRADA
             var datosPaginados = listaFiltradaInventario
                 .Skip((paginaActual - 1) * tamanoPagina)
                 .Take(tamanoPagina)
                 .ToList();
 
-            // Asignar los datos paginados al DataGridView
             dataGridView2.DataSource = datosPaginados;
-
-            // Actualizar los botones y la etiqueta
             ActualizarControlesNavegacion();
         }
+
         private void ActualizarControlesNavegacion()
         {
-            // Actualizar la etiqueta de estado
             lblEstado.Text = $"Página {paginaActual} de {totalPaginas}";
 
-            // Habilitar/Deshabilitar botones
             btnPrimero.Enabled = (paginaActual > 1);
             btnAnterior.Enabled = (paginaActual > 1);
 
@@ -242,17 +324,21 @@ namespace JaegerSoft
         {
             try
             {
-               
+                if (dataGridView2.CurrentRow != null)
+                {
+                    ProductoInventario prod = (ProductoInventario)dataGridView2.CurrentRow.DataBoundItem;
+
                     frmEditarProducto editar = new frmEditarProducto();
                     editar.usuario = usuario;
                     editar.inventario = "INVENT";
-                    editar.txtID.Text = dataGridView2[0, dataGridView2.CurrentRow.Index].Value.ToString();
-                    editar.txtProducto.Text = dataGridView2[1, dataGridView2.CurrentRow.Index].Value.ToString();
-                    editar.txtCompra.Text = dataGridView2[2, dataGridView2.CurrentRow.Index].Value.ToString();
-                    editar.txtVenta.Text = dataGridView2[3, dataGridView2.CurrentRow.Index].Value.ToString();
-                    editar.cmbCategoria.Text = dataGridView2[8, dataGridView2.CurrentRow.Index].Value.ToString();
-                    editar.txtLimite.Text = dataGridView2[7, dataGridView2.CurrentRow.Index].Value.ToString();
-                    editar.comboBox1.Text = dataGridView2[6, dataGridView2.CurrentRow.Index].Value.ToString();
+                    editar.txtID.Text = prod.Id;
+                    editar.txtProducto.Text = prod.Nombre;
+                    editar.txtCompra.Text = prod.Especial.ToString();
+                    editar.txtVenta.Text = prod.PrecioVenta.ToString();
+                    editar.cmbCategoria.Text = prod.Categoria;
+                    editar.txtLimite.Text = prod.Limite.ToString();
+                    editar.comboBox1.Text = prod.IVA;
+
                     System.Data.DataTable dt = new System.Data.DataTable();
                     cmd = new OleDbCommand("Select Id,Nombre from Unidades;", conectar);
                     OleDbDataAdapter da = new OleDbDataAdapter(cmd);
@@ -260,34 +346,31 @@ namespace JaegerSoft
                     editar.cmbUnidad.DisplayMember = "Nombre";
                     editar.cmbUnidad.ValueMember = "Id";
                     editar.cmbUnidad.DataSource = dt;
-                    editar.cmbUnidad.SelectedValue = dataGridView2[9, dataGridView2.CurrentRow.Index].Value.ToString();
-                    editar.cmbUnidad.Text = dataGridView2[10, dataGridView2.CurrentRow.Index].Value.ToString();
+                    editar.cmbUnidad.SelectedValue = prod.Unidad;
+                    editar.cmbUnidad.Text = prod.Uni;
                     editar.Show();
                     this.Close();
+                }
             }
             catch (Exception ex)
             {
-
+                // Silently handle
             }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            // 1. Verificar que haya una fila seleccionada
             if (dataGridView2.CurrentRow == null)
             {
                 MessageBox.Show("Por favor, seleccione un producto para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // 2. Obtener el producto seleccionado de forma segura
-            // Usamos DataBoundItem para obtener el objeto 'ProductoInventario' completo
             ProductoInventario productoSeleccionado = (ProductoInventario)dataGridView2.CurrentRow.DataBoundItem;
             string idParaEliminar = productoSeleccionado.Id;
 
             try
             {
-                // 3. Confirmación
                 DialogResult dialogResult = MessageBox.Show("¿Estas seguro de eliminar el producto?", "Alto!", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
                 if (dialogResult == DialogResult.Yes)
@@ -299,7 +382,6 @@ namespace JaegerSoft
 
                     using (OleDbCommand cmdInsert = new OleDbCommand(sqlInsert, conectar))
                     {
-                        // Asignamos los valores desde el objeto que ya tenemos
                         cmdInsert.Parameters.AddWithValue("@Id", productoSeleccionado.Id);
                         cmdInsert.Parameters.AddWithValue("@Nombre", productoSeleccionado.Nombre);
                         cmdInsert.Parameters.AddWithValue("@PrecioVentaMayoreo", productoSeleccionado.PrecioVentaMayoreo);
@@ -315,7 +397,6 @@ namespace JaegerSoft
                         cmdInsert.ExecuteNonQuery();
                     }
 
-                    // 4b. Eliminar de la tabla principal (Inventario)
                     string sqlDelete = "DELETE FROM Inventario WHERE Id = @Id";
                     using (OleDbCommand cmdDelete = new OleDbCommand(sqlDelete, conectar))
                     {
@@ -332,7 +413,7 @@ namespace JaegerSoft
                         listaFiltradaInventario.Remove(itemAEliminar);
                     }
 
-                    ActualizarKpiValues();
+                    UpdateKpiSafe();
 
                     paginaActual = 1;
                     CargarDatosPaginados();
@@ -342,16 +423,14 @@ namespace JaegerSoft
             {
                 MessageBox.Show("Error al eliminar el producto: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
         }
+
         private void AplicarFiltros()
         {
             if (listaCompletaInventario == null) return;
 
-            // Empezamos asumiendo que mostramos todo
             var filtro = listaCompletaInventario.AsEnumerable();
 
-            // Filtro por Categoría (Combo y Check)
             if (checkBox1.Checked)
             {
                 filtro = filtro.Where(p => p.Categoria != null &&
@@ -359,33 +438,29 @@ namespace JaegerSoft
                                            p.Categoria != "ACCESORIOS");
             }
 
-            // Filtro por Nombre (TextBox1)
             if (!string.IsNullOrWhiteSpace(textBox1.Text))
             {
                 filtro = filtro.Where(p => p.Nombre != null &&
                                            p.Nombre.IndexOf(textBox1.Text, StringComparison.OrdinalIgnoreCase) >= 0);
             }
 
-            // Filtro por ID (TextBox2)
             if (!string.IsNullOrWhiteSpace(textBox2.Text))
             {
                 filtro = filtro.Where(p => p.Id != null &&
                                            p.Id.IndexOf(textBox2.Text, StringComparison.OrdinalIgnoreCase) >= 0);
             }
 
-            // Actualizamos la vista y regresamos a la página 1
             listaFiltradaInventario = filtro.ToList();
             paginaActual = 1;
             CargarDatosPaginados();
         }
 
-        // Ahora, enlazamos los controles a este método:
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == Convert.ToChar(Keys.Enter))
             {
                 AplicarFiltros();
-                e.Handled = true; // Quita el sonido molesto de "beep" de Windows
+                e.Handled = true;
             }
         }
 
@@ -408,6 +483,7 @@ namespace JaegerSoft
             textBox1.Enabled = !checkBox1.Checked;
             AplicarFiltros();
         }
+
         private void ExportarInventarioExcel(object sender, EventArgs e)
         {
             try
@@ -440,7 +516,6 @@ namespace JaegerSoft
                 Microsoft.Office.Interop.Excel.Application excelApp = new Microsoft.Office.Interop.Excel.Application();
                 Workbook workbook = excelApp.Workbooks.Add(XlSheetType.xlWorksheet);
 
-                // Limpiar hojas extra
                 while (workbook.Worksheets.Count > 1)
                 {
                     ((Worksheet)workbook.Worksheets[1]).Delete();
@@ -458,14 +533,12 @@ namespace JaegerSoft
                         DataRow[] filas = dtInventario.Select($"Categoria = '{categoria.Replace("'", "''")}'");
                         if (filas.Length > 0)
                         {
-                            // Crear/Seleccionar Hoja
                             Worksheet ws;
                             if (workbook.Worksheets.Count == 1 && ((Worksheet)workbook.Worksheets[1]).Name.Contains("Hoja"))
                                 ws = (Worksheet)workbook.Worksheets[1];
                             else
                                 ws = (Worksheet)workbook.Worksheets.Add(After: workbook.Worksheets[workbook.Worksheets.Count]);
 
-                            // Nombre seguro para la hoja
                             string nombreHoja = string.IsNullOrEmpty(categoria) ? "Sin Categoria" : categoria;
                             nombreHoja = nombreHoja.Replace("/", "-").Replace("*", "").Replace("?", "").Replace("[", "").Replace("]", "").Replace(":", "");
                             if (nombreHoja.Length > 30) nombreHoja = nombreHoja.Substring(0, 30);
@@ -475,17 +548,12 @@ namespace JaegerSoft
                         }
                     }
                 }
-                // ==========================================================================================
-                // OPCIÓN B: TODO EN UNA SOLA HOJA (Respuesta = NO)
-                // ==========================================================================================
                 else if (respuesta == DialogResult.No)
                 {
                     Worksheet ws = (Worksheet)workbook.Worksheets[1];
                     ws.Name = "Inventario Completo";
 
-                    // Convertimos todas las filas del DataTable a un arreglo DataRow[] para usar el mismo método helper
                     DataRow[] todasLasFilas = dtInventario.Select();
-
                     VolcarDatosAExcel(ws, dtInventario.Columns, todasLasFilas);
                 }
                 excelApp.Visible = true;
@@ -500,12 +568,8 @@ namespace JaegerSoft
             }
         }
 
-        /// <summary>
-        /// Método auxiliar para escribir encabezados y datos en una hoja dada (Evita repetir código).
-        /// </summary>
         private void VolcarDatosAExcel(Worksheet ws, DataColumnCollection columnas, DataRow[] filas)
         {
-            // 1. Encabezados
             int colIndex = 1;
             foreach (DataColumn col in columnas)
             {
@@ -513,12 +577,10 @@ namespace JaegerSoft
                 colIndex++;
             }
 
-            // Formato Encabezados
             Range headerRange = ws.Range[ws.Cells[1, 1], ws.Cells[1, columnas.Count]];
             headerRange.Font.Bold = true;
             headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(Color.LightGray);
 
-            // 2. Datos (Optimizados con Matriz)
             if (filas.Length > 0)
             {
                 object[,] datosMatriz = new object[filas.Length, columnas.Count];
@@ -527,8 +589,6 @@ namespace JaegerSoft
                 {
                     for (int c = 0; c < columnas.Count; c++)
                     {
-                        // Importante: Convertir a String o manejar tipos para evitar errores de COM
-                        // Excel a veces se confunde con DBNull
                         if (filas[r][c] == DBNull.Value)
                             datosMatriz[r, c] = "";
                         else
@@ -543,7 +603,6 @@ namespace JaegerSoft
                 writeRange.Value2 = datosMatriz;
             }
 
-            // 3. Ajustar Ancho
             ws.Columns.AutoFit();
         }
 
@@ -552,41 +611,44 @@ namespace JaegerSoft
             if (listaCompletaInventario == null || listaCompletaInventario.Count == 0)
             {
                 MessageBox.Show("No hay datos de inventario para procesar.", "Aviso",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             var resumen = listaCompletaInventario
                 .GroupBy(p => p.Categoria)
-                .Select(grupo => new ResumenCategoria 
+                .Select(grupo => new ResumenCategoria
                 {
-                    Categoria = grupo.Key, 
+                    Categoria = grupo.Key,
                     TotalExistencia = grupo.Sum(p => p.Existencia),
                     TotalVenta = grupo.Sum(p => p.Existencia * p.PrecioVenta),
                     TotalInversion = grupo.Sum(p => p.Existencia * p.Especial),
                     Utilidad = grupo.Sum(p => (p.Existencia * p.PrecioVenta) - (p.Existencia * p.Especial))
                 })
                 .OrderBy(r => r.Categoria)
-                .ToList(); 
+                .ToList();
             frmDatos formularioResumen = new frmDatos(resumen);
-            formularioResumen.ShowDialog(); 
+            formularioResumen.ShowDialog();
         }
 
         private void button7_Click(object sender, EventArgs e)
         {
             try
             {
-                frmKardex kar = new frmKardex();
-                kar.lblProducto.Text = dataGridView2[1, dataGridView2.CurrentRow.Index].Value.ToString();
-                kar.idProducto = dataGridView2[0, dataGridView2.CurrentRow.Index].Value.ToString();
-                kar.Show();
-                this.Close();
+                if (dataGridView2.CurrentRow != null)
+                {
+                    ProductoInventario prod = (ProductoInventario)dataGridView2.CurrentRow.DataBoundItem;
+                    frmKardex kar = new frmKardex();
+                    kar.lblProducto.Text = prod.Nombre;
+                    kar.idProducto = prod.Id;
+                    kar.Show();
+                    this.Close();
+                }
             }
             catch (Exception)
             {
-
+                // Unhandled
             }
-
         }
 
         private void button8_Click(object sender, EventArgs e)
@@ -606,9 +668,11 @@ namespace JaegerSoft
 
         private void button9_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < dataGridView2.RowCount; i++)
+            if (listaFiltradaInventario == null) return;
+
+            foreach (var prod in listaFiltradaInventario)
             {
-                cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + dataGridView2[4, i].Value.ToString() + "' where Id='" + dataGridView2[0, i].Value.ToString() + "';", conectar);
+                cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + prod.Existencia.ToString() + "' where Id='" + prod.Id + "';", conectar);
                 cmd.ExecuteNonQuery();
             }
             MessageBox.Show("Se han guardado los cambios correctamente!", "Inventario", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -637,6 +701,8 @@ namespace JaegerSoft
 
         private void button15_Click(object sender, EventArgs e)
         {
+            if (listaFiltradaInventario == null) return;
+
             Microsoft.Office.Interop.Excel.Application xla = new Microsoft.Office.Interop.Excel.Application();
             Workbook wb = xla.Workbooks.Add(XlSheetType.xlWorksheet);
             Worksheet ws = (Worksheet)xla.ActiveSheet;
@@ -649,17 +715,16 @@ namespace JaegerSoft
             ws.Cells[1, 4] = "Limite";
             ws.Cells[1, 5] = "Fecha: " + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
             int cont = 1;
-            for (int i = 0; i < dataGridView2.RowCount; i++)
-            {
 
-                if (Convert.ToDouble(dataGridView2[4, i].Value.ToString()) <= Convert.ToDouble(dataGridView2[5, i].Value.ToString()))
+            foreach (var prod in listaFiltradaInventario)
+            {
+                if (prod.Existencia <= prod.Limite)
                 {
                     cont++;
-                    ws.Cells[cont, 1] = dataGridView2[0, i].Value.ToString();
-                    ws.Cells[cont, 2] = dataGridView2[1, i].Value.ToString();
-                    ws.Cells[cont, 3] = dataGridView2[4, i].Value.ToString();
-                    ws.Cells[cont, 4] = dataGridView2[5, i].Value.ToString();
-
+                    ws.Cells[cont, 1] = prod.Id;
+                    ws.Cells[cont, 2] = prod.Nombre;
+                    ws.Cells[cont, 3] = prod.Existencia.ToString();
+                    ws.Cells[cont, 4] = prod.Limite.ToString();
                 }
             }
         }
@@ -670,7 +735,6 @@ namespace JaegerSoft
 
             if (dialogResult == DialogResult.Yes)
             {
-                // Cambiamos el cursor para que el usuario sepa que está cargando
                 this.Cursor = Cursors.WaitCursor;
 
                 try
@@ -684,15 +748,12 @@ namespace JaegerSoft
                     ws.Cells[1, 3] = "Existen";
                     ws.Cells[1, 4] = "Fisico";
 
-                    // Poner en negrita los encabezados (opcional, para mejor presentación)
                     ws.Range["A1", "D1"].Font.Bold = true;
 
                     int cont = 1;
 
-                    // Verificamos que la lista no esté vacía
                     if (listaCompletaInventario != null)
                     {
-                        // Recorremos la lista completa en memoria en lugar del DataGridView paginado
                         foreach (var producto in listaCompletaInventario)
                         {
                             cont++;
@@ -702,9 +763,7 @@ namespace JaegerSoft
                         }
                     }
 
-                    // Autoajustar el ancho de las columnas
                     ws.Columns.AutoFit();
-
                     xla.Visible = true;
 
                     frmInventariosFisicos fis = new frmInventariosFisicos();
@@ -715,10 +774,7 @@ namespace JaegerSoft
                 {
                     MessageBox.Show("Error al generar el reporte de Excel: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                finally
-                {
-                    this.Cursor = Cursors.Default; // Regresamos el cursor a la normalidad
-                }
+                using (this.Cursor = Cursors.Default) { }
             }
             else
             {
@@ -730,22 +786,23 @@ namespace JaegerSoft
 
         private void button14_Click(object sender, EventArgs e)
         {
+            if (listaFiltradaInventario == null) return;
+
             Microsoft.Office.Interop.Excel.Application xla = new Microsoft.Office.Interop.Excel.Application();
             Workbook wb = xla.Workbooks.Add(XlSheetType.xlWorksheet);
             Worksheet ws = (Worksheet)xla.ActiveSheet;
-            
+
             xla.Visible = true;
             Microsoft.Office.Interop.Excel.Range formatRange;
-            formatRange = ws.get_Range("A:A",System.Type.Missing);
+            formatRange = ws.get_Range("A:A", System.Type.Missing);
             formatRange.NumberFormat = "####";
             formatRange.EntireColumn.ColumnWidth = 17;
-            
-            formatRange = ws.get_Range("B:B",System.Type.Missing);
+
+            formatRange = ws.get_Range("B:B", System.Type.Missing);
             formatRange.EntireColumn.ColumnWidth = 30;
 
-            formatRange = ws.get_Range("a1", "j1"); 
-            formatRange.Interior.Color = System.Drawing.
-            ColorTranslator.ToOle(System.Drawing.Color.Yellow);
+            formatRange = ws.get_Range("a1", "j1");
+            formatRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Yellow);
             formatRange.EntireRow.Font.Bold = true;
 
             ws.Cells[1, 1] = "ID";
@@ -758,21 +815,20 @@ namespace JaegerSoft
             ws.Cells[1, 8] = "Unidad";
             ws.Cells[1, 9] = "Fecha: " + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
             int cont = 1;
-            for (int i = 0; i < dataGridView2.RowCount; i++)
-            {
 
-                if (Convert.ToDouble(dataGridView2[4, i].Value.ToString()) <= Convert.ToDouble(dataGridView2[5, i].Value.ToString()))
+            foreach (var prod in listaFiltradaInventario)
+            {
+                if (prod.Existencia <= prod.Limite)
                 {
                     cont++;
-                    ws.Cells[cont, 1] = dataGridView2[0, i].Value.ToString();
-                    ws.Cells[cont, 2] = dataGridView2[1, i].Value.ToString();
-                    ws.Cells[cont, 3] = dataGridView2[3, i].Value.ToString();
-                    ws.Cells[cont, 4] = dataGridView2[4, i].Value.ToString();
-                    ws.Cells[cont, 5] = dataGridView2[5, i].Value.ToString();
-                    ws.Cells[cont, 6] = dataGridView2[6, i].Value.ToString();
-                    ws.Cells[cont, 7] = dataGridView2[7, i].Value.ToString();
-                    ws.Cells[cont, 8] = dataGridView2[10, i].Value.ToString();
-
+                    ws.Cells[cont, 1] = prod.Id;
+                    ws.Cells[cont, 2] = prod.Nombre;
+                    ws.Cells[cont, 3] = prod.PrecioVenta.ToString();
+                    ws.Cells[cont, 4] = prod.Existencia.ToString();
+                    ws.Cells[cont, 5] = prod.Limite.ToString();
+                    ws.Cells[cont, 6] = prod.Categoria;
+                    ws.Cells[cont, 7] = prod.Especial.ToString();
+                    ws.Cells[cont, 8] = prod.Uni;
                 }
             }
         }
@@ -799,8 +855,52 @@ namespace JaegerSoft
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
                 {
-                    e.Value = value.ToString("C2"); // Formato moneda con 2 decimales
+                    e.Value = value.ToString("C2");
                     e.FormattingApplied = true;
+                }
+            }
+            else if (dataGridView2.Columns[e.ColumnIndex].Name == "EstadoInventario")
+            {
+                if (e.Value != null)
+                {
+                    string val = e.Value.ToString();
+                    if (val == "COMPRAR")
+                    {
+                        e.CellStyle.ForeColor = Color.FromArgb(231, 76, 60);
+                        e.CellStyle.SelectionForeColor = Color.FromArgb(231, 76, 60);
+                    }
+                    else if (val == "SOBRESTOCK")
+                    {
+                        e.CellStyle.ForeColor = Color.FromArgb(230, 126, 34);
+                        e.CellStyle.SelectionForeColor = Color.FromArgb(230, 126, 34);
+                    }
+                    else if (val == "NORMAL")
+                    {
+                        e.CellStyle.ForeColor = Color.FromArgb(46, 204, 113);
+                        e.CellStyle.SelectionForeColor = Color.FromArgb(46, 204, 113);
+                    }
+                }
+            }
+            else if (dataGridView2.Columns[e.ColumnIndex].Name == "NivelRotacion")
+            {
+                if (e.Value != null)
+                {
+                    string val = e.Value.ToString();
+                    if (val == "ALTA ROTACIÓN")
+                    {
+                        e.CellStyle.ForeColor = Color.FromArgb(46, 204, 113);
+                        e.CellStyle.SelectionForeColor = Color.FromArgb(46, 204, 113);
+                    }
+                    else if (val == "MEDIA")
+                    {
+                        e.CellStyle.ForeColor = Color.FromArgb(241, 196, 15);
+                        e.CellStyle.SelectionForeColor = Color.FromArgb(241, 196, 15);
+                    }
+                    else if (val == "BAJA")
+                    {
+                        e.CellStyle.ForeColor = Color.FromArgb(231, 76, 60);
+                        e.CellStyle.SelectionForeColor = Color.FromArgb(231, 76, 60);
+                    }
                 }
             }
         }
@@ -816,10 +916,9 @@ namespace JaegerSoft
             ActualizarTamanoPagina();
             if (tamanoPagina <= 0)
             {
-                tamanoPagina = 20; // Un valor seguro por si acaso
+                tamanoPagina = 20;
             }
 
-            // CAMBIO 4: Calculamos las páginas base a la lista FILTRADA al mostrar el form
             if (listaFiltradaInventario != null && listaFiltradaInventario.Count > 0 && tamanoPagina > 0)
             {
                 totalPaginas = (int)Math.Ceiling((double)listaFiltradaInventario.Count / tamanoPagina);
@@ -831,52 +930,150 @@ namespace JaegerSoft
 
             CargarPagina();
         }
+
         private void ActualizarTamanoPagina()
         {
-            // 1. Obtener el alto de UNA fila. 
-            // RowTemplate.Height ya sabe el alto correcto basado en tu fuente de 12px y el padding.
             int altoFila = dataGridView2.RowTemplate.Height;
-
-            // Evitar división por cero si el grid está oculto o la plantilla no tiene alto
             if (altoFila <= 0) { return; }
 
-            // 2. Obtener el alto DISPONIBLE para las filas
-            // Usamos ClientSize.Height para obtener el alto interno (sin bordes)
             int altoDisponible = dataGridView2.ClientSize.Height;
 
-            // 3. Restar el alto de la cabecera (Column Headers) si está visible
             if (dataGridView2.ColumnHeadersVisible)
             {
                 altoDisponible = altoDisponible - dataGridView2.ColumnHeadersHeight;
             }
 
-            // 4. Calcular el nuevo tamaño de página
             int nuevoTamano = altoDisponible / altoFila;
 
-            // 5. Actualizar la variable global (solo si es un valor válido)
             if (nuevoTamano > 0)
             {
                 tamanoPagina = nuevoTamano;
             }
         }
 
-        // =====================================================================
-        // ELEMENTOS DE DISEÑO PREMIUM (DASHBOARD REDESIGN)
-        // =====================================================================
+        private void CargarVentasDinamicas(List<ProductoInventario> productos)
+        {
+            if (productos == null || productos.Count == 0) return;
+
+            foreach (var p in productos)
+            {
+                p.VentasMes = 0;
+                p.VentasAnio = 0;
+            }
+
+            try
+            {
+                string query = @"
+                    SELECT IdProducto, 
+                           SUM(IIF(Month(Fecha) = Month(Date()) AND Year(Fecha) = Year(Date()), CantidadDouble, 0)) AS VentasMes, 
+                           SUM(IIF(Year(Fecha) = Year(Date()), CantidadDouble, 0)) AS VentasAnio
+                    FROM (
+                      SELECT IdProducto, Cantidad AS CantidadDouble, Fecha FROM VentasContado WHERE FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus <> 'CANCELADO')
+                      UNION ALL
+                      SELECT IdProducto, CInt(Cantidad) AS CantidadDouble, Fecha FROM VentasCredito WHERE FolioVenta IN (SELECT Folio FROM Ventas2 WHERE Estatus <> 'CANCELADO')
+                      UNION ALL
+                      SELECT IdProducto, Val(Cantidad) AS CantidadDouble, Fecha FROM VentasApartados WHERE Estatus <> 'CANCELADO'
+                    ) AS Combined
+                    GROUP BY IdProducto
+                ";
+
+                bool wasClosed = (conectar.State == ConnectionState.Closed);
+                if (wasClosed) conectar.Open();
+
+                using (OleDbCommand cmdSales = new OleDbCommand(query, conectar))
+                {
+                    using (OleDbDataReader reader = cmdSales.ExecuteReader())
+                    {
+                        var tempDict = new Dictionary<string, (double mes, double anio)>(StringComparer.OrdinalIgnoreCase);
+
+                        while (reader.Read())
+                        {
+                            string idProd = reader["IdProducto"] == DBNull.Value ? "" : reader["IdProducto"].ToString().Trim();
+                            if (string.IsNullOrEmpty(idProd)) continue;
+
+                            double vMes = reader["VentasMes"] == DBNull.Value ? 0.0 : Convert.ToDouble(reader["VentasMes"]);
+                            double vAnio = reader["VentasAnio"] == DBNull.Value ? 0.0 : Convert.ToDouble(reader["VentasAnio"]);
+
+                            tempDict[idProd] = (vMes, vAnio);
+                        }
+
+                        foreach (var p in productos)
+                        {
+                            if (p.Id != null && tempDict.TryGetValue(p.Id.Trim(), out var sales))
+                            {
+                                p.VentasMes = sales.mes;
+                                p.VentasAnio = sales.anio;
+                            }
+                        }
+                    }
+                }
+
+                if (wasClosed) conectar.Close();
+            }
+            catch (Exception)
+            {
+                // Silently handle
+            }
+        }
+
         private void ActualizarKpiValues()
         {
-            if (listaCompletaInventario == null) return;
+            if (listaCompletaInventario == null || !Sesion.TienePermiso("VER_ANALITICO_INVENTARIO")) return;
 
             int totalArticulos = listaCompletaInventario.Count;
             decimal totalStock = listaCompletaInventario.Sum(p => p.Existencia);
             int totalCategorias = listaCompletaInventario.Select(p => p.Categoria).Distinct().Count();
 
             if (lblKpiArticulos != null) lblKpiArticulos.Text = totalArticulos.ToString();
-            if (lblKpiStock != null) lblKpiStock.Text = totalStock.ToString("N0", CultureInfo.InvariantCulture);
+            if (lblKpiStock != null) lblKpiStock.Text = totalStock.ToString("N0");
             if (lblKpiCategorias != null) lblKpiCategorias.Text = totalCategorias.ToString();
+
+            decimal inversion = listaCompletaInventario.Sum(p => p.Existencia * p.Especial);
+            if (lblKpiInversion != null) lblKpiInversion.Text = inversion.ToString("C2");
+            if (lblFinancieroInversion != null) lblFinancieroInversion.Text = "Inversión: " + inversion.ToString("C2");
+
+            decimal ventaPotencial = listaCompletaInventario.Sum(p => p.Existencia * p.PrecioVenta);
+            if (lblKpiVentaPotencial != null) lblKpiVentaPotencial.Text = ventaPotencial.ToString("C2");
+            if (lblFinancieroVenta != null) lblFinancieroVenta.Text = "Venta Potencial: " + ventaPotencial.ToString("C2");
+
+            decimal ganancia = listaCompletaInventario.Sum(p => (p.PrecioVenta - p.Especial) * p.Existencia);
+            if (lblKpiUtilidad != null) lblKpiUtilidad.Text = ganancia.ToString("C2");
+            if (lblFinancieroUtilidad != null) lblFinancieroUtilidad.Text = "Utilidad Esperada: " + ganancia.ToString("C2");
+
+            double margen = inversion > 0 ? (double)(ganancia / inversion) * 100 : 0.0;
+            if (lblKpiMargen != null) lblKpiMargen.Text = margen.ToString("F1") + "%";
+            if (lblFinancieroMargen != null) lblFinancieroMargen.Text = "Margen Promedio: " + margen.ToString("F2") + "%";
+
+            int stockCriticosCount = listaCompletaInventario.Count(p => p.Existencia <= p.Limite);
+            if (lblKpiStockCritico != null)
+            {
+                lblKpiStockCritico.Text = stockCriticosCount.ToString();
+                if (stockCriticosCount == 0) lblKpiStockCritico.ForeColor = Color.FromArgb(46, 204, 113);
+                else if (stockCriticosCount <= 10) lblKpiStockCritico.ForeColor = Color.FromArgb(241, 196, 15);
+                else lblKpiStockCritico.ForeColor = Color.FromArgb(231, 76, 60);
+            }
+            if (lblRiesgoCriticos != null) lblRiesgoCriticos.Text = "Stock Crítico: " + stockCriticosCount + " Prod.";
+
+            decimal capitalInmovilizado = listaCompletaInventario
+                .Where(p => p.NivelRotacion == "BAJA")
+                .Sum(p => p.Existencia * p.Especial);
+            if (lblKpiCapitalInmovilizado != null) lblKpiCapitalInmovilizado.Text = capitalInmovilizado.ToString("C2");
+            if (lblFinancieroInmovilizado != null) lblFinancieroInmovilizado.Text = "Capital Inmovilizado: " + capitalInmovilizado.ToString("C2");
+
+            int sobrestockCount = listaCompletaInventario.Count(p => p.StockMaximo > 0 && p.Existencia > (decimal)p.StockMaximo);
+            if (lblRiesgoSobrestock != null) lblRiesgoSobrestock.Text = "Sobrestock: " + sobrestockCount + " Prod.";
+
+            int bajaRotacionCount = listaCompletaInventario.Count(p => p.NivelRotacion == "BAJA");
+            if (lblRiesgoRotacion != null) lblRiesgoRotacion.Text = "Baja Rotación: " + bajaRotacionCount + " Prod.";
+
+            int reposicionProxCount = listaCompletaInventario.Count(p =>
+                p.Existencia > p.Limite &&
+                p.VentasMes > 0 &&
+                p.DiasReposicion > 0 &&
+                ((double)p.Existencia / (p.VentasMes / 30.0)) <= p.DiasReposicion
+            );
+            if (lblRiesgoReposicion != null) lblRiesgoReposicion.Text = "Reposición Próx.: " + reposicionProxCount + " Prod.";
         }
-
-
 
         private void DataGridView2_DataBindingComplete(object sender, System.Windows.Forms.DataGridViewBindingCompleteEventArgs e)
         {
@@ -884,21 +1081,39 @@ namespace JaegerSoft
             {
                 dataGridView2.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.None;
 
+                if (dataGridView2.Columns.Contains("Id"))
+                {
+                    dataGridView2.Columns["Id"].Visible = true;
+                    dataGridView2.Columns["Id"].DisplayIndex = 0;
+                }
+                if (dataGridView2.Columns.Contains("Nombre"))
+                {
+                    dataGridView2.Columns["Nombre"].Visible = true;
+                    dataGridView2.Columns["Nombre"].DisplayIndex = 1;
+                    dataGridView2.Columns["Nombre"].MinimumWidth = 250;
+                }
+
                 foreach (System.Windows.Forms.DataGridViewColumn col in dataGridView2.Columns)
                 {
+                    if (col.Name == "Activo")
+                    {
+                        col.Visible = false;
+                        continue;
+                    }
+
                     col.HeaderCell.Style.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-                    
-                    if (col.Name == "PrecioVenta" || col.Name == "PrecioVentaMayoreo" || col.Name == "Especial")
+
+                    if (col.Name == "PrecioVenta" || col.Name == "PrecioVentaMayoreo" || col.Name == "Especial" || col.Name == "StockMaximo")
                     {
                         col.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
                         col.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
                     }
-                    else if (col.Name == "Existencia" || col.Name == "Limite")
+                    else if (col.Name == "Existencia" || col.Name == "Limite" || col.Name == "DiasReposicion" || col.Name == "VentasMes" || col.Name == "VentasAnio")
                     {
                         col.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
                         col.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
                     }
-                    else if (col.Name == "Id")
+                    else if (col.Name == "Id" || col.Name == "EstadoInventario" || col.Name == "NivelRotacion" || col.Name == "FechaUltimaCompra" || col.Name == "FechaUltimaVenta")
                     {
                         col.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
                         col.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
@@ -923,10 +1138,17 @@ namespace JaegerSoft
                         case "Existencia": col.HeaderText = "Stock Actual"; break;
                         case "Limite": col.HeaderText = "Mínimo/Límite"; break;
                         case "Categoria": col.HeaderText = "Categoría"; break;
-                        case "Especial": col.HeaderText = "Precio Especial"; break;
+                        case "Especial": col.HeaderText = "Precio Compra"; break;
                         case "IVA": col.HeaderText = "Impuesto"; break;
                         case "Unidad": col.HeaderText = "Unidad Medida"; break;
                         case "Uni": col.HeaderText = "Abrev."; break;
+                        case "ProveedorPrincipal": col.HeaderText = "Proveedor Principal"; break;
+                        case "FechaUltimaCompra": col.HeaderText = "Última Compra"; break;
+                        case "FechaUltimaVenta": col.HeaderText = "Última Venta"; break;
+                        case "StockMaximo": col.HeaderText = "Stock Máximo"; break;
+                        case "DiasReposicion": col.HeaderText = "Días Reposición"; break;
+                        case "EstadoInventario": col.HeaderText = "Estado Inventario"; break;
+                        case "NivelRotacion": col.HeaderText = "Nivel Rotación"; break;
                     }
                 }
             }
@@ -962,8 +1184,13 @@ namespace JaegerSoft
             };
 
             btn.EnabledChanged += enabledHandler;
-            // Ejecutar la primera vez
             enabledHandler(btn, EventArgs.Empty);
+        }
+
+        private void btnAlmacenes_Click(object sender, EventArgs e)
+        {
+            frmAlmacenes almacenes = new frmAlmacenes();
+            almacenes.ShowDialog();
         }
     }
 }

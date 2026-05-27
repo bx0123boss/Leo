@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -54,7 +54,7 @@ namespace JaegerSoft
                 double existencia = Convert.ToDouble(Convert.ToString(reader[4].ToString())) - Convert.ToDouble(dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString());
                 if (existencia >= 0)
                 {
-                    cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existencia + "' where Id='" + dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString() + "';", conectar);
+                    cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existencia + "', FechaUltimaVenta = NOW() where Id='" + dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString() + "';", conectar);
                     cmd.ExecuteNonQuery();
                     cmd = new OleDbCommand("UPDATE VentasApartados set Estatus='DESCONTADO DE INVENTARIO' where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
                     cmd.ExecuteNonQuery();

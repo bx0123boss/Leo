@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
@@ -504,7 +504,7 @@ namespace JaegerSoft
 
                             existencia = exis - cantidad;
 
-                            using (var cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existencia + "' Where Id='" + idProd + "';", con, transaccion))
+                            using (var cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existencia + "', FechaUltimaVenta = NOW() Where Id='" + idProd + "';", con, transaccion))
                             {
                                 cmd.ExecuteNonQuery();
                             }

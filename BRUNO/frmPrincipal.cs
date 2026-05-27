@@ -77,7 +77,6 @@ namespace JaegerSoft
             catch (Exception) { }
             if (IsPuntoB) return;
             BtnInventario.Visible = Sesion.TienePermiso("MOD_INVENTARIO");
-            BtnAlmacenes.Visible = Sesion.TienePermiso("MOD_INVENTARIO");
             BtnCobrar.Visible = Sesion.TienePermiso("MOD_VENTAS");
             BtnDevoluciones.Visible = Sesion.TienePermiso("MOD_REPORTES");
             BtnClientes.Visible = Sesion.TienePermiso("MOD_CLIENTES");
@@ -124,15 +123,6 @@ namespace JaegerSoft
                 frmInventario invent = new frmInventario();
                 invent.usuario = usuario;
                 invent.Show();
-            }
-        }
-
-        private void BtnAlmacenes_Click(object sender, EventArgs e)
-        {
-            if (!FormularioEstaAbierto(typeof(frmAlmacenes)))
-            {
-                frmAlmacenes almacenes = new frmAlmacenes();
-                almacenes.Show();
             }
         }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.OleDb;
 using System.Data.SqlClient;
@@ -168,7 +168,7 @@ namespace JaegerSoft
                     string categoria = Convert.ToString(cmd.ExecuteScalar());
 
                     // 🔥 BONUS: UPDATE DIRECTO (evita errores de concurrencia)
-                    cmd = new OleDbCommand("UPDATE Inventario SET Existencia = Existencia - ? WHERE Id = ?", conectar, trans);
+                    cmd = new OleDbCommand("UPDATE Inventario SET Existencia = Existencia - ?, FechaUltimaVenta = NOW() WHERE Id = ?", conectar, trans);
                     cmd.Parameters.AddWithValue("@cantidad", cantidad);
                     cmd.Parameters.AddWithValue("@id", idProducto);
                     cmd.ExecuteNonQuery();
