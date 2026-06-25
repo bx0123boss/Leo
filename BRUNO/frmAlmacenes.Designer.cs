@@ -513,6 +513,7 @@ namespace JaegerSoft
             this.Name = "frmAlmacenes";
             this.Padding = new System.Windows.Forms.Padding(10);
             this.Text = "Manejo de Almacenes";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.frmAlmacenes_Load);
             this.tabControl1.ResumeLayout(false);
             this.tabStock.ResumeLayout(false);

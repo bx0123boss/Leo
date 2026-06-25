@@ -93,7 +93,7 @@ namespace JaegerSoft
             button8.Visible = Sesion.TienePermiso("MOD_WEB"); // Modulo Web
 
             // Excepción especial para Facturación (Lugar LEO)
-            if (Conexion.lugar == "LEO" && Sesion.TienePermiso("MOD_FACTURACION"))
+            if (Sesion.TienePermiso("MOD_FACTURACION"))
             {
                 button7.Visible = true;
             }
@@ -383,5 +383,9 @@ namespace JaegerSoft
             }
         }
 
+        private void pnlMenu_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
     }
 }

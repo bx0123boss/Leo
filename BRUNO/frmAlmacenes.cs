@@ -239,10 +239,18 @@ namespace JaegerSoft
             var dtStockCmb = new DataTable();
             dtStockCmb.Columns.Add("Id", typeof(int));
             dtStockCmb.Columns.Add("Nombre", typeof(string));
+
+            var dtOrigenCmb = new DataTable();
+            dtOrigenCmb.Columns.Add("Id", typeof(int));
+            dtOrigenCmb.Columns.Add("Nombre", typeof(string));
+
+            // Para la vista de stock, agregamos la opción Global Desglosada (-1)
+            dtStockCmb.Rows.Add(-1, "Todos los Almacenes (Desglose)");
             dtStockCmb.Rows.Add(0, "Almacén Principal / Bodega");
 
-            var dtOrigenCmb = dtStockCmb.Copy();
-            var dtDestinoCmb = dtStockCmb.Copy();
+            // Para los combobox de traspaso no agregamos el global
+            dtOrigenCmb.Rows.Add(0, "Almacén Principal / Bodega");
+            var dtDestinoCmb = dtOrigenCmb.Copy();
 
             string query = "SELECT Id, Nombre FROM Almacenes ORDER BY Nombre;";
             using (var cmd = new OleDbCommand(query, conectar))
@@ -253,6 +261,7 @@ namespace JaegerSoft
                     {
                         int id = Convert.ToInt32(reader["Id"]);
                         string nombre = reader["Nombre"].ToString();
+
                         dtStockCmb.Rows.Add(id, nombre);
                         dtOrigenCmb.Rows.Add(id, nombre);
                         dtDestinoCmb.Rows.Add(id, nombre);
@@ -295,17 +304,59 @@ namespace JaegerSoft
 
             int idAlmacen = Convert.ToInt32(cmbAlmacenStock.SelectedValue);
 
-            string query;
-            if (idAlmacen == 0)
+            string query = "";
+
+            if (idAlmacen == -1)
+            {
+                // TODOS LOS ALMACENES DESGLOSADOS (Consulta Dinámica - Pivot)
+                DataTable dtAlms = new DataTable();
+                using (var cmdA = new OleDbCommand("SELECT Id, Nombre FROM Almacenes ORDER BY Id", conectar))
+                {
+                    using (var daA = new OleDbDataAdapter(cmdA))
+                    {
+                        daA.Fill(dtAlms);
+                    }
+                }
+
+                // Construimos la sentencia de variables dinámicas
+                string selectCols = "I.Id, I.Nombre, I.Categoria, I.Existencia AS [Stock Ventas], ";
+                string pivotSums = "";
+
+                foreach (DataRow row in dtAlms.Rows)
+                {
+                    int aId = Convert.ToInt32(row["Id"]);
+                    // Evitar caracteres que rompan SQL
+                    string aName = row["Nombre"].ToString().Replace("]", "").Replace("[", "");
+
+                    // MODIFICACIÓN: Ya no concatenamos la palabra "Stock ", solo el nombre del almacén
+                    selectCols += $"IIF(IsNull(P.A{aId}), 0, P.A{aId}) AS [{aName}], ";
+                    pivotSums += $"SUM(IIF(IdAlmacen = {aId}, Existencia, 0)) AS A{aId}, ";
+                }
+
+                selectCols += "(I.Existencia + IIF(IsNull(P.TotalIA), 0, P.TotalIA)) AS [TOTAL EN EXISTENCIA] ";
+                pivotSums += "SUM(Existencia) AS TotalIA ";
+
+                query = $"SELECT {selectCols} " +
+                        $"FROM Inventario I LEFT JOIN ( " +
+                        $"SELECT IdProducto, {pivotSums} FROM InventarioAlmacenes GROUP BY IdProducto " +
+                        $") P ON I.Id = P.IdProducto " +
+                        $"ORDER BY I.Nombre;";
+            }
+            else if (idAlmacen == 0)
             {
                 // Almacén Principal
                 query = "SELECT Id, Nombre, Categoria, Existencia FROM Inventario ORDER BY Nombre;";
             }
             else
             {
-                // Almacén Dinámico
-                query = "SELECT I.Id, I.Nombre, I.Categoria, IIF(IsNull(IA.Existencia), 0, IA.Existencia) AS Existencia, I.Existencia AS ExistenciaPrincipal " +
-                        "FROM Inventario I LEFT JOIN (SELECT * FROM InventarioAlmacenes WHERE IdAlmacen = " + idAlmacen + ") IA ON I.Id = IA.IdProducto " +
+                // Almacén Dinámico Individual
+                query = "SELECT I.Id, I.Nombre, I.Categoria, " +
+                        "IIF(IsNull(IA.Existencia), 0, IA.Existencia) AS Existencia, " +
+                        "I.Existencia AS ExistenciaPrincipal, " +
+                        "(I.Existencia + IIF(IsNull(Totales.TotalIA), 0, Totales.TotalIA)) AS [TOTAL EN EXISTENCIA] " +
+                        "FROM (Inventario I " +
+                        "LEFT JOIN (SELECT IdProducto, Existencia FROM InventarioAlmacenes WHERE IdAlmacen = " + idAlmacen + ") IA ON I.Id = IA.IdProducto) " +
+                        "LEFT JOIN (SELECT IdProducto, SUM(Existencia) AS TotalIA FROM InventarioAlmacenes GROUP BY IdProducto) Totales ON I.Id = Totales.IdProducto " +
                         "ORDER BY I.Nombre;";
             }
 
@@ -319,15 +370,63 @@ namespace JaegerSoft
 
                     if (dgvStock.Columns.Count > 0)
                     {
+                        // 1. Columnas Fijas 
                         dgvStock.Columns["Id"].HeaderText = "Código";
+                        dgvStock.Columns["Id"].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+
                         dgvStock.Columns["Nombre"].HeaderText = "Descripción";
                         dgvStock.Columns["Nombre"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                        dgvStock.Columns["Categoria"].HeaderText = "Categoría";
-                        dgvStock.Columns["Existencia"].HeaderText = "Stock en Almacén";
 
+                        dgvStock.Columns["Categoria"].HeaderText = "Categoría";
+                        dgvStock.Columns["Categoria"].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+
+                        // 2. Columna base (almacén individual o principal)
+                        if (dgvStock.Columns.Contains("Existencia"))
+                        {
+                            dgvStock.Columns["Existencia"].HeaderText = (idAlmacen == 0) ? "Stock Ventas" : "Stock en Almacén";
+                            dgvStock.Columns["Existencia"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+                            dgvStock.Columns["Existencia"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                        }
+
+                        // 3. Columna Stock de Ventas (si se está en un almacén individual)
                         if (dgvStock.Columns.Contains("ExistenciaPrincipal"))
                         {
-                            dgvStock.Columns["ExistenciaPrincipal"].HeaderText = "Stock Principal";
+                            dgvStock.Columns["ExistenciaPrincipal"].HeaderText = "Stock Ventas";
+                            dgvStock.Columns["ExistenciaPrincipal"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+                            dgvStock.Columns["ExistenciaPrincipal"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                        }
+
+                        // 4. Columna Stock de Ventas (Para el desglose total dinámico "-1")
+                        if (dgvStock.Columns.Contains("Stock Ventas"))
+                        {
+                            dgvStock.Columns["Stock Ventas"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+                            dgvStock.Columns["Stock Ventas"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                        }
+
+                        // 5. Configurar la columna final sumatoria
+                        if (dgvStock.Columns.Contains("TOTAL EN EXISTENCIA"))
+                        {
+                            dgvStock.Columns["TOTAL EN EXISTENCIA"].HeaderText = "Stock Total";
+                            dgvStock.Columns["TOTAL EN EXISTENCIA"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+                            dgvStock.Columns["TOTAL EN EXISTENCIA"].DefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+                            dgvStock.Columns["TOTAL EN EXISTENCIA"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                        }
+
+                        // 6. Darle estilo a las N columnas dinámicas (NombreAlmacen directo)
+                        // Para detectarlas ahora, simplemente ignoramos las que ya sabemos que son fijas.
+                        foreach (DataGridViewColumn col in dgvStock.Columns)
+                        {
+                            if (col.Name != "Id" &&
+                                col.Name != "Nombre" &&
+                                col.Name != "Categoria" &&
+                                col.Name != "Stock Ventas" &&
+                                col.Name != "Existencia" &&
+                                col.Name != "ExistenciaPrincipal" &&
+                                col.Name != "TOTAL EN EXISTENCIA")
+                            {
+                                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+                                col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                            }
                         }
                     }
                 }

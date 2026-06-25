@@ -4,6 +4,7 @@ using System.Data.OleDb;
 using System.Drawing;
 using System.Globalization;
 using System.Windows.Forms;
+using static QuestPDF.Helpers.Colors;
 
 namespace JaegerSoft
 {
@@ -211,7 +212,22 @@ namespace JaegerSoft
                         }
                         else
                         {
-                            txtNombre.Focus();
+                            using (frmBuscarProductos buscar = new frmBuscarProductos())
+                            {
+                                buscar.compras = true;
+                                buscar.textBox1.Text = txtID.Text;
+                                if (buscar.ShowDialog() == DialogResult.OK)
+                                {
+                                    txtID.Text = buscar.ID;
+                                    txtNombre.Text = buscar.producto;
+                                    txtMenudeo.Text = buscar.precio;
+                                    txtCantidad.Focus();
+                                }
+                                else
+                                {
+                                    txtNombre.Focus();
+                                }
+                            }
                         }
                     }
                 }
@@ -277,7 +293,7 @@ namespace JaegerSoft
 
         private void txtID_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar == Convert.ToChar(Keys.Enter)) SendKeys.Send("+{TAB}");
+            if (e.KeyChar == Convert.ToChar(Keys.Enter))SendKeys.Send("+{TAB}");
         }
 
         // =========================================================

@@ -64,8 +64,6 @@ namespace JaegerSoft
             }
             MessageBox.Show("Captura realizada con exito", "CAPTURA", MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();
-            frmInventario inv = new frmInventario();
-            inv.Show();
         }
     }
 }

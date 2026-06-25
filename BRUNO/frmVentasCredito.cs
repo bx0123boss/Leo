@@ -243,6 +243,65 @@ namespace JaegerSoft
 
                 // COMMIT
                 trans.Commit();
+                // -- ÁREA DE IMPRESIÓN --
+                Dictionary<string, double> totales = new Dictionary<string, double>();
+                double totalVentaGrid = Convert.ToDouble(lblTotal.Text);
+                double subTotalImpresion = totalVentaGrid - descuento;
+
+                if (descuento != 0)
+                {
+                    totales.Add("Descuento", descuento);
+                }
+                if (Conexion.ConIva)
+                {
+                    totales.Add("Subtotal", subTotalImpresion / 1.16);
+                    totales.Add("IVA", (subTotalImpresion / 1.16) * 0.16);
+                }
+                totales.Add("Total", subTotalImpresion);
+                totales.Add("Abono", Convert.ToDouble(txtAbono.Text));
+                totales.Add("Restante", Convert.ToDouble(lblFinal.Text));
+
+                if (Conexion.impresionMediaCarta)
+                {
+                    try
+                    {
+                        DialogResult respuesta = MessageBox.Show(
+                                "¿Deseas imprimir?",
+                                "IMPRESIÓN",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question);
+                        if (respuesta == DialogResult.Yes)
+                        {
+                            TicketMediaCarta pdfTicket = new TicketMediaCarta(
+                                 productos,
+                                 lblFolio.Text,
+                                 descuento,
+                                 subTotalImpresion,
+                                 lblCliente.Text,
+                                 idCliente,
+                                 cmbPago.Text,
+                                 lblDatosCotizacion.Text,
+                                 label10.Text, // observaciones
+                                 Conexion.lugar,
+                                 Conexion.logoPath,    // <--- Logo
+                                 Conexion.datosTicket, // <--- Encabezado del negocio
+                                 Conexion.pieDeTicket  // <--- Pie de página
+                             );
+
+                            pdfTicket.ImprimirDirectamente(Conexion.impresora);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error al imprimir PDF Media Carta: " + ex.Message);
+                    }
+                }
+                else
+                {
+                    TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", subTotalImpresion, false, totales, cmbPago.Text);
+                    ticketPrinter.ImprimirTicket();
+                }
+                // -- FIN ÁREA DE IMPRESIÓN --
 
                 MessageBox.Show("Venta realizada con éxito", "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
 

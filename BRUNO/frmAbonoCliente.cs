@@ -75,7 +75,7 @@ namespace JaegerSoft
             ticket.AddSubHeaderLine(DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
             ticket.AddItem("", "ADEUDO", "$" + txtAdeudo.Text);
             ticket.AddItem("", "ABONO", "$" + txtAbono.Text);
-            ticket.AddItem("", "RESTANTE", "$" + txtRestante.Text);
+            ticket.AddItem("", "S. INSOLUTO", "$" + txtRestante.Text);
             cmd = new OleDbCommand("UPDATE Clientes set Adeudo=" + adeudo + ", UltimoPago='" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' where Id=" + lblID.Text + ";", conectar);
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("UPDATE Ventas2 set Saldo='" + txtRestante.Text + "' where Folio='" + folio+ "';", conectar);
@@ -84,7 +84,7 @@ namespace JaegerSoft
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("insert into Abonos(Abono,idCliente,Fecha,Nombre,Folio,Estatus) Values('" + txtAbono.Text + "','" + lblID.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+lblCliente.Text+"','"+folio+ "','PAGADO');", conectar);
             cmd.ExecuteNonQuery();
-            //ticket.PrintTicket(Conexion.impresora);
+            ticket.PrintTicket(Conexion.impresora);
             MessageBox.Show("Se ha abonado con exito", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();
         }

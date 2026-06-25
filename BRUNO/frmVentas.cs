@@ -1,3 +1,4 @@
+using JaegerSoft;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -19,14 +20,16 @@ namespace JaegerSoft
         double exis = 0.0;
         string idCliente = "0";
         double descuento;
-        string datos = "", observaciones="";
+        string datos = "", observaciones = "";
         int foli;
         public string usuario = "", idUsuario = "", direccion;
         public frmVentas()
         {
             InitializeComponent();
             this.MinimumSize = new Size(1066, 418);
-           
+
+            // Habilitar el evento KeyDown a nivel formulario para capturar el F8
+            this.KeyPreview = true;
         }
         private void frmVentas_Load(object sender, EventArgs e)
         {
@@ -98,7 +101,7 @@ namespace JaegerSoft
                 return total - descuento;
             }
         }
-       
+
         private void button3_Click(object sender, EventArgs e)
         {
 
@@ -173,7 +176,7 @@ namespace JaegerSoft
             }
         }
         private double ObtenerPesoLocal()
-           {
+        {
             if (!frmPrincipal.IsAgenteBasculaActivo)
             {
                 return 1;
@@ -322,7 +325,7 @@ namespace JaegerSoft
 
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-                try
+            try
             {
                 double cantidad = Convert.ToDouble(dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString());
                 double precio = Convert.ToDouble(dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString());
@@ -475,7 +478,7 @@ namespace JaegerSoft
                         {
                             string idProd = dataGridView1[5, i].Value.ToString();
                             double cantidad = Convert.ToDouble(dataGridView1[0, i].Value.ToString());
-                            double precioVenta = Math.Round(Convert.ToDouble(dataGridView1[2, i].Value.ToString()) / 1.16,2);
+                            double precioVenta = Math.Round(Convert.ToDouble(dataGridView1[2, i].Value.ToString()) / 1.16, 2);
                             double montoFila = Convert.ToDouble(dataGridView1[3, i].Value.ToString());
                             string nombreProd = dataGridView1[1, i].Value.ToString();
                             double precioCompra = Convert.ToDouble(dataGridView1[8, i].Value.ToString());
@@ -591,8 +594,9 @@ namespace JaegerSoft
                         }
 
                         transaccion.Commit();
+
                         // ----------------------------------------------------------------------------------
-                        // NUEVO: GUARDAR HISTORIAL DE DATOS EXTRA EN SQL SERVER (Para el autocompletado)
+                        // MODIFICACIÓN: GUARDAR HISTORIAL LIGADO AL FOLIO DE LA VENTA ACTUAL
                         // ----------------------------------------------------------------------------------
                         if (!string.IsNullOrEmpty(datos) && !string.IsNullOrEmpty(idCliente) && idCliente != "0")
                         {
@@ -604,26 +608,33 @@ namespace JaegerSoft
 
                                     if (!string.IsNullOrEmpty(txtFolioCotizacion.Text))
                                     {
-                                        // Si la venta viene de una cotización, simplemente actualizamos sus datos para mantener el historial fresco
+                                        // Venta originada de cotización: Le concatenamos el folio para poder buscarlo después
+                                        string nuevaObs = string.IsNullOrEmpty(observaciones) ?
+                                                          $"[VENTA REALIZADA FOLIO: {lblFolio.Text}]" :
+                                                          $"{observaciones} | [VENTA REALIZADA FOLIO: {lblFolio.Text}]";
+
                                         string queryUpdate = "UPDATE Cotizaciones SET Datos = @Datos, Observaciones = @Obs WHERE Id = @FolioCot";
                                         using (SqlCommand cmdSql = new SqlCommand(queryUpdate, conSql))
                                         {
                                             cmdSql.Parameters.AddWithValue("@Datos", datos);
-                                            cmdSql.Parameters.AddWithValue("@Obs", observaciones);
+                                            cmdSql.Parameters.AddWithValue("@Obs", nuevaObs);
                                             cmdSql.Parameters.AddWithValue("@FolioCot", txtFolioCotizacion.Text.Trim());
                                             cmdSql.ExecuteNonQuery();
                                         }
                                     }
                                     else
                                     {
-                                        // Si es venta directa, creamos una cotización "fantasma" con Total = -1 para que sirva de historial
+                                        // Venta Directa: Insertamos la bandera con el FOLIO
+                                        string obsOculta = $"HISTORIAL OCULTO - VENTA FOLIO: {lblFolio.Text} ;" + observaciones;
+
                                         string queryInsert = @"INSERT INTO Cotizaciones 
                                      (Fecha, ClienteId, ClienteNombre, Total, Observaciones, Datos) 
-                                     VALUES (GETDATE(), @CId, @CNom, -1, 'HISTORIAL OCULTO - VENTA DIRECTA', @Datos)";
+                                     VALUES (GETDATE(), @CId, @CNom, -1, @Obs, @Datos)";
                                         using (SqlCommand cmdSql = new SqlCommand(queryInsert, conSql))
                                         {
                                             cmdSql.Parameters.AddWithValue("@CId", idCliente);
                                             cmdSql.Parameters.AddWithValue("@CNom", lblCliente.Text);
+                                            cmdSql.Parameters.AddWithValue("@Obs", obsOculta);
                                             cmdSql.Parameters.AddWithValue("@Datos", datos);
                                             cmdSql.ExecuteNonQuery();
                                         }
@@ -632,7 +643,6 @@ namespace JaegerSoft
                             }
                             catch (Exception exHistorial)
                             {
-                                // Solo mostramos en consola para no interrumpir el flujo de la venta si falla el SQL
                                 Console.WriteLine("Error al guardar historial extra: " + exHistorial.Message);
                             }
                         }
@@ -659,7 +669,224 @@ namespace JaegerSoft
             {
                 EliminarProductos();
             }
+            // --------------------------------------------------------------------
+            // NUEVO EVENTO: ABRIR TRASPASO EXPRESS (F8)
+            // --------------------------------------------------------------------
+            if (e.KeyCode == Keys.F8)
+            {
+                AbrirTraspasoExpress();
+                e.Handled = true;
+            }
         }
+
+        // --------------------------------------------------------------------
+        // LÓGICA DE TRASPASO EXPRESS DINÁMICO (MODAL)
+        // --------------------------------------------------------------------
+        private void AbrirTraspasoExpress()
+        {
+            Form modalExpress = new Form()
+            {
+                Width = 450,
+                Height = 300,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                Text = "Traspaso Express a Mostrador (Atajo F8)",
+                StartPosition = FormStartPosition.CenterScreen,
+                BackColor = Color.FromArgb(25, 25, 25),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 9.75F),
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
+
+            // Controles
+            Label lblAlmacen = new Label() { Left = 20, Top = 25, Text = "Traer de:", Width = 70 };
+            ComboBox cmbAlmacen = new ComboBox() { Left = 95, Top = 22, Width = 310, DropDownStyle = ComboBoxStyle.DropDownList };
+
+            Label lblCodigo = new Label() { Left = 20, Top = 70, Text = "Código:", Width = 70 };
+            TextBox txtCodigo = new TextBox() { Left = 95, Top = 68, Width = 230 };
+            Button btnBuscar = new Button() { Left = 335, Top = 66, Width = 70, Text = "Buscar", FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(52, 152, 219), Cursor = Cursors.Hand };
+            btnBuscar.FlatAppearance.BorderSize = 0;
+
+            Label lblProd = new Label() { Left = 95, Top = 100, Text = "[ Ingrese un código o presione Buscar ]", Width = 310, ForeColor = Color.LightGray };
+
+            Label lblCant = new Label() { Left = 20, Top = 135, Text = "Cantidad:", Width = 70 };
+            TextBox txtCant = new TextBox() { Left = 95, Top = 132, Width = 100, Text = "1" };
+
+            Button btnAceptar = new Button() { Left = 200, Top = 200, Width = 100, Text = "Traspasar", FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(46, 204, 113), Cursor = Cursors.Hand };
+            btnAceptar.FlatAppearance.BorderSize = 0;
+
+            Button btnCancelar = new Button() { Left = 315, Top = 200, Width = 90, Text = "Cancelar", FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(231, 76, 60), Cursor = Cursors.Hand };
+            btnCancelar.FlatAppearance.BorderSize = 0;
+
+            // Cargar almacenes dinámicos
+            try
+            {
+                if (conectar.State != ConnectionState.Open) conectar.Open();
+                using (var cmdA = new OleDbCommand("SELECT Id, Nombre FROM Almacenes ORDER BY Nombre", conectar))
+                using (var dr = cmdA.ExecuteReader())
+                {
+                    DataTable dt = new DataTable();
+                    dt.Load(dr);
+                    cmbAlmacen.DisplayMember = "Nombre";
+                    cmbAlmacen.ValueMember = "Id";
+                    cmbAlmacen.DataSource = dt;
+                }
+            }
+            catch { }
+
+            // Lógica de búsqueda manual
+            btnBuscar.Click += (s, ev) => {
+                using (frmBuscarProductos buscar = new frmBuscarProductos())
+                {
+                    buscar.textBox1.Text = txtCodigo.Text;
+                    if (buscar.ShowDialog() == DialogResult.OK)
+                    {
+                        txtCodigo.Text = buscar.ID;
+                        lblProd.Text = buscar.producto;
+                    }
+                }
+            };
+
+            // Lógica KeyPress en txtCodigo (Enter)
+            txtCodigo.KeyDown += (s, ev) => {
+                if (ev.KeyCode == Keys.Enter)
+                {
+                    ev.SuppressKeyPress = true;
+                    if (string.IsNullOrWhiteSpace(txtCodigo.Text)) return;
+
+                    try
+                    {
+                        if (conectar.State != ConnectionState.Open) conectar.Open();
+                        // Comprobar existencia
+                        var cmdCheck = new OleDbCommand("select count(*) from Inventario where Id='" + txtCodigo.Text.Trim() + "';", conectar);
+                        int count = Convert.ToInt32(cmdCheck.ExecuteScalar());
+
+                        if (count == 1)
+                        {
+                            var cmdName = new OleDbCommand("select Nombre from Inventario where Id='" + txtCodigo.Text.Trim() + "';", conectar);
+                            lblProd.Text = Convert.ToString(cmdName.ExecuteScalar());
+                        }
+                        else
+                        {
+                            btnBuscar.PerformClick(); // Abre el frmBuscarProducto
+                        }
+                    }
+                    catch { }
+                }
+            };
+
+            // Lógica Traspasar
+            btnAceptar.Click += (s, ev) => {
+                if (cmbAlmacen.SelectedValue == null) return;
+                string cod = txtCodigo.Text.Trim();
+                double cant = 0;
+
+                if (string.IsNullOrEmpty(cod) || !double.TryParse(txtCant.Text, out cant) || cant <= 0)
+                {
+                    MessageBox.Show("Verifique que el código y la cantidad sean correctos.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                int idAlmacen = Convert.ToInt32(cmbAlmacen.SelectedValue);
+
+                try
+                {
+                    if (conectar.State != ConnectionState.Open) conectar.Open();
+
+                    // Validar Stock en el almacén origen
+                    var cmdStock = new OleDbCommand("SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = @org AND IdProducto = @id", conectar);
+                    cmdStock.Parameters.AddWithValue("@org", idAlmacen);
+                    cmdStock.Parameters.AddWithValue("@id", cod);
+
+                    object resStock = cmdStock.ExecuteScalar();
+                    double stockDisponible = resStock != null ? Convert.ToDouble(resStock) : 0;
+
+                    if (cant > stockDisponible)
+                    {
+                        MessageBox.Show($"Stock insuficiente en el almacén seleccionado. Solo hay {stockDisponible} unidades disponibles.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    // Proceder con la transacción
+                    using (var trans = conectar.BeginTransaction())
+                    {
+                        try
+                        {
+                            // 1. Descontar del almacén
+                            var cmdSub = new OleDbCommand("UPDATE InventarioAlmacenes SET Existencia = Existencia - @qty WHERE IdAlmacen = @org AND IdProducto = @id", conectar, trans);
+                            cmdSub.Parameters.AddWithValue("@qty", cant);
+                            cmdSub.Parameters.AddWithValue("@org", idAlmacen);
+                            cmdSub.Parameters.AddWithValue("@id", cod);
+                            cmdSub.ExecuteNonQuery();
+
+                            // 2. Sumar al mostrador (Inventario)
+                            var cmdAdd = new OleDbCommand("UPDATE Inventario SET Existencia = Existencia + @qty WHERE Id = @id", conectar, trans);
+                            cmdAdd.Parameters.AddWithValue("@qty", cant);
+                            cmdAdd.Parameters.AddWithValue("@id", cod);
+                            cmdAdd.ExecuteNonQuery();
+
+                            // 3. Registrar Movimiento
+                            string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                            var cmdLog = new OleDbCommand("INSERT INTO MovimientosAlmacenes (IdOrigen, IdDestino, IdProducto, Cantidad, Fecha, Usuario) VALUES (@org, 0, @id, @qty, @fecha, @usu)", conectar, trans);
+                            cmdLog.Parameters.AddWithValue("@org", idAlmacen);
+                            cmdLog.Parameters.AddWithValue("@id", cod);
+                            cmdLog.Parameters.AddWithValue("@qty", cant);
+                            cmdLog.Parameters.AddWithValue("@fecha", fechaActual);
+                            cmdLog.Parameters.AddWithValue("@usu", string.IsNullOrEmpty(Sesion.NombreUsuario) ? "Sistema" : Sesion.NombreUsuario);
+                            cmdLog.ExecuteNonQuery();
+
+                            // 4. Kardex
+                            string kardexQuery = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) VALUES (@id, 'TRASPASO_ENTRADA', @desc, 0, 0, @fecha, 'NA')";
+                            using (var cmdK = new OleDbCommand(kardexQuery, conectar, trans))
+                            {
+                                cmdK.Parameters.AddWithValue("@id", cod);
+                                cmdK.Parameters.AddWithValue("@desc", $"TRASPASO EXPRESS DESDE ALMACÉN: {cmbAlmacen.Text}");
+                                cmdK.Parameters.AddWithValue("@fecha", fechaActual);
+                                cmdK.ExecuteNonQuery(); // (Omitimos antes/después por velocidad en modal, o lo agregas si es estricto)
+                            }
+
+                            trans.Commit();
+                            MessageBox.Show("Traspaso completado. El stock ya está en mostrador.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                            // Cerrar y autollenar el código en la pantalla de ventas
+                            modalExpress.DialogResult = DialogResult.OK;
+                            modalExpress.Close();
+
+                            // Simular que el cajero lo escaneó para que lo cobre de inmediato
+                            this.textBox1.Text = cod;
+                            this.textBox1.Focus();
+                            // Ejecutamos el evento Enter mágicamente
+                            textBox1_KeyPress(this.textBox1, new KeyPressEventArgs((char)Keys.Enter));
+                        }
+                        catch (Exception ex)
+                        {
+                            trans.Rollback();
+                            MessageBox.Show("Error durante el traspaso: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error: " + ex.Message);
+                }
+            };
+
+            btnCancelar.Click += (s, ev) => { modalExpress.DialogResult = DialogResult.Cancel; modalExpress.Close(); };
+
+            modalExpress.Controls.Add(lblAlmacen);
+            modalExpress.Controls.Add(cmbAlmacen);
+            modalExpress.Controls.Add(lblCodigo);
+            modalExpress.Controls.Add(txtCodigo);
+            modalExpress.Controls.Add(btnBuscar);
+            modalExpress.Controls.Add(lblProd);
+            modalExpress.Controls.Add(lblCant);
+            modalExpress.Controls.Add(txtCant);
+            modalExpress.Controls.Add(btnAceptar);
+            modalExpress.Controls.Add(btnCancelar);
+
+            modalExpress.ShowDialog();
+        }
+
         private void lblUsuario_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             using (frmClaveVendedor ori = new frmClaveVendedor())
@@ -722,7 +949,7 @@ namespace JaegerSoft
         }
         private void CargarCotizacionWeb(string folio)
         {
-            
+
             string query = @"
                    SELECT 
                         C.ClienteId,
@@ -767,12 +994,12 @@ namespace JaegerSoft
                                 double tolProducto = Convert.ToDouble(reader["Importe"]);
                                 observaciones = reader["Observaciones"].ToString();
                                 datos = reader["Datos"].ToString();
-                                AgregarProductoAVenta(codigoProd, cantidad, descripcion,precioUni, tolProducto);
+                                AgregarProductoAVenta(codigoProd, cantidad, descripcion, precioUni, tolProducto);
                             }
                         }
                     }
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -1081,7 +1308,7 @@ namespace JaegerSoft
                 string verificador = valorCelda5 != null ? valorCelda5.ToString() : "";
                 if (verificador != "0" && verificador != "00")
                 {
-                    e.Cancel = true; 
+                    e.Cancel = true;
                 }
             }
         }

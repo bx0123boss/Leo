@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -26,6 +28,10 @@ namespace JaegerSoft
         // Variables para la integración con Consignas
         public bool esConsigna = false;
         public string folioRealConsulta = "";
+
+        // NUEVO: Variables a nivel de clase para retener los datos y enviarlos a la impresión
+        private string datosExtraImpresion = "";
+        private string observacionesImpresion = "";
 
         public frmVentaDetallada()
         {
@@ -129,6 +135,73 @@ namespace JaegerSoft
                     lblCliente.Text = "PUBLICO EN GENERAL";
                 }
                 reader.Close();
+            }
+
+            string querySQLServer = "SELECT TOP 1 Datos, Observaciones FROM Cotizaciones WHERE Observaciones LIKE @Busqueda";
+
+            using (SqlConnection conn = new SqlConnection(Conexion.CadSQL))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand(querySQLServer, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Busqueda", "%FOLIO: " + lblFolio.Text + "%");
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            string losDatosExtraGuardados = reader["Datos"].ToString();
+                            string lasObservacionesOriginales = reader["Observaciones"].ToString();
+
+                            // Limpiar la etiqueta artificial de VENTA DESDE COTIZACIÓN
+                            if (lasObservacionesOriginales.Contains("[VENTA REALIZADA FOLIO:"))
+                            {
+                                int index = lasObservacionesOriginales.IndexOf("[VENTA REALIZADA FOLIO:");
+                                lasObservacionesOriginales = lasObservacionesOriginales.Substring(0, index).Trim();
+                                if (lasObservacionesOriginales.EndsWith("|")) lasObservacionesOriginales = lasObservacionesOriginales.TrimEnd('|').Trim();
+                            }
+
+                            // NUEVO: Limpiar la etiqueta de HISTORIAL OCULTO extrayendo lo que está después del ";"
+                            if (lasObservacionesOriginales.StartsWith("HISTORIAL OCULTO"))
+                            {
+                                if (lasObservacionesOriginales.Contains(";"))
+                                {
+                                    // Separar por el ; y tomar todo lo de la derecha (el comentario)
+                                    int indexPuntoComa = lasObservacionesOriginales.IndexOf(";");
+                                    lasObservacionesOriginales = lasObservacionesOriginales.Substring(indexPuntoComa + 1).Trim();
+                                }
+                                else
+                                {
+                                    // Si no trae ; significa que no hay comentario y solo es la bandera
+                                    lasObservacionesOriginales = "";
+                                }
+                            }
+
+                            // Asignamos a las variables de clase para poder reimprimir
+                            datosExtraImpresion = losDatosExtraGuardados;
+                            observacionesImpresion = lasObservacionesOriginales;
+
+                            // Formateo visual
+                            if (!string.IsNullOrEmpty(datosExtraImpresion))
+                            {
+                                string textoVisual = datosExtraImpresion.Replace(";", "   |   ");
+                                lblDatosCotizacion.Text = textoVisual;
+                                lblDatosCotizacion.Visible = true;
+                            }
+
+                            if (!string.IsNullOrEmpty(observacionesImpresion))
+                            {
+                                label9.Text = "Observaciones: " + observacionesImpresion;
+                                label9.Visible = true;
+                            }
+                            else
+                            {
+                                label9.Text = "";
+                                label9.Visible = false;
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -310,8 +383,8 @@ namespace JaegerSoft
                          lblCliente.Text,
                          dataGridView1[6, 0].Value.ToString(),
                          lblPago.Text,
-                         "",
-                         "",
+                         datosExtraImpresion,       // NUEVO: Se mandan los datos extra
+                         observacionesImpresion,    // NUEVO: Se mandan las observaciones limpias
                          Conexion.lugar,
                          Conexion.logoPath,
                          Conexion.datosTicket,
@@ -327,7 +400,20 @@ namespace JaegerSoft
             }
             else
             {
-                TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", 0, false, totales, lblPago.Text);
+                // NUEVO: Se mandan los datos a la impresión térmica de 80mm
+                TicketPrinter ticketPrinter = new TicketPrinter(
+                    Conexion.datosTicket,
+                    Conexion.pieDeTicket,
+                    Conexion.logoPath,
+                    productos,
+                    lblFolio.Text,
+                    datosExtraImpresion,       // Datos Extra
+                    observacionesImpresion,    // Observaciones (Comentario)
+                    0,
+                    false,
+                    totales,
+                    lblPago.Text);
+
                 ticketPrinter.ImprimirTicket();
             }
         }

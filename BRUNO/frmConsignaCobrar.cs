@@ -32,12 +32,12 @@ namespace JaegerSoft
 
         private void frmConsignaCobrar_Load(object sender, EventArgs e)
         {
-            lblCliente.Text = _nombreCliente;
-            EstilizarDataGridView(dgvProductos);
-            EstilizarBotonPeligro(btnCancelar);
-            EstilizarBotonPrimario(btnCobrar);
+          
 
             CargarMercanciaPendiente();
+            lblCliente.Text = _nombreCliente;
+            EstilizarBotonPeligro(btnCancelar);
+            EstilizarBotonPrimario(btnCobrar);
         }
 
         private void CargarMercanciaPendiente()
@@ -70,21 +70,19 @@ namespace JaegerSoft
                         foreach (DataRow row in dt.Rows) row["A Pagar"] = 0;
 
                         dgvProductos.DataSource = dt;
-
+                        dgvProductos.DefaultCellStyle = null; 
+                        EstilizarDataGridView(dgvProductos);  
                         dgvProductos.Columns["ProductoId"].Visible = false;
-                        dgvProductos.Columns["PrecioOriginal"].Visible = false; // Lo ocultamos
+                        dgvProductos.Columns["PrecioOriginal"].Visible = false;
 
                         dgvProductos.Columns["Precio"].DefaultCellStyle.Format = "C2";
 
-                        dgvProductos.Columns["A Pagar"].DefaultCellStyle.BackColor = Color.LightYellow;
-                        dgvProductos.Columns["A Pagar"].DefaultCellStyle.Font = new Font("Microsoft Sans Serif", 14F, FontStyle.Bold);
                         dgvProductos.Columns["A Pagar"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-                        // Si es Turbo Llantas, pintamos también la columna Precio para que sepan que es editable
+                        // Si es Turbo Llantas, la columna Precio es editable, así que la alineamos si es necesario
                         if (Conexion.lugar == "TURBO LLANTAS")
                         {
-                            dgvProductos.Columns["Precio"].DefaultCellStyle.BackColor = Color.LightYellow;
-                            dgvProductos.Columns["Precio"].DefaultCellStyle.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
+                            dgvProductos.Columns["Precio"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                         }
 
                         // Lógica de ReadOnly

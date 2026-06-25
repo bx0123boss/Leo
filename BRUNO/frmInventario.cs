@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Data.OleDb;
 using System.Globalization;
 using Microsoft.Office.Interop.Excel;
+using Font = System.Drawing.Font;
 
 namespace JaegerSoft
 {
@@ -31,7 +32,12 @@ namespace JaegerSoft
             public string Nombre { get; set; }
             public decimal PrecioVentaMayoreo { get; set; }
             public decimal PrecioVenta { get; set; }
+
+            // Stock principal
             public decimal Existencia { get; set; }
+            // NUEVO: Sumatoria de stock de todos los almacenes
+            public decimal ExistenciaTotal { get; set; }
+
             public decimal Limite { get; set; }
             public string Categoria { get; set; }
             public decimal Especial { get; set; }
@@ -48,13 +54,13 @@ namespace JaegerSoft
             public double StockMaximo { get; set; }
             public int DiasReposicion { get; set; }
 
-            // Calculated fields
+            // Calculated fields - Ahora basados en ExistenciaTotal
             public string EstadoInventario
             {
                 get
                 {
-                    if (Existencia < Limite) return "COMPRAR";
-                    if (StockMaximo > 0 && Existencia > (decimal)StockMaximo) return "SOBRESTOCK";
+                    if (ExistenciaTotal < Limite) return "COMPRAR";
+                    if (StockMaximo > 0 && ExistenciaTotal > (decimal)StockMaximo) return "SOBRESTOCK";
                     return "NORMAL";
                 }
             }
@@ -63,8 +69,8 @@ namespace JaegerSoft
             {
                 get
                 {
-                    if (Existencia <= 0) return "BAJA";
-                    double rotacion = VentasMes / (double)Existencia;
+                    if (ExistenciaTotal <= 0) return "BAJA";
+                    double rotacion = VentasMes / (double)ExistenciaTotal;
                     if (rotacion >= 1.5) return "ALTA ROTACIÓN";
                     if (rotacion >= 0.5) return "MEDIA";
                     return "BAJA";
@@ -90,8 +96,7 @@ namespace JaegerSoft
         private void BtnApartados_Click(object sender, EventArgs e)
         {
             frmAgregarInventario add = new frmAgregarInventario();
-            add.Show();
-            this.Close();
+            add.ShowDialog();
         }
 
         private void frmInventario_Load(object sender, EventArgs e)
@@ -118,7 +123,15 @@ namespace JaegerSoft
             comboBox2.ValueMember = "Id";
             comboBox2.DataSource = dt;
             DataSet ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Inventario order by Nombre;", conectar);
+
+            // NUEVA CONSULTA: Añade la sumatoria del inventario en todas las sucursales
+            string queryInventario = "SELECT I.*, (I.Existencia + IIF(IsNull(Totales.TotalIA), 0, Totales.TotalIA)) AS ExistenciaTotal " +
+                                     "FROM Inventario I " +
+                                     "LEFT JOIN (SELECT IdProducto, SUM(Existencia) AS TotalIA FROM InventarioAlmacenes GROUP BY IdProducto) Totales " +
+                                     "ON I.Id = Totales.IdProducto " +
+                                     "ORDER BY I.Nombre;";
+
+            da = new OleDbDataAdapter(queryInventario, conectar);
             da.Fill(ds, "Inventario");
 
             // Permisos de visibilidad en interfaz
@@ -141,6 +154,10 @@ namespace JaegerSoft
                     prod.PrecioVentaMayoreo = row["PrecioVentaMayoreo"] == DBNull.Value ? 0m : Convert.ToDecimal(row["PrecioVentaMayoreo"]);
                     prod.PrecioVenta = row["PrecioVenta"] == DBNull.Value ? 0m : Convert.ToDecimal(row["PrecioVenta"]);
                     prod.Existencia = row["Existencia"] == DBNull.Value ? 0m : Convert.ToDecimal(row["Existencia"]);
+
+                    // Asignar ExistenciaTotal
+                    prod.ExistenciaTotal = row.Table.Columns.Contains("ExistenciaTotal") && row["ExistenciaTotal"] != DBNull.Value ? Convert.ToDecimal(row["ExistenciaTotal"]) : prod.Existencia;
+
                     prod.Limite = row["Limite"] == DBNull.Value ? 0m : Convert.ToDecimal(row["Limite"]);
                     prod.Categoria = row["Categoria"] == DBNull.Value ? "" : row["Categoria"].ToString();
                     prod.Especial = row["Especial"] == DBNull.Value ? 0m : Convert.ToDecimal(row["Especial"]);
@@ -158,21 +175,12 @@ namespace JaegerSoft
                 }
             }
 
-            // OPTIMIZACIÓN: Solo ejecutar la query pesada de ventas si el usuario va a ver el dashboard analítico
-            if (tienePermisoAnalitico)
-            {
-                CargarVentasDinamicas(listaCompletaInventario);
-            }
-
             listaFiltradaInventario = new List<ProductoInventario>(listaCompletaInventario);
-            totalPaginas = (int)Math.Ceiling((double)listaCompletaInventario.Count / tamanoPagina);
 
-            // OPTIMIZACIÓN: Omitir los pesados bucles de cálculo de KPIs matemáticos (.Sum, .Where, etc.)
+
             if (tienePermisoAnalitico)
             {
-                ActualizarKpiValues();
                 this.Resize += FrmInventario_Resize;
-                AjustarDisenoAnalitico();
             }
 
             CargarPagina();
@@ -216,8 +224,15 @@ namespace JaegerSoft
         #region PAGINACION
         private void CargarPagina()
         {
+            if (listaFiltradaInventario == null)
+            {
+                dataGridView2.DataSource = null;
+                return;
+            }
+
             if (paginaActual < 1) paginaActual = 1;
-            if (paginaActual > totalPaginas && totalPaginas > 0) paginaActual = totalPaginas;
+            if (paginaActual > totalPaginas && totalPaginas > 0)
+                paginaActual = totalPaginas;
 
             var datosPaginados = listaFiltradaInventario
                 .Skip((paginaActual - 1) * tamanoPagina)
@@ -225,7 +240,10 @@ namespace JaegerSoft
                 .ToList();
 
             dataGridView2.DataSource = datosPaginados;
-            totalPaginas = (int)Math.Ceiling((double)listaFiltradaInventario.Count / tamanoPagina);
+
+            totalPaginas = (int)Math.Ceiling(
+                (double)listaFiltradaInventario.Count / tamanoPagina);
+
             ActualizarControlesPaginacion();
         }
 
@@ -333,11 +351,15 @@ namespace JaegerSoft
                     editar.inventario = "INVENT";
                     editar.txtID.Text = prod.Id;
                     editar.txtProducto.Text = prod.Nombre;
-                    editar.txtCompra.Text = prod.Especial.ToString();
-                    editar.txtVenta.Text = prod.PrecioVenta.ToString();
-                    editar.cmbCategoria.Text = prod.Categoria;
-                    editar.txtLimite.Text = prod.Limite.ToString();
-                    editar.comboBox1.Text = prod.IVA;
+                    editar.txtCompra.Text = prod.PrecioVentaMayoreo.ToString(); // Mayoreo
+                    editar.txtVenta.Text = prod.PrecioVenta.ToString();         // Menudeo
+                    editar.txtLimite.Text = prod.Especial.ToString();           // Precio de Compra (Especial)
+                    editar.cmbCategoria.Text = prod.IVA;                        // Impuesto (labeled cmbCategoria)
+                    editar.comboBox1.Text = prod.Categoria;                     // Categoria (labeled comboBox1)
+                    editar.txtLimiteReal.Text = prod.Limite.ToString();         // Stock Minimo (Limite)
+                    editar.txtStockMaximo.Text = prod.StockMaximo.ToString();
+                    editar.txtDiasReposicion.Text = prod.DiasReposicion.ToString();
+                    editar.cmbProveedor.Text = prod.ProveedorPrincipal;
 
                     System.Data.DataTable dt = new System.Data.DataTable();
                     cmd = new OleDbCommand("Select Id,Nombre from Unidades;", conectar);
@@ -348,8 +370,7 @@ namespace JaegerSoft
                     editar.cmbUnidad.DataSource = dt;
                     editar.cmbUnidad.SelectedValue = prod.Unidad;
                     editar.cmbUnidad.Text = prod.Uni;
-                    editar.Show();
-                    this.Close();
+                    editar.ShowDialog();
                 }
             }
             catch (Exception ex)
@@ -503,7 +524,12 @@ namespace JaegerSoft
                 using (OleDbConnection conn = new OleDbConnection(Conexion.CadCon))
                 {
                     conn.Open();
-                    string query = "SELECT * FROM Inventario ORDER BY Categoria, Nombre";
+                    // Utilizamos la misma logica de sumar el TotalIA para el excel
+                    string query = "SELECT I.*, (I.Existencia + IIF(IsNull(Totales.TotalIA), 0, Totales.TotalIA)) AS ExistenciaTotal " +
+                                   "FROM Inventario I " +
+                                   "LEFT JOIN (SELECT IdProducto, SUM(Existencia) AS TotalIA FROM InventarioAlmacenes GROUP BY IdProducto) Totales " +
+                                   "ON I.Id = Totales.IdProducto " +
+                                   "ORDER BY I.Categoria, I.Nombre";
                     OleDbDataAdapter da = new OleDbDataAdapter(query, conn);
                     da.Fill(dtInventario);
                 }
@@ -615,15 +641,16 @@ namespace JaegerSoft
                 return;
             }
 
+            // Calculo basado en EXISTENCIA TOTAL en todos los almacenes
             var resumen = listaCompletaInventario
                 .GroupBy(p => p.Categoria)
                 .Select(grupo => new ResumenCategoria
                 {
                     Categoria = grupo.Key,
-                    TotalExistencia = grupo.Sum(p => p.Existencia),
-                    TotalVenta = grupo.Sum(p => p.Existencia * p.PrecioVenta),
-                    TotalInversion = grupo.Sum(p => p.Existencia * p.Especial),
-                    Utilidad = grupo.Sum(p => (p.Existencia * p.PrecioVenta) - (p.Existencia * p.Especial))
+                    TotalExistencia = grupo.Sum(p => p.ExistenciaTotal),
+                    TotalVenta = grupo.Sum(p => p.ExistenciaTotal * p.PrecioVenta),
+                    TotalInversion = grupo.Sum(p => p.ExistenciaTotal * p.Especial),
+                    Utilidad = grupo.Sum(p => (p.ExistenciaTotal * p.PrecioVenta) - (p.ExistenciaTotal * p.Especial))
                 })
                 .OrderBy(r => r.Categoria)
                 .ToList();
@@ -641,8 +668,7 @@ namespace JaegerSoft
                     frmKardex kar = new frmKardex();
                     kar.lblProducto.Text = prod.Nombre;
                     kar.idProducto = prod.Id;
-                    kar.Show();
-                    this.Close();
+                    kar.ShowDialog();
                 }
             }
             catch (Exception)
@@ -655,15 +681,13 @@ namespace JaegerSoft
         {
             frmPolizas comp = new frmPolizas();
             comp.usuario = usuario;
-            comp.Show();
-            this.Close();
+            comp.ShowDialog();
         }
 
         private void button4_Click_1(object sender, EventArgs e)
         {
             frmGastos gas = new frmGastos();
-            gas.Show();
-            this.Close();
+            gas.ShowDialog();
         }
 
         private void button9_Click(object sender, EventArgs e)
@@ -672,6 +696,7 @@ namespace JaegerSoft
 
             foreach (var prod in listaFiltradaInventario)
             {
+                // Si guardamos, guardamos la principal. Modificar stock de almacenes debe ser via traspasos
                 cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + prod.Existencia.ToString() + "' where Id='" + prod.Id + "';", conectar);
                 cmd.ExecuteNonQuery();
             }
@@ -681,22 +706,19 @@ namespace JaegerSoft
         private void button10_Click(object sender, EventArgs e)
         {
             frmUnidades UN = new frmUnidades();
-            UN.Show();
-            this.Close();
+            UN.ShowDialog();
         }
 
         private void button11_Click(object sender, EventArgs e)
         {
             frmCategorias es = new frmCategorias();
-            es.Show();
-            this.Close();
+            es.ShowDialog();
         }
 
         private void button12_Click(object sender, EventArgs e)
         {
             frmSuspendidos susp = new frmSuspendidos();
-            susp.Show();
-            this.Close();
+            susp.ShowDialog();
         }
 
         private void button15_Click(object sender, EventArgs e)
@@ -711,20 +733,22 @@ namespace JaegerSoft
 
             ws.Cells[1, 1] = "ID";
             ws.Cells[1, 2] = "Nombre";
-            ws.Cells[1, 3] = "Existencia";
-            ws.Cells[1, 4] = "Limite";
-            ws.Cells[1, 5] = "Fecha: " + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+            ws.Cells[1, 3] = "Stock Ventas";
+            ws.Cells[1, 4] = "Stock Total";
+            ws.Cells[1, 5] = "Limite";
+            ws.Cells[1, 6] = "Fecha: " + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
             int cont = 1;
 
             foreach (var prod in listaFiltradaInventario)
             {
-                if (prod.Existencia <= prod.Limite)
+                if (prod.ExistenciaTotal <= prod.Limite)
                 {
                     cont++;
                     ws.Cells[cont, 1] = prod.Id;
                     ws.Cells[cont, 2] = prod.Nombre;
                     ws.Cells[cont, 3] = prod.Existencia.ToString();
-                    ws.Cells[cont, 4] = prod.Limite.ToString();
+                    ws.Cells[cont, 4] = prod.ExistenciaTotal.ToString();
+                    ws.Cells[cont, 5] = prod.Limite.ToString();
                 }
             }
         }
@@ -759,7 +783,7 @@ namespace JaegerSoft
                             cont++;
                             ws.Cells[cont, 1] = producto.Id;
                             ws.Cells[cont, 2] = producto.Nombre;
-                            ws.Cells[cont, 3] = producto.Existencia.ToString();
+                            ws.Cells[cont, 3] = producto.ExistenciaTotal.ToString(); // Mostrar el stock total al empleado
                         }
                     }
 
@@ -767,8 +791,7 @@ namespace JaegerSoft
                     xla.Visible = true;
 
                     frmInventariosFisicos fis = new frmInventariosFisicos();
-                    fis.Show();
-                    this.Close();
+                    fis.ShowDialog();
                 }
                 catch (Exception ex)
                 {
@@ -779,8 +802,7 @@ namespace JaegerSoft
             else
             {
                 frmInventariosFisicos fis = new frmInventariosFisicos();
-                fis.Show();
-                this.Close();
+                fis.ShowDialog();
             }
         }
 
@@ -801,34 +823,36 @@ namespace JaegerSoft
             formatRange = ws.get_Range("B:B", System.Type.Missing);
             formatRange.EntireColumn.ColumnWidth = 30;
 
-            formatRange = ws.get_Range("a1", "j1");
+            formatRange = ws.get_Range("a1", "k1"); // Expandir una celda más a la derecha
             formatRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Yellow);
             formatRange.EntireRow.Font.Bold = true;
 
             ws.Cells[1, 1] = "ID";
             ws.Cells[1, 2] = "Nombre";
             ws.Cells[1, 3] = "Precio de Venta";
-            ws.Cells[1, 4] = "Existencia";
-            ws.Cells[1, 5] = "Limite";
-            ws.Cells[1, 6] = "Categoria";
-            ws.Cells[1, 7] = "Precio de compra";
-            ws.Cells[1, 8] = "Unidad";
-            ws.Cells[1, 9] = "Fecha: " + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+            ws.Cells[1, 4] = "Stock Ventas";
+            ws.Cells[1, 5] = "Stock Total";
+            ws.Cells[1, 6] = "Limite";
+            ws.Cells[1, 7] = "Categoria";
+            ws.Cells[1, 8] = "Precio de compra";
+            ws.Cells[1, 9] = "Unidad";
+            ws.Cells[1, 10] = "Fecha: " + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
             int cont = 1;
 
             foreach (var prod in listaFiltradaInventario)
             {
-                if (prod.Existencia <= prod.Limite)
+                if (prod.ExistenciaTotal <= prod.Limite)
                 {
                     cont++;
                     ws.Cells[cont, 1] = prod.Id;
                     ws.Cells[cont, 2] = prod.Nombre;
                     ws.Cells[cont, 3] = prod.PrecioVenta.ToString();
                     ws.Cells[cont, 4] = prod.Existencia.ToString();
-                    ws.Cells[cont, 5] = prod.Limite.ToString();
-                    ws.Cells[cont, 6] = prod.Categoria;
-                    ws.Cells[cont, 7] = prod.Especial.ToString();
-                    ws.Cells[cont, 8] = prod.Uni;
+                    ws.Cells[cont, 5] = prod.ExistenciaTotal.ToString();
+                    ws.Cells[cont, 6] = prod.Limite.ToString();
+                    ws.Cells[cont, 7] = prod.Categoria;
+                    ws.Cells[cont, 8] = prod.Especial.ToString();
+                    ws.Cells[cont, 9] = prod.Uni;
                 }
             }
         }
@@ -836,15 +860,13 @@ namespace JaegerSoft
         private void button16_Click(object sender, EventArgs e)
         {
             frmCaptura cap = new frmCaptura();
-            cap.Show();
-            this.Close();
+            cap.ShowDialog();
         }
 
         private void button17_Click(object sender, EventArgs e)
         {
             frmCompras2 COM = new frmCompras2();
-            COM.Show();
-            this.Close();
+            COM.ShowDialog();
         }
 
         private void dataGridView2_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
@@ -911,26 +933,45 @@ namespace JaegerSoft
             formularioSecundario.ShowDialog();
         }
 
-        private void frmInventario_Shown(object sender, EventArgs e)
+        private async void frmInventario_Shown(object sender, EventArgs e)
         {
+            // Lógica actual
             ActualizarTamanoPagina();
+
             if (tamanoPagina <= 0)
             {
                 tamanoPagina = 20;
             }
 
-            if (listaFiltradaInventario != null && listaFiltradaInventario.Count > 0 && tamanoPagina > 0)
+            if (listaFiltradaInventario != null &&
+                listaFiltradaInventario.Count > 0 &&
+                tamanoPagina > 0)
             {
-                totalPaginas = (int)Math.Ceiling((double)listaFiltradaInventario.Count / tamanoPagina);
+                totalPaginas = (int)Math.Ceiling(
+                    (double)listaFiltradaInventario.Count / tamanoPagina);
             }
             else
             {
                 totalPaginas = 1;
             }
 
+            // Mostrar la pantalla inmediatamente
             CargarPagina();
-        }
 
+            // Cargar dashboard analítico en segundo plano
+            if (Sesion.TienePermiso("VER_ANALITICO_INVENTARIO"))
+            {
+                await Task.Run(() =>
+                {
+                    CargarVentasDinamicas(listaCompletaInventario);
+                });
+
+                // Ya estamos de regreso en el hilo UI
+                ActualizarKpiValues();
+
+                AjustarDisenoAnalitico();
+            }
+        }
         private void ActualizarTamanoPagina()
         {
             int altoFila = dataGridView2.RowTemplate.Height;
@@ -1021,22 +1062,26 @@ namespace JaegerSoft
             if (listaCompletaInventario == null || !Sesion.TienePermiso("VER_ANALITICO_INVENTARIO")) return;
 
             int totalArticulos = listaCompletaInventario.Count;
-            decimal totalStock = listaCompletaInventario.Sum(p => p.Existencia);
+            // Usando ExistenciaTotal
+            decimal totalStock = listaCompletaInventario.Sum(p => p.ExistenciaTotal);
             int totalCategorias = listaCompletaInventario.Select(p => p.Categoria).Distinct().Count();
 
             if (lblKpiArticulos != null) lblKpiArticulos.Text = totalArticulos.ToString();
             if (lblKpiStock != null) lblKpiStock.Text = totalStock.ToString("N0");
             if (lblKpiCategorias != null) lblKpiCategorias.Text = totalCategorias.ToString();
 
-            decimal inversion = listaCompletaInventario.Sum(p => p.Existencia * p.Especial);
+            // Usando ExistenciaTotal
+            decimal inversion = listaCompletaInventario.Sum(p => p.ExistenciaTotal * p.Especial);
             if (lblKpiInversion != null) lblKpiInversion.Text = inversion.ToString("C2");
             if (lblFinancieroInversion != null) lblFinancieroInversion.Text = "Inversión: " + inversion.ToString("C2");
 
-            decimal ventaPotencial = listaCompletaInventario.Sum(p => p.Existencia * p.PrecioVenta);
+            // Usando ExistenciaTotal
+            decimal ventaPotencial = listaCompletaInventario.Sum(p => p.ExistenciaTotal * p.PrecioVenta);
             if (lblKpiVentaPotencial != null) lblKpiVentaPotencial.Text = ventaPotencial.ToString("C2");
             if (lblFinancieroVenta != null) lblFinancieroVenta.Text = "Venta Potencial: " + ventaPotencial.ToString("C2");
 
-            decimal ganancia = listaCompletaInventario.Sum(p => (p.PrecioVenta - p.Especial) * p.Existencia);
+            // Usando ExistenciaTotal
+            decimal ganancia = listaCompletaInventario.Sum(p => (p.PrecioVenta - p.Especial) * p.ExistenciaTotal);
             if (lblKpiUtilidad != null) lblKpiUtilidad.Text = ganancia.ToString("C2");
             if (lblFinancieroUtilidad != null) lblFinancieroUtilidad.Text = "Utilidad Esperada: " + ganancia.ToString("C2");
 
@@ -1044,7 +1089,8 @@ namespace JaegerSoft
             if (lblKpiMargen != null) lblKpiMargen.Text = margen.ToString("F1") + "%";
             if (lblFinancieroMargen != null) lblFinancieroMargen.Text = "Margen Promedio: " + margen.ToString("F2") + "%";
 
-            int stockCriticosCount = listaCompletaInventario.Count(p => p.Existencia <= p.Limite);
+            // Usando ExistenciaTotal
+            int stockCriticosCount = listaCompletaInventario.Count(p => p.ExistenciaTotal <= p.Limite);
             if (lblKpiStockCritico != null)
             {
                 lblKpiStockCritico.Text = stockCriticosCount.ToString();
@@ -1054,23 +1100,26 @@ namespace JaegerSoft
             }
             if (lblRiesgoCriticos != null) lblRiesgoCriticos.Text = "Stock Crítico: " + stockCriticosCount + " Prod.";
 
+            // Usando ExistenciaTotal
             decimal capitalInmovilizado = listaCompletaInventario
                 .Where(p => p.NivelRotacion == "BAJA")
-                .Sum(p => p.Existencia * p.Especial);
+                .Sum(p => p.ExistenciaTotal * p.Especial);
             if (lblKpiCapitalInmovilizado != null) lblKpiCapitalInmovilizado.Text = capitalInmovilizado.ToString("C2");
             if (lblFinancieroInmovilizado != null) lblFinancieroInmovilizado.Text = "Capital Inmovilizado: " + capitalInmovilizado.ToString("C2");
 
-            int sobrestockCount = listaCompletaInventario.Count(p => p.StockMaximo > 0 && p.Existencia > (decimal)p.StockMaximo);
+            // Usando ExistenciaTotal
+            int sobrestockCount = listaCompletaInventario.Count(p => p.StockMaximo > 0 && p.ExistenciaTotal > (decimal)p.StockMaximo);
             if (lblRiesgoSobrestock != null) lblRiesgoSobrestock.Text = "Sobrestock: " + sobrestockCount + " Prod.";
 
             int bajaRotacionCount = listaCompletaInventario.Count(p => p.NivelRotacion == "BAJA");
             if (lblRiesgoRotacion != null) lblRiesgoRotacion.Text = "Baja Rotación: " + bajaRotacionCount + " Prod.";
 
+            // Usando ExistenciaTotal
             int reposicionProxCount = listaCompletaInventario.Count(p =>
-                p.Existencia > p.Limite &&
+                p.ExistenciaTotal > p.Limite &&
                 p.VentasMes > 0 &&
                 p.DiasReposicion > 0 &&
-                ((double)p.Existencia / (p.VentasMes / 30.0)) <= p.DiasReposicion
+                ((double)p.ExistenciaTotal / (p.VentasMes / 30.0)) <= p.DiasReposicion
             );
             if (lblRiesgoReposicion != null) lblRiesgoReposicion.Text = "Reposición Próx.: " + reposicionProxCount + " Prod.";
         }
@@ -1108,7 +1157,8 @@ namespace JaegerSoft
                         col.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
                         col.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
                     }
-                    else if (col.Name == "Existencia" || col.Name == "Limite" || col.Name == "DiasReposicion" || col.Name == "VentasMes" || col.Name == "VentasAnio")
+                    // Agregada ExistenciaTotal en los estilos numéricos
+                    else if (col.Name == "Existencia" || col.Name == "ExistenciaTotal" || col.Name == "Limite" || col.Name == "DiasReposicion" || col.Name == "VentasMes" || col.Name == "VentasAnio")
                     {
                         col.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
                         col.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
@@ -1135,7 +1185,11 @@ namespace JaegerSoft
                         case "Nombre": col.HeaderText = "Descripción del Producto"; break;
                         case "PrecioVentaMayoreo": col.HeaderText = "Precio Mayoreo"; break;
                         case "PrecioVenta": col.HeaderText = "Precio Público"; break;
-                        case "Existencia": col.HeaderText = "Stock Actual"; break;
+                        case "Existencia": col.HeaderText = "Stock Ventas"; break;
+                        case "ExistenciaTotal":
+                            col.HeaderText = "Stock Total";
+                            col.DefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+                            break;
                         case "Limite": col.HeaderText = "Mínimo/Límite"; break;
                         case "Categoria": col.HeaderText = "Categoría"; break;
                         case "Especial": col.HeaderText = "Precio Compra"; break;
@@ -1191,6 +1245,19 @@ namespace JaegerSoft
         {
             frmAlmacenes almacenes = new frmAlmacenes();
             almacenes.ShowDialog();
+        }
+
+        private async Task CargarDashboardAsync()
+        {
+            lblKpiArticulos.Text = "Cargando...";
+            lblKpiStock.Text = "Cargando...";
+
+            await Task.Run(() =>
+            {
+                CargarVentasDinamicas(listaCompletaInventario);
+            });
+
+            ActualizarKpiValues();
         }
     }
 }

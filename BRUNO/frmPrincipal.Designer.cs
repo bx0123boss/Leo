@@ -74,6 +74,7 @@ namespace JaegerSoft
             this.pnlMenu.Name = "pnlMenu";
             this.pnlMenu.Size = new System.Drawing.Size(1260, 785);
             this.pnlMenu.TabIndex = 0;
+            this.pnlMenu.Paint += new System.Windows.Forms.PaintEventHandler(this.pnlMenu_Paint);
             // 
             // BtnCobrar
             // 

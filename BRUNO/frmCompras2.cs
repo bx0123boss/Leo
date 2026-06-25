@@ -67,8 +67,6 @@ namespace JaegerSoft
 
         private void frmCompras2_FormClosed(object sender, FormClosedEventArgs e)
         {
-            frmInventario inv = new frmInventario();
-            inv.Show();
         }
     }
 }

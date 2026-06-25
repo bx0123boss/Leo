@@ -39,6 +39,8 @@
             this.picLogo = new System.Windows.Forms.PictureBox();
             this.label1 = new System.Windows.Forms.Label();
             this.txtWhatsapp = new System.Windows.Forms.TextBox();
+            this.ckbMediaCarta = new System.Windows.Forms.CheckBox();
+            this.ckbBascula = new System.Windows.Forms.CheckBox();
             this.grpEncabezado.SuspendLayout();
             this.grpPie.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
@@ -179,12 +181,38 @@
             this.txtWhatsapp.Size = new System.Drawing.Size(300, 23);
             this.txtWhatsapp.TabIndex = 9;
             // 
+            // ckbMediaCarta
+            // 
+            this.ckbMediaCarta.AutoSize = true;
+            this.ckbMediaCarta.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ckbMediaCarta.ForeColor = System.Drawing.Color.White;
+            this.ckbMediaCarta.Location = new System.Drawing.Point(20, 355);
+            this.ckbMediaCarta.Name = "ckbMediaCarta";
+            this.ckbMediaCarta.Size = new System.Drawing.Size(230, 29);
+            this.ckbMediaCarta.TabIndex = 58;
+            this.ckbMediaCarta.Text = "Ticket Media Carta";
+            this.ckbMediaCarta.UseVisualStyleBackColor = true;
+            // 
+            // ckbBascula
+            // 
+            this.ckbBascula.AutoSize = true;
+            this.ckbBascula.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ckbBascula.ForeColor = System.Drawing.Color.White;
+            this.ckbBascula.Location = new System.Drawing.Point(20, 384);
+            this.ckbBascula.Name = "ckbBascula";
+            this.ckbBascula.Size = new System.Drawing.Size(115, 29);
+            this.ckbBascula.TabIndex = 59;
+            this.ckbBascula.Text = "Bascula";
+            this.ckbBascula.UseVisualStyleBackColor = true;
+            // 
             // frmConfiguracionTicket
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
             this.ClientSize = new System.Drawing.Size(800, 425);
+            this.Controls.Add(this.ckbBascula);
+            this.Controls.Add(this.ckbMediaCarta);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.txtWhatsapp);
             this.Controls.Add(this.grpEncabezado);
@@ -215,5 +243,7 @@
 
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtWhatsapp;
+        private System.Windows.Forms.CheckBox ckbMediaCarta;
+        private System.Windows.Forms.CheckBox ckbBascula;
     }
 }
