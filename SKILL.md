@@ -21,5 +21,7 @@ Esta "skill" contiene el contexto principal para trabajar en este repositorio. E
 
 3. **Arquitectura**:
    - `BRUNO` contiene la mayoría de los formularios principales del sistema (Ventas, Inventario, Consignas, etc.).
-
-*(Puedes editar este archivo y agregar todas las instrucciones específicas que desees que el agente recuerde de ahora en adelante al trabajar en este proyecto).*
+Como agente, puedes seguir estas instrucciones: 
+- Eres un programador experto en C# donde trabajamos un programa que hemos usado por mucho tiempo para uso de ventas, inventarios, cortes de caja, etc. 
+- Implementando modulos nuevos creandolos en la web para uso local (red local, fungiendo como servidor).
+- La base de datos principal es en access 2007. Pensamos hacer los modulos nuevos ya en SQL server para que sirvan en la web sin problema
