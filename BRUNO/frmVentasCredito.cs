@@ -157,17 +157,21 @@ namespace JaegerSoft
 
                 for (int i = 0; i < dataGridView1.RowCount; i++)
                 {
-                    string idProducto = dataGridView1[5, i].Value.ToString();
+                    string idProducto = dataGridView1[5, i].Value.ToString().Trim();
+                    double existencia = Convert.ToDouble(dataGridView1[4, i].Value);
                     double cantidad = Convert.ToDouble(dataGridView1[0, i].Value);
                     double precio = Convert.ToDouble(dataGridView1[2, i].Value);
                     double totalProd = Convert.ToDouble(dataGridView1[3, i].Value);
+                    string nombreProducto = dataGridView1[1, i].Value.ToString();
+
+                    double exisAntes = existencia;
+                    double exisDespues = existencia - cantidad;
 
                     // OBTENER DATOS EXTRA
                     cmd = new OleDbCommand("SELECT Categoria FROM Inventario WHERE Id = ?", conectar, trans);
                     cmd.Parameters.AddWithValue("@id", idProducto);
                     string categoria = Convert.ToString(cmd.ExecuteScalar());
 
-                    // 🔥 BONUS: UPDATE DIRECTO (evita errores de concurrencia)
                     cmd = new OleDbCommand("UPDATE Inventario SET Existencia = Existencia - ?, FechaUltimaVenta = NOW() WHERE Id = ?", conectar, trans);
                     cmd.Parameters.AddWithValue("@cantidad", cantidad);
                     cmd.Parameters.AddWithValue("@id", idProducto);
@@ -187,16 +191,18 @@ namespace JaegerSoft
                     cmd.Parameters.Add("?", OleDbType.Date).Value = DateTime.Now;
                     cmd.Parameters.Add("?", OleDbType.VarChar).Value = categoria ?? "";
                     cmd.ExecuteNonQuery();
-                    
-                    
+
                     //KARDEX
                     cmd = new OleDbCommand(@"
-                    INSERT INTO Kardex 
-                    (IdProducto, Tipo, Descripcion, Fecha)
-                    VALUES (?, ?, ?, ?)", conectar, trans);
-                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = idProducto.ToString().Trim();
+                                    INSERT INTO Kardex 
+                                    (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha)
+                                    VALUES (?, ?, ?, ?, ?, ?)", conectar, trans);
+
+                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = idProducto;
                     cmd.Parameters.Add("?", OleDbType.VarChar).Value = "SALIDA";
-                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = "VENTA FOLIO: " + folioVenta;
+                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = "VENTA A CREDITO DE ARTICULO FOLIO: " + folioVenta;
+                    cmd.Parameters.Add("?", OleDbType.Double).Value = exisAntes;
+                    cmd.Parameters.Add("?", OleDbType.Double).Value = exisDespues;
                     cmd.Parameters.Add("?", OleDbType.Date).Value = DateTime.Now;
                     cmd.ExecuteNonQuery();
 

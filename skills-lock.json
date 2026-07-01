@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "jaegersoft-pos-dev": {
+      "source": "bx0123boss/Leo",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "a370f1bab0ad2415008ab03bcee10f36e3cd6b08e5015ceb22f7043e5f0357c1"
+    }
+  }
+}
