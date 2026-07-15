@@ -1,5 +1,4 @@
 using System;
-using System.Net.Sockets;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -86,9 +85,6 @@ namespace JaegerSoft
             button4.Visible = Sesion.TienePermiso("MOD_USUARIOS");
             BtnApartados.Visible = Sesion.TienePermiso("MOD_APARTADOS");
             button1.Visible = Sesion.TienePermiso("MOD_CORTES");
-            //button2.Visible = Sesion.TienePermiso("MOD_SERVICIOS");
-            //BtnTipodecambio.Visible = Sesion.TienePermiso("MOD_TIPOCAMBIO");
-            
             button6.Visible = Sesion.TienePermiso("MOD_CONFIGURACION"); // Ticket
             button8.Visible = Sesion.TienePermiso("MOD_WEB"); // Modulo Web
 

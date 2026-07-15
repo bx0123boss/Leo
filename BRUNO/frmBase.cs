@@ -5,6 +5,7 @@ using QuestPDF.Helpers;
 using System;
 using System.Drawing;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
@@ -86,9 +87,9 @@ namespace JaegerSoft
             alternatingCellStyle.SelectionForeColor = Color.White;
             dgv.AlternatingRowsDefaultCellStyle = alternatingCellStyle;
 
-            // --- NUEVO: AGREGAR MENÚ CONTEXTUAL PARA EXCEL ---
             AgregarMenuContextualExcel(dgv);
             AgregarMenuContextualPDF(dgv, this.Text);
+            AgregarMenuContextualCopiar(dgv);
         }
 
         /// <summary>
@@ -152,6 +153,101 @@ namespace JaegerSoft
             }
 
             dgv.ContextMenuStrip.Items.Add(itemExportarPdf);
+        }
+        private void AgregarMenuContextualCopiar(DataGridView dgv)
+        {
+            if (dgv.ContextMenuStrip == null)
+                dgv.ContextMenuStrip = new ContextMenuStrip();
+
+            if (dgv.ContextMenuStrip.Items.Count > 0)
+                dgv.ContextMenuStrip.Items.Add(new ToolStripSeparator());
+
+            ToolStripMenuItem itemCopiar = new ToolStripMenuItem();
+            itemCopiar.Text = "Copiar al portapapeles";
+            itemCopiar.Click += (s, e) => CopiarGridAlPortapapeles(dgv);
+
+            dgv.ContextMenuStrip.Items.Add(itemCopiar);
+        }
+        private void CopiarGridAlPortapapeles(DataGridView dgv)
+        {
+            if (dgv.Rows.Count == 0)
+            {
+                MessageBox.Show(
+                    "No hay datos para copiar.",
+                    "Atención",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                return;
+            }
+
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+
+                // Encabezados
+                bool primera = true;
+
+                foreach (DataGridViewColumn col in dgv.Columns)
+                {
+                    if (!col.Visible)
+                        continue;
+
+                    if (!primera)
+                        sb.Append('\t');
+
+                    sb.Append(col.HeaderText);
+
+                    primera = false;
+                }
+
+                sb.AppendLine();
+
+                // Datos
+                foreach (DataGridViewRow row in dgv.Rows)
+                {
+                    if (row.IsNewRow)
+                        continue;
+
+                    primera = true;
+
+                    foreach (DataGridViewColumn col in dgv.Columns)
+                    {
+                        if (!col.Visible)
+                            continue;
+
+                        if (!primera)
+                            sb.Append('\t');
+
+                        string valor = row.Cells[col.Index].FormattedValue?.ToString() ?? "";
+
+                        // Eliminar saltos de línea internos
+                        valor = valor.Replace("\r", " ").Replace("\n", " ");
+
+                        sb.Append(valor);
+
+                        primera = false;
+                    }
+
+                    sb.AppendLine();
+                }
+
+                Clipboard.SetText(sb.ToString());
+
+                MessageBox.Show(
+                    "La información fue copiada al portapapeles.",
+                    "Copiar",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Error al copiar:\n" + ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
 
         private void ExportarGridAPDF(DataGridView dgv, string titulo)

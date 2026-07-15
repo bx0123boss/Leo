@@ -80,8 +80,7 @@ namespace JaegerSoft
             frmHistorialAbonos histo = new frmHistorialAbonos();
             histo.lblID.Text = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
             histo.lblNombre.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-            histo.Show();
-            this.Close();
+            histo.ShowDialog();
         }
 
         private void button6_Click(object sender, EventArgs e)

@@ -57,25 +57,30 @@ namespace JaegerSoft
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Ticket ticket = new Ticket();
-            ticket.MaxChar = 34;
+            double adeudoAnterior = Convert.ToDouble(txtAdeudo.Text);
+            double abonoMonto = Convert.ToDouble(txtAbono.Text);
+            double saldoInsoluto = Convert.ToDouble(txtRestante.Text);
 
-            ticket.FontSize = 9;
-            ticket.HeaderImage = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
-            ticket.AddHeaderLine("********  NOTA DE ABONO  *******");
-            //jalar datos de ticket
-            for (int i = 0; i < Conexion.datosTicket.Length; i++)
-            {
-                ticket.AddHeaderLine(Conexion.datosTicket[i]);
-            }
-            ticket.AddHeaderLine("METODO DE PAGO:");
-            ticket.AddHeaderLine(cmbPago.Text);
-            ticket.AddHeaderLine("CLIENTE: " + lblCliente.Text);
-            ticket.AddSubHeaderLine("FECHA Y HORA:");
-            ticket.AddSubHeaderLine(DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
-            ticket.AddItem("", "ADEUDO", "$" + txtAdeudo.Text);
-            ticket.AddItem("", "ABONO", "$" + txtAbono.Text);
-            ticket.AddItem("", "S. INSOLUTO", "$" + txtRestante.Text);
+            //Ticket ticket = new Ticket();
+            //ticket.MaxChar = 34;
+
+            //ticket.FontSize = 9;
+            //ticket.HeaderImage = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
+            //ticket.AddHeaderLine("********  NOTA DE ABONO  *******");
+            ////jalar datos de ticket
+            //for (int i = 0; i < Conexion.datosTicket.Length; i++)
+            //{
+            //    ticket.AddHeaderLine(Conexion.datosTicket[i]);
+            //}
+            //ticket.AddHeaderLine("METODO DE PAGO:");
+            //ticket.AddHeaderLine(cmbPago.Text);
+            //ticket.AddHeaderLine("CLIENTE: " + lblCliente.Text);
+            //ticket.AddSubHeaderLine("FECHA Y HORA:");
+            //ticket.AddSubHeaderLine(DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+            //ticket.AddItem("", "ADEUDO", "$" + txtAdeudo.Text);
+            //ticket.AddItem("", "ABONO", "$" + txtAbono.Text);
+            //ticket.AddItem("", "S. INSOLUTO", "$" + txtRestante.Text);
+
             cmd = new OleDbCommand("UPDATE Clientes set Adeudo=" + adeudo + ", UltimoPago='" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' where Id=" + lblID.Text + ";", conectar);
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("UPDATE Ventas2 set Saldo='" + txtRestante.Text + "' where Folio='" + folio+ "';", conectar);
@@ -84,8 +89,24 @@ namespace JaegerSoft
             cmd.ExecuteNonQuery();
             cmd = new OleDbCommand("insert into Abonos(Abono,idCliente,Fecha,Nombre,Folio,Estatus) Values('" + txtAbono.Text + "','" + lblID.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+lblCliente.Text+"','"+folio+ "','PAGADO');", conectar);
             cmd.ExecuteNonQuery();
-            ticket.PrintTicket(Conexion.impresora);
+            ReciboAbonoCarta reciboCarta = new ReciboAbonoCarta(
+            folio: folio,
+            idCliente: lblID.Text,
+            clienteNombre: lblCliente.Text,
+            adeudoAnterior: adeudoAnterior,
+            abono: abonoMonto,
+            saldoInsoluto: saldoInsoluto,
+            formaPago: cmbPago.Text,
+            nombreLugar: Conexion.lugar ?? "JOYERIA JS",
+            logoPath: @"C:\Jaeger Soft\logo.jpg",
+            datosTicket: Conexion.datosTicket,
+            pieDeTicket: Conexion.pieDeTicket);
+            reciboCarta.ImprimirDirectamente(Conexion.impresora);
             MessageBox.Show("Se ha abonado con exito", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            frmHistorialAbonos histo = new frmHistorialAbonos();
+            histo.lblID.Text = lblID.Text;
+            histo.lblNombre.Text = lblCliente.Text;
+            histo.Show();
             this.Close();
         }
 

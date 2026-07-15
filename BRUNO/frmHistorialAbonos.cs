@@ -43,8 +43,6 @@ namespace JaegerSoft
 
         private void frmHistorialAbonos_FormClosing(object sender, FormClosingEventArgs e)
         {
-            frmClientesCredito cliente = new frmClientesCredito();
-            cliente.Show();
         }
     }
 }

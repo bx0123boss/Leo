@@ -52,8 +52,7 @@ namespace JaegerSoft
                     detalles.usuario = "NO";
                     detalles.button2.Visible = false;
                 }
-                detalles.Show();
-                this.Close();
+                detalles.ShowDialog();
             }
         }
 
@@ -61,7 +60,6 @@ namespace JaegerSoft
         {
 
             if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
-
             {
                 frmAbonoCliente abonar = new frmAbonoCliente();
                 abonar.adeudo = Convert.ToDouble(lblAdeudo.Text);
