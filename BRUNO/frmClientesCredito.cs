@@ -13,7 +13,7 @@ using System.Globalization;
 
 namespace JaegerSoft
 {
-    public partial class frmClientesCredito : Form
+    public partial class frmClientesCredito : frmBase
     {
         private DataSet ds;
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
@@ -62,6 +62,17 @@ namespace JaegerSoft
                 }
                 lblAdeudo.Text = "$" + total.ToString("#,#.00", CultureInfo.InvariantCulture);
             }
+            EstilizarBotonAdvertencia(button3);
+            EstilizarBotonAdvertencia(button5);
+            EstilizarBotonAdvertencia(button6);
+            EstilizarBotonAdvertencia(button7);
+            EstilizarBotonAdvertencia(button4);
+            EstilizarBotonPeligro(button3);
+            EstilizarDataGridView(dataGridView1);
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
+
         }
 
         private void button4_Click(object sender, EventArgs e)

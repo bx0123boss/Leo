@@ -28,7 +28,7 @@ namespace JaegerSoft
         {
             conectar.Open();
             ds = new DataSet();
-            da = new OleDbDataAdapter("select id,IdProducto,Tipo, Descripcion, ExistenciaAntes,ExistenciaDespues,ExistenciaDespues - ExistenciaAntes as Movimiento, Fecha,Precio from Kardex where idProducto='" + idProducto + "';", conectar);
+            da = new OleDbDataAdapter("select id,IdProducto,Tipo, Descripcion, ExistenciaAntes,ExistenciaDespues - ExistenciaAntes as Movimiento, ExistenciaDespues, Fecha,Precio from Kardex where idProducto='" + idProducto + "';", conectar);
             da.Fill(ds, "Id");
             dataGridView2.DataSource = ds.Tables["Id"];
             dataGridView2.Columns[1].Visible = false;
@@ -41,7 +41,7 @@ namespace JaegerSoft
         private void button1_Click(object sender, EventArgs e)
         {
             ds = new DataSet();
-            da = new OleDbDataAdapter("select id,IdProducto,Tipo, Descripcion, ExistenciaAntes,ExistenciaDespues,ExistenciaDespues - ExistenciaAntes as Movimiento, Fecha, Precio from Kardex where idProducto='" + idProducto + "' AND Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker2.Value.Month.ToString() + "/" + dateTimePicker2.Value.Day.ToString() + "/" + dateTimePicker2.Value.Year.ToString() + " 23:59:59# ORDER BY Fecha ASC;", conectar);
+            da = new OleDbDataAdapter("select id,IdProducto,Tipo, Descripcion, ExistenciaAntes,ExistenciaDespues - ExistenciaAntes as Movimiento, ExistenciaDespues Fecha, Precio from Kardex where idProducto='" + idProducto + "' AND Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker2.Value.Month.ToString() + "/" + dateTimePicker2.Value.Day.ToString() + "/" + dateTimePicker2.Value.Year.ToString() + " 23:59:59# ORDER BY Fecha ASC;", conectar);
             da.Fill(ds, "Id");
             dataGridView2.DataSource = ds.Tables["Id"];
             dataGridView2.Columns[1].Visible = false;

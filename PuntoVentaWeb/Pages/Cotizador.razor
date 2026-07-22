@@ -524,6 +524,22 @@
             busquedaRealizada = false;
             return;
         }
+         if (terminoBusqueda.Trim() == "00")
+        {
+            var detalle = new DetalleCotizacion
+            {
+                ProductoCodigo = "00",
+                Descripcion = "REFACCIÓN GENERICA",
+                Cantidad = 1,
+                PrecioUnitario = 0
+            };
+            nuevaCotizacion.Detalles.Add(detalle);
+            terminoBusqueda = "";
+            productoSeleccionado = null;
+            resultadosBusqueda.Clear();
+            busquedaRealizada = false;
+            return;
+        }
 
         busquedaRealizada = true;
         productoSeleccionado = null;

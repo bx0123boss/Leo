@@ -50,6 +50,27 @@
             anchorElement.remove();
             URL.revokeObjectURL(url);
         }
+        window.printPdfFromStream = async (contentStreamReference) => {
+            const arrayBuffer = await contentStreamReference.arrayBuffer();
+            const blob = new Blob([arrayBuffer], { type: "application/pdf" });
+            const url = URL.createObjectURL(blob);
+
+            const iframe = document.createElement("iframe");
+            iframe.style.display = "none";
+            iframe.src = url;
+
+            document.body.appendChild(iframe);
+
+            iframe.onload = () => {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+
+                setTimeout(() => {
+                    URL.revokeObjectURL(url);
+                    document.body.removeChild(iframe);
+                }, 1000);
+            };
+        };
     </script>
 </body>
 </html>

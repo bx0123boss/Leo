@@ -15,7 +15,6 @@ using QImage = QuestPDF.Infrastructure.Image;
 
 namespace JaegerSoft
 {
-    // Cambiamos el nombre de la clase a TicketCarta
     public class TicketMediaCarta
     {
         private class ColoresPdf
@@ -35,10 +34,13 @@ namespace JaegerSoft
         private string _hexPrimario, _hexSecundario;
         private double _descuento;
         private int _diasValidez;
+        private Dictionary<string, double> _totales;
 
+        // NUEVO: Se define 'totales = null' al final convirtiéndolo en un parámetro opcional
         public TicketMediaCarta(List<Producto> productos, string folio, double descuento, double total, string cliente, string idCliente, string formaPago,
                                 string datos, string observaciones,
-                                string nombreLugar, string logoPath, string[] datosTicket, string[] pieDeTicket)
+                                string nombreLugar, string logoPath, string[] datosTicket, string[] pieDeTicket,
+                                Dictionary<string, double> totales = null)
         {
             _productos = productos;
             _folio = folio;
@@ -53,6 +55,7 @@ namespace JaegerSoft
             _logoPath = logoPath;
             _datosTicket = datosTicket;
             _pieDeTicket = pieDeTicket;
+            _totales = totales;
 
             // 1. Cargar datos desde Access
             CargarDatosCliente();
@@ -146,25 +149,15 @@ namespace JaegerSoft
                 var colorPrincipal = QuestPDF.Infrastructure.Color.FromHex(_hexPrimario);
                 var colorSecundario = QuestPDF.Infrastructure.Color.FromHex(_hexSecundario);
 
-                // --- Cálculos de Totales ---
-                double total = _productos.Sum(p => p.Total);
-                double subtotal = total / 1.16;
-                double iva = (total / 1.16) * 0.16;
-                double totalFinal = total;
-                // ---------------------------
-
                 var documento = Document.Create(container =>
                 {
                     container.Page(page =>
                     {
-                        // Hoja Carta Completa (Vertical)
-                        page.Size(PageSizes.Letter); // 8.5 x 11 pulgadas
-
-                        // Márgenes normales para toda la hoja
+                        page.Size(PageSizes.Letter);
                         page.MarginTop(0.5f, Unit.Centimetre);
                         page.MarginLeft(0.5f, Unit.Centimetre);
                         page.MarginRight(0.5f, Unit.Centimetre);
-                        page.MarginBottom(0.5f, Unit.Centimetre); // <--- CAMBIO AQUÍ: Ahora usa toda la página hacia abajo
+                        page.MarginBottom(0.5f, Unit.Centimetre);
 
                         page.PageColor(Colors.White);
                         page.DefaultTextStyle(x => x.FontSize(8).FontFamily("Arial"));
@@ -192,10 +185,11 @@ namespace JaegerSoft
                                     foreach (var l in _datosTicket) info.Item().Text(l.Trim()).FontSize(7);
                             });
 
-                            // CUADRO DE FOLIO Y FECHA
                             row.ConstantItem(120).Border(1).BorderColor(colorPrincipal).Padding(0).Column(box =>
                             {
-                                box.Item().Background(colorPrincipal).Padding(2).AlignCenter().Text("COTIZACIÓN").Bold().FontColor(Colors.White);
+                                // Cambia dinámicamente el título del cuadro según si viene o no el diccionario de crédito
+                                string tituloCaja = (_totales != null && _totales.ContainsKey("Su Abono")) ? "VENTA CRÉDITO" : "COTIZACIÓN";
+                                box.Item().Background(colorPrincipal).Padding(2).AlignCenter().Text(tituloCaja).Bold().FontColor(Colors.White);
 
                                 box.Item().Padding(4).Column(c =>
                                 {
@@ -203,7 +197,6 @@ namespace JaegerSoft
                                     c.Item().PaddingTop(2).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
                                     c.Item().PaddingTop(2).AlignCenter().Text($"{DateTime.Now:dd/MMM/yyyy} - {DateTime.Now:HH:mm} hrs").FontSize(8);
 
-                                    // Vigencia calculada
                                     var fechaVigencia = DateTime.Now.AddDays(_diasValidez);
                                     c.Item().PaddingTop(3).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
                                     c.Item().PaddingTop(2).AlignCenter().Text("Vigente hasta:").FontSize(6).Bold().FontColor(colorPrincipal);
@@ -212,21 +205,18 @@ namespace JaegerSoft
                             });
                         });
 
-                        // Línea separadora
                         col.Item().PaddingTop(10).LineHorizontal(2).LineColor(colorSecundario);
                     });
                 }
+
                 void ComposeContent(IContainer container)
                 {
                     container.PaddingVertical(5).Column(column =>
                     {
-                        // --- FILA SUPERIOR: DATOS DEL CLIENTE Y OBSERVACIONES ---
                         column.Item().PaddingBottom(10).Row(row =>
                         {
-                            // IZQUIERDA: Datos del Cliente
                             row.RelativeItem().Column(c =>
                             {
-                                // Título con pequeña barra lateral
                                 c.Item().Row(titleRow =>
                                 {
                                     titleRow.ConstantItem(5).Height(15).Background(colorSecundario);
@@ -245,7 +235,7 @@ namespace JaegerSoft
                                         d.Item().Text($"RFC: {_rfc ?? "                                        "} Correo: {_correo}");
                                 });
                             });
-                            // DERECHA: Observaciones
+
                             string notasAMostrar = !string.IsNullOrEmpty(_observaciones) ? _observaciones : "";
 
                             if (!string.IsNullOrEmpty(notasAMostrar) || Conexion.lugar == "TURBO LLANTAS")
@@ -258,7 +248,6 @@ namespace JaegerSoft
                             }
                         });
 
-                        // 2. DATOS EXTRA
                         column.Item().PaddingTop(5).Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text(text =>
                         {
                             var lista = !string.IsNullOrEmpty(_datos) ? _datos.Split(';') : Array.Empty<string>();
@@ -279,22 +268,21 @@ namespace JaegerSoft
                                 foreach (var etiqueta in ObtenerCamposConfiguradosDesdeSQL())
                                 {
                                     text.Span($"{etiqueta}: ").Bold().FontColor(colorPrincipal);
-                                    text.Span("                           ");
+                                    text.Span("                            ");
                                 }
                             }
                         });
 
-                        // 3. TABLA PRODUCTOS
                         column.Item().PaddingTop(5).Table(table =>
                         {
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.ConstantColumn(40); // Cant
-                                columns.RelativeColumn();   // Desc
-                                columns.ConstantColumn(70); // P.Unit
-                                columns.ConstantColumn(65); // TASA IVA (Estática)
-                                columns.ConstantColumn(50); // DESC (Estática)
-                                columns.ConstantColumn(70); // Importe
+                                columns.ConstantColumn(40);
+                                columns.RelativeColumn();
+                                columns.ConstantColumn(70);
+                                columns.ConstantColumn(65);
+                                columns.ConstantColumn(50);
+                                columns.ConstantColumn(70);
                             });
                             table.Header(header =>
                             {
@@ -307,7 +295,7 @@ namespace JaegerSoft
                                 header.Cell().Element(HeaderStyle).AlignRight().Text("DESC").FontColor(Colors.White).Bold();
                                 header.Cell().Element(HeaderStyle).AlignRight().Text("IMPORTE").FontColor(Colors.White).Bold();
                             });
-                            // Filas
+
                             for (int i = 0; i < _productos.Count; i++)
                             {
                                 var item = _productos[i];
@@ -317,7 +305,6 @@ namespace JaegerSoft
 
                                 table.Cell().Element(CellStyle).AlignCenter().Text(item.Cantidad.ToString("0.##")).Bold();
                                 table.Cell().Element(CellStyle).Text(item.Nombre).FontSize(9);
-
                                 table.Cell().Element(CellStyle).AlignRight().Text($"{item.PrecioUnitario:N2}");
                                 table.Cell().Element(CellStyle).AlignRight().Text("16.00%");
                                 table.Cell().Element(CellStyle).AlignRight().Text("$0.00");
@@ -325,17 +312,17 @@ namespace JaegerSoft
                             }
                         });
 
-                        // 4. TOTALES 
+                        // AREA DE TOTALES COMPATIBLE (DINÁMICA O CON FALLBACK ESTÁTICO)
                         column.Item().AlignRight().PaddingTop(5).Row(row =>
                         {
-                            row.ConstantItem(150).Border(0.5f).BorderColor(colorPrincipal).Column(colTotales =>
+                            row.ConstantItem(180).Border(0.5f).BorderColor(colorPrincipal).Column(colTotales =>
                             {
                                 void FilaTotal(string etiqueta, string valor, bool esBold = false, float fontSize = 8, string colorFondo = null)
                                 {
                                     var item = colTotales.Item();
                                     if (colorFondo != null) item = item.Background(colorFondo);
 
-                                    item.PaddingHorizontal(3).PaddingVertical(1).Row(r =>
+                                    item.PaddingHorizontal(4).PaddingVertical(1.5f).Row(r =>
                                     {
                                         var estilo = TextStyle.Default.FontSize(fontSize);
                                         if (esBold) estilo = estilo.Bold();
@@ -346,10 +333,34 @@ namespace JaegerSoft
                                     });
                                 }
 
-                                FilaTotal("SUBTOTAL:", $"{subtotal:N2}");
-                                FilaTotal("DESCUENTO:", $"{_descuento:N2}");
-                                FilaTotal("I.V.A. (16%):", $"{iva:N2}");
-                                FilaTotal("TOTAL:", $"{totalFinal:C2}", true, 10, colorPrincipal);
+                                // SI SE PASÓ EL DICCIONARIO DESDE LA NUEVA PANTALLA:
+                                if (_totales != null && _totales.Count > 0)
+                                {
+                                    foreach (var kvp in _totales)
+                                    {
+                                        bool esUltimo = kvp.Key == _totales.Last().Key;
+                                        if (esUltimo)
+                                        {
+                                            FilaTotal(kvp.Key.ToUpper() + ":", $"{kvp.Value:C2}", true, 9.5f, colorPrincipal);
+                                        }
+                                        else
+                                        {
+                                            FilaTotal(kvp.Key + ":", $"{kvp.Value:N2}", kvp.Key.Contains("Total"));
+                                        }
+                                    }
+                                }
+                                // FALLBACK: SI NO SE ENVIÓ (Mantiene el comportamiento exacto de antes)
+                                else
+                                {
+                                    double totalProductos = _productos.Sum(p => p.Total);
+                                    double subtotalCalculado = totalProductos / 1.16;
+                                    double ivaCalculado = (totalProductos / 1.16) * 0.16;
+
+                                    FilaTotal("SUBTOTAL:", $"{subtotalCalculado:N2}");
+                                    FilaTotal("DESCUENTO:", $"{_descuento:N2}");
+                                    FilaTotal("I.V.A. (16%):", $"{ivaCalculado:N2}");
+                                    FilaTotal("TOTAL:", $"{_total:C2}", true, 10, colorPrincipal);
+                                }
                             });
                         });
                     });
@@ -377,23 +388,19 @@ namespace JaegerSoft
                     });
                 }
 
-                // CONFIGURACIÓN DE ALTA CALIDAD
                 var configuracionImagen = new QuestPDF.Infrastructure.ImageGenerationSettings
                 {
-                    RasterDpi = 300, // 300 DPI para texto nítido
+                    RasterDpi = 300,
                     ImageCompressionQuality = ImageCompressionQuality.Best
                 };
 
-                // OPTIMIZACIÓN: Generar lista UNA sola vez antes de entrar al loop de impresión
                 var imagenes = documento.GenerateImages(configuracionImagen).ToList();
 
                 PrintDocument pd = new PrintDocument();
                 pd.PrinterSettings.PrinterName = nombreImpresora;
 
-                // CONFIGURACIÓN CLAVE: Papel Carta Vertical (Estándar)
-                // 8.5" x 11" en centésimas de pulgada = 850 x 1100
                 pd.DefaultPageSettings.PaperSize = new PaperSize("Carta", 850, 1100);
-                pd.DefaultPageSettings.Landscape = false; // Vertical
+                pd.DefaultPageSettings.Landscape = false;
                 pd.DefaultPageSettings.Margins = new Margins(0, 0, 0, 0);
                 pd.OriginAtMargins = true;
 

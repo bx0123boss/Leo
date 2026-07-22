@@ -98,7 +98,7 @@ namespace JaegerSoft
             saldoInsoluto: saldoInsoluto,
             formaPago: cmbPago.Text,
             nombreLugar: Conexion.lugar ?? "JOYERIA JS",
-            logoPath: @"C:\Jaeger Soft\logo.jpg",
+            logoPath: Conexion.logoPath,
             datosTicket: Conexion.datosTicket,
             pieDeTicket: Conexion.pieDeTicket);
             reciboCarta.ImprimirDirectamente(Conexion.impresora);

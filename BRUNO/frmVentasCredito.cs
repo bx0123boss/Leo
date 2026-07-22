@@ -265,7 +265,7 @@ namespace JaegerSoft
                 }
                 totales.Add("Total", subTotalImpresion);
                 totales.Add("Abono", Convert.ToDouble(txtAbono.Text));
-                totales.Add("Restante", Convert.ToDouble(lblFinal.Text));
+                totales.Add("Saldo Insoluto", Convert.ToDouble(lblFinal.Text));
 
                 if (Conexion.impresionMediaCarta)
                 {
@@ -280,7 +280,7 @@ namespace JaegerSoft
                         {
                             TicketMediaCarta pdfTicket = new TicketMediaCarta(
                                  productos,
-                                 lblFolio.Text,
+                                 folioVenta,
                                  descuento,
                                  subTotalImpresion,
                                  lblCliente.Text,
@@ -291,7 +291,8 @@ namespace JaegerSoft
                                  Conexion.lugar,
                                  Conexion.logoPath,    // <--- Logo
                                  Conexion.datosTicket, // <--- Encabezado del negocio
-                                 Conexion.pieDeTicket  // <--- Pie de página
+                                 Conexion.pieDeTicket,
+                                 totales
                              );
 
                             pdfTicket.ImprimirDirectamente(Conexion.impresora);
@@ -304,7 +305,7 @@ namespace JaegerSoft
                 }
                 else
                 {
-                    TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", subTotalImpresion, false, totales, cmbPago.Text);
+                    TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, folioVenta, "", "", subTotalImpresion, false, totales, cmbPago.Text);
                     ticketPrinter.ImprimirTicket();
                 }
                 // -- FIN ÁREA DE IMPRESIÓN --

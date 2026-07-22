@@ -52,8 +52,11 @@ namespace JaegerSoft
         private void button1_Click(object sender, EventArgs e)
         {
             frmAgregarPoliza add = new frmAgregarPoliza();
-            add.Show();
-            this.Close();
+            add.ShowDialog();
+            ds = new DataSet();
+            da = new OleDbDataAdapter("SELECT P.Folio, P.Fecha, P.FechaCaptura, P.CostoTotal, P.CostoExtra, P.Id, P.IdProv, P.Proveedor, P.IVA, P.Total, P.IdAlmacen, IIF(P.IdAlmacen IS NULL OR P.IdAlmacen = 0, 'Almacén Principal (Bodega)', A.Nombre) AS [Almacén Destino] FROM Poliza P LEFT JOIN Almacenes A ON P.IdAlmacen = A.Id ORDER BY P.Folio;", conectar);
+            da.Fill(ds, "Id");
+            dataGridView1.DataSource = ds.Tables["Id"];
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
