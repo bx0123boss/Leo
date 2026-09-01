@@ -15,124 +15,259 @@ namespace JaegerSoft
 {
     public partial class frmAbonoCliente : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
+
+        // OleDbConnection conectar = new OleDbConnection(
+        //     @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+
         OleDbCommand cmd;
+
         public string folio = "";
         public double saldo = 0;
         public double adeudo = 0;
         public double adeudoFact = 0;
+
         public frmAbonoCliente()
         {
             InitializeComponent();
-        }
-
-        private void txtAbono_Leave(object sender, EventArgs e)
-        {
-            try
-            {
-                adeudoFact = 0;
-                adeudoFact -= Convert.ToDouble(txtAbono.Text);
-                double restante = (Convert.ToDouble(txtAdeudo.Text) - Convert.ToDouble(txtAbono.Text));
-                if (restante >= 0)
-                {
-                    txtRestante.Text = restante.ToString();
-                    adeudo += adeudoFact;
-                }
-                else
-                {
-                    txtAbono.Text = "";
-                    txtAbono.Focus();
-                    MessageBox.Show("Ingrese una cantidad valida", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            catch
-            {
-                txtAbono.Text = "";
-                txtAbono.Focus();
-                MessageBox.Show("No se ha introducido correctamente un dato, favor de verificar", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            double adeudoAnterior = Convert.ToDouble(txtAdeudo.Text);
-            double abonoMonto = Convert.ToDouble(txtAbono.Text);
-            double saldoInsoluto = Convert.ToDouble(txtRestante.Text);
-
-            //Ticket ticket = new Ticket();
-            //ticket.MaxChar = 34;
-
-            //ticket.FontSize = 9;
-            //ticket.HeaderImage = Image.FromFile("C:\\Jaeger Soft\\logo.jpg");
-            //ticket.AddHeaderLine("********  NOTA DE ABONO  *******");
-            ////jalar datos de ticket
-            //for (int i = 0; i < Conexion.datosTicket.Length; i++)
-            //{
-            //    ticket.AddHeaderLine(Conexion.datosTicket[i]);
-            //}
-            //ticket.AddHeaderLine("METODO DE PAGO:");
-            //ticket.AddHeaderLine(cmbPago.Text);
-            //ticket.AddHeaderLine("CLIENTE: " + lblCliente.Text);
-            //ticket.AddSubHeaderLine("FECHA Y HORA:");
-            //ticket.AddSubHeaderLine(DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
-            //ticket.AddItem("", "ADEUDO", "$" + txtAdeudo.Text);
-            //ticket.AddItem("", "ABONO", "$" + txtAbono.Text);
-            //ticket.AddItem("", "S. INSOLUTO", "$" + txtRestante.Text);
-
-            cmd = new OleDbCommand("UPDATE Clientes set Adeudo=" + adeudo + ", UltimoPago='" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' where Id=" + lblID.Text + ";", conectar);
-            cmd.ExecuteNonQuery();
-            cmd = new OleDbCommand("UPDATE Ventas2 set Saldo='" + txtRestante.Text + "' where Folio='" + folio+ "';", conectar);
-            cmd.ExecuteNonQuery();
-            cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono a cuenta de cliente " + lblCliente.Text + "','" + txtAbono.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + cmbPago.Text + "');", conectar);
-            cmd.ExecuteNonQuery();
-            cmd = new OleDbCommand("insert into Abonos(Abono,idCliente,Fecha,Nombre,Folio,Estatus) Values('" + txtAbono.Text + "','" + lblID.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+lblCliente.Text+"','"+folio+ "','PAGADO');", conectar);
-            cmd.ExecuteNonQuery();
-            ReciboAbonoCarta reciboCarta = new ReciboAbonoCarta(
-            folio: folio,
-            idCliente: lblID.Text,
-            clienteNombre: lblCliente.Text,
-            adeudoAnterior: adeudoAnterior,
-            abono: abonoMonto,
-            saldoInsoluto: saldoInsoluto,
-            formaPago: cmbPago.Text,
-            nombreLugar: Conexion.lugar ?? "JOYERIA JS",
-            logoPath: Conexion.logoPath,
-            datosTicket: Conexion.datosTicket,
-            pieDeTicket: Conexion.pieDeTicket);
-            reciboCarta.ImprimirDirectamente(Conexion.impresora);
-            MessageBox.Show("Se ha abonado con exito", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            frmHistorialAbonos histo = new frmHistorialAbonos();
-            histo.lblID.Text = lblID.Text;
-            histo.lblNombre.Text = lblCliente.Text;
-            histo.Show();
-            this.Close();
+            conectar.Open();
         }
 
         private void frmAbonoCliente_Load(object sender, EventArgs e)
         {
-            cmbPago.SelectedIndex = 0; 
-            conectar.Open();
-            if (saldo > 0)            
+            cmbPago.SelectedIndex = 0;
+
+           
+
+            if (saldo > 0)
                 txtAdeudo.Text = saldo.ToString();
             else
                 txtAdeudo.Text = adeudo.ToString();
         }
 
-        private void frmAbonoCliente_FormClosing(object sender, FormClosingEventArgs e)
+        // ============================================================
+        // VALIDAR ABONO
+        // ============================================================
+        private bool ValidarAbono()
         {
-            frmClientesCredito cliente = new frmClientesCredito();
-            cliente.Show();
+            try
+            {
+                double montoAbono = Convert.ToDouble(txtAbono.Text);
+                double montoAdeudo = Convert.ToDouble(txtAdeudo.Text);
+
+                double restante = montoAdeudo - montoAbono;
+
+                if (montoAbono <= 0)
+                {
+                    txtAbono.Focus();
+
+                    MessageBox.Show(
+                        "Ingrese una cantidad válida.",
+                        "ERROR",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+
+                    return false;
+                }
+
+                if (restante < 0)
+                {
+                    txtAbono.Text = "";
+                    txtAbono.Focus();
+
+                    MessageBox.Show(
+                        "El abono no puede ser mayor al adeudo.",
+                        "ERROR",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+
+                    return false;
+                }
+
+                txtRestante.Text = restante.ToString();
+
+                return true;
+            }
+            catch
+            {
+                txtAbono.Text = "";
+                txtAbono.Focus();
+
+                MessageBox.Show(
+                    "No se ha introducido correctamente un dato, favor de verificar.",
+                    "ERROR",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+
+                return false;
+            }
         }
 
+        // ============================================================
+        // CUANDO SALE DEL TEXTBOX
+        // ============================================================
+        private void txtAbono_Leave(object sender, EventArgs e)
+        {
+            ValidarAbono();
+        }
+
+        // ============================================================
+        // ENTER EN TXTABONO
+        // ============================================================
         private void txtAbono_KeyPress(object sender, KeyPressEventArgs e)
         {
             CultureInfo cc = System.Threading.Thread.CurrentThread.CurrentCulture;
-            if (char.IsNumber(e.KeyChar) || e.KeyChar.ToString() == cc.NumberFormat.NumberDecimalSeparator)
+
+            // Números y separador decimal
+            if (char.IsNumber(e.KeyChar) ||
+                e.KeyChar.ToString() == cc.NumberFormat.NumberDecimalSeparator)
+            {
                 e.Handled = false;
-            else
+            }
+            // ENTER
+            else if (e.KeyChar == (char)Keys.Enter)
+            {
                 e.Handled = true;
+                ValidarAbono();
+            }
+            // Cualquier otro carácter
+            else
+            {
+                e.Handled = true;
+            }
+        }
+
+        // ============================================================
+        // BOTÓN ABONAR
+        // ============================================================
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // Validar antes de continuar
+            if (!ValidarAbono())
+                return;
+
+            try
+            {
+                double adeudoAnterior = Convert.ToDouble(txtAdeudo.Text);
+                double abonoMonto = Convert.ToDouble(txtAbono.Text);
+                double saldoInsoluto = Convert.ToDouble(txtRestante.Text);
+
+                // Actualizar adeudo
+                adeudoFact = -abonoMonto;
+                double nuevoAdeudo = adeudo + adeudoFact;
+
+                // ====================================================
+                // ACTUALIZAR CLIENTE
+                // ====================================================
+                cmd = new OleDbCommand(
+                    "UPDATE Clientes SET Adeudo = " + nuevoAdeudo +
+                    ", UltimoPago = '" +
+                    DateTime.Now.ToShortDateString() + " " +
+                    DateTime.Now.ToShortTimeString() +
+                    "' WHERE Id = " + lblID.Text + ";",
+                    conectar);
+
+                cmd.ExecuteNonQuery();
+
+                // ====================================================
+                // ACTUALIZAR VENTA
+                // ====================================================
+                cmd = new OleDbCommand(
+                    "UPDATE Ventas2 SET Saldo = '" +
+                    txtRestante.Text +
+                    "' WHERE Folio = '" +
+                    folio +
+                    "';",
+                    conectar);
+
+                cmd.ExecuteNonQuery();
+
+                // ====================================================
+                // INSERTAR EN CORTE
+                // ====================================================
+                cmd = new OleDbCommand(
+                    "INSERT INTO Corte " +
+                    "(Concepto, Monto, FechaHora, Pago) " +
+                    "VALUES (" +
+                    "'Abono a cuenta de cliente " + lblCliente.Text + "'," +
+                    "'" + txtAbono.Text + "'," +
+                    "'" + DateTime.Now.ToShortDateString() + " " +
+                    DateTime.Now.ToShortTimeString() + "'," +
+                    "'" + cmbPago.Text + "'" +
+                    ");",
+                    conectar);
+
+                cmd.ExecuteNonQuery();
+
+                // ====================================================
+                // INSERTAR ABONO
+                // ====================================================
+                cmd = new OleDbCommand(
+                    "INSERT INTO Abonos " +
+                    "(Abono, idCliente, Fecha, Nombre, Folio, Estatus) " +
+                    "VALUES (" +
+                    "'" + txtAbono.Text + "'," +
+                    "'" + lblID.Text + "'," +
+                    "'" + DateTime.Now.ToShortDateString() + " " +
+                    DateTime.Now.ToShortTimeString() + "'," +
+                    "'" + lblCliente.Text + "'," +
+                    "'" + folio + "'," +
+                    "'PAGADO'" +
+                    ");",
+                    conectar);
+
+                cmd.ExecuteNonQuery();
+
+                // ====================================================
+                // GENERAR RECIBO
+                // ====================================================
+                ReciboAbonoCarta reciboCarta = new ReciboAbonoCarta(
+                    folio: folio,
+                    idCliente: lblID.Text,
+                    clienteNombre: lblCliente.Text,
+                    adeudoAnterior: adeudoAnterior,
+                    abono: abonoMonto,
+                    saldoInsoluto: saldoInsoluto,
+                    formaPago: cmbPago.Text,
+                    nombreLugar: Conexion.lugar ?? "JOYERIA JS",
+                    logoPath: Conexion.logoPath,
+                    datosTicket: Conexion.datosTicket,
+                    pieDeTicket: Conexion.pieDeTicket
+                );
+
+                reciboCarta.ImprimirDirectamente(Conexion.impresora);
+
+                // ====================================================
+                // MENSAJE
+                // ====================================================
+                MessageBox.Show(
+                    "Se ha abonado con éxito",
+                    "ÉXITO",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                // ====================================================
+                // ABRIR HISTORIAL
+                // ====================================================
+                this.DialogResult = System.Windows.Forms.DialogResult.OK;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Ocurrió un error al registrar el abono:\n\n" + ex.Message,
+                    "ERROR",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        // ============================================================
+        // AL CERRAR FORMULARIO
+        // ============================================================
+        private void frmAbonoCliente_FormClosing(
+            object sender,
+            FormClosingEventArgs e)
+        {
         }
     }
 }

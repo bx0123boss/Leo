@@ -375,7 +375,7 @@ namespace JaegerSoft
                         dgvStock.Columns["Id"].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
 
                         dgvStock.Columns["Nombre"].HeaderText = "Descripción";
-                        dgvStock.Columns["Nombre"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                        dgvStock.Columns["Nombre"].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
 
                         dgvStock.Columns["Categoria"].HeaderText = "Categoría";
                         dgvStock.Columns["Categoria"].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
@@ -424,7 +424,7 @@ namespace JaegerSoft
                                 col.Name != "ExistenciaPrincipal" &&
                                 col.Name != "TOTAL EN EXISTENCIA")
                             {
-                                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+                                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                                 col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                             }
                         }

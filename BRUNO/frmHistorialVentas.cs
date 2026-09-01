@@ -61,22 +61,33 @@ namespace JaegerSoft
 
             if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index >= 0)
             {
-                frmAbonoCliente abonar = new frmAbonoCliente();
-                abonar.adeudo = Convert.ToDouble(lblAdeudo.Text);
-                abonar.lblID.Text = lblID.Text;
-                abonar.lblCliente.Text = lblNombre.Text;
-                string sal = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
-                if (sal == "0" || sal == "")
+                using (frmAbonoCliente abonar = new frmAbonoCliente())
                 {
-                    abonar.saldo = 0;
+                    abonar.adeudo = Convert.ToDouble(lblAdeudo.Text);
+                    abonar.lblID.Text = lblID.Text;
+                    abonar.lblCliente.Text = lblNombre.Text;
+                    string sal = dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString();
+                    if (sal == "0" || sal == "")
+                    {
+                        abonar.saldo = 0;
+                    }
+                    else
+                    {
+                        abonar.saldo = Convert.ToDouble(dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString());
+                    }
+                    abonar.folio = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
+                    if (abonar.ShowDialog() == DialogResult.OK)
+                    {
+                        ds = new DataSet();
+                        da = new OleDbDataAdapter("select * from Ventas2 where Saldo > 0 and IdCliente=" + lblID.Text + " order by Fecha;", conectar);
+                        da.Fill(ds, "Id");
+                        dataGridView1.DataSource = ds.Tables["Id"];
+                        dataGridView1.Columns[0].Visible = false;
+                        dataGridView1.Columns[4].Visible = false;
+                        dataGridView1.Columns[5].Visible = false;
+                        lblAdeudo.Text = adeudo.ToString("#,#.00", CultureInfo.InvariantCulture);
+                    }
                 }
-                else
-                {
-                    abonar.saldo = Convert.ToDouble(dataGridView1[6, dataGridView1.CurrentRow.Index].Value.ToString());
-                }
-                abonar.folio = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
-                abonar.Show();
-                this.Close();
             }
         }
 
@@ -112,8 +123,8 @@ namespace JaegerSoft
             {
                 frmAbonosFolio histo = new frmAbonosFolio();
                 histo.lblFolio.Text = dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString();
-                histo.Show();
-                this.Close();
+                histo.ShowDialog();
+             
             }
         }
     }

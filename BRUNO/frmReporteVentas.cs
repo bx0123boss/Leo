@@ -65,9 +65,19 @@ namespace JaegerSoft
             else
             {
                 query = $@"
-                    SELECT * 
-                    FROM Ventas 
-                    WHERE Fecha >= #{fechaInicio}# AND Fecha <= #{fechaFin}#";
+                    SELECT 
+                V.Id, 
+                V.Monto, 
+                V.Fecha, 
+                V.Folio, 
+                V.Estatus, 
+                V.Descuento, 
+                V.Pago AS [Tipo Pago],
+                (SELECT IIF(SUM(Monto) IS NULL, 0, SUM(Monto)) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago = '01=EFECTIVO') AS Efectivo,
+                (SELECT IIF(SUM(Monto) IS NULL, 0, SUM(Monto)) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago LIKE '*TARJETA*') AS Tarjeta,
+                (SELECT IIF(SUM(Monto) IS NULL, 0, SUM(Monto)) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago = '03=TRANFERENCIA ELECTRONICA DE FONDOS') AS Transferencia
+            FROM Ventas V 
+            WHERE Fecha >= #{fechaInicio}# AND Fecha <= #{fechaFin}#";
 
                 if (!string.IsNullOrEmpty(filtro))
                 {

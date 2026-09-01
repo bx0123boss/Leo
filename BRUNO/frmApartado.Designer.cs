@@ -499,6 +499,7 @@
             this.Text = "Apartados";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.frmApartado_Load);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmApartado_KeyDown);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();

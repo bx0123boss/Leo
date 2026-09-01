@@ -26,7 +26,7 @@ namespace JaegerSoft
         {
             conectar.Open();
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Abonos where Folio='" + lblFolio.Text + "';", conectar);
+            da = new OleDbDataAdapter("select Id,Abono,idCliente,Fecha,Folio from Abonos where Folio='" + lblFolio.Text + "';", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;

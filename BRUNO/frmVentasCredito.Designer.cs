@@ -20,6 +20,8 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmVentasCredito));
             this.panel1 = new System.Windows.Forms.Panel();
+            this.label10 = new System.Windows.Forms.Label();
+            this.lblDatosCotizacion = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.cmbPago = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
@@ -54,8 +56,6 @@
             this.label2 = new System.Windows.Forms.Label();
             this.lblAdeudo = new System.Windows.Forms.Label();
             this.button5 = new System.Windows.Forms.Button();
-            this.label10 = new System.Windows.Forms.Label();
-            this.lblDatosCotizacion = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
@@ -100,6 +100,30 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(1155, 850);
             this.panel1.TabIndex = 19;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.BackColor = System.Drawing.Color.Transparent;
+            this.label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label10.ForeColor = System.Drawing.Color.Yellow;
+            this.label10.Location = new System.Drawing.Point(6, 183);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(0, 18);
+            this.label10.TabIndex = 42;
+            // 
+            // lblDatosCotizacion
+            // 
+            this.lblDatosCotizacion.AutoSize = true;
+            this.lblDatosCotizacion.BackColor = System.Drawing.Color.Transparent;
+            this.lblDatosCotizacion.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblDatosCotizacion.ForeColor = System.Drawing.Color.Yellow;
+            this.lblDatosCotizacion.Location = new System.Drawing.Point(6, 160);
+            this.lblDatosCotizacion.Name = "lblDatosCotizacion";
+            this.lblDatosCotizacion.Size = new System.Drawing.Size(106, 18);
+            this.lblDatosCotizacion.TabIndex = 41;
+            this.lblDatosCotizacion.Text = "Sin datos extra";
+            this.lblDatosCotizacion.Click += new System.EventHandler(this.lblDatosCotizacion_Click);
             // 
             // label9
             // 
@@ -533,30 +557,6 @@
             this.button5.Visible = false;
             this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.BackColor = System.Drawing.Color.Transparent;
-            this.label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label10.ForeColor = System.Drawing.Color.Yellow;
-            this.label10.Location = new System.Drawing.Point(6, 183);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(0, 18);
-            this.label10.TabIndex = 42;
-            // 
-            // lblDatosCotizacion
-            // 
-            this.lblDatosCotizacion.AutoSize = true;
-            this.lblDatosCotizacion.BackColor = System.Drawing.Color.Transparent;
-            this.lblDatosCotizacion.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblDatosCotizacion.ForeColor = System.Drawing.Color.Yellow;
-            this.lblDatosCotizacion.Location = new System.Drawing.Point(6, 160);
-            this.lblDatosCotizacion.Name = "lblDatosCotizacion";
-            this.lblDatosCotizacion.Size = new System.Drawing.Size(106, 18);
-            this.lblDatosCotizacion.TabIndex = 41;
-            this.lblDatosCotizacion.Text = "Sin datos extra";
-            this.lblDatosCotizacion.Click += new System.EventHandler(this.lblDatosCotizacion_Click);
-            // 
             // frmVentasCredito
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
@@ -570,6 +570,7 @@
             this.Text = "Ventas Credito";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.frmVentasCredito_Load);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmVentasCredito_KeyDown);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();

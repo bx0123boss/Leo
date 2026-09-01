@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -145,8 +145,20 @@ namespace JaegerSoft
                     if (reader.Read())
                     {
                         existenciasTotales = Convert.ToDouble(dataGridView1[3, i].Value.ToString()) + Convert.ToDouble(Convert.ToString(reader[4].ToString()));
-                        cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
+                        
+                        bool manejaInventario = true;
+                        if (reader["ManejaInventario"] != DBNull.Value)
+                        {
+                            manejaInventario = Convert.ToBoolean(reader["ManejaInventario"]);
+                        }
+
+                        cmd = new OleDbCommand("UPDATE VentasCredito set MontoTotal='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
                         cmd.ExecuteNonQuery();
+                        if (manejaInventario)
+                        {
+                            cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[2, i].Value.ToString() + "' AND ManejaInventario = True;", conectar);
+                            cmd.ExecuteNonQuery();
+                        }
                     }
                 }
 

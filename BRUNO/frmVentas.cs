@@ -492,8 +492,9 @@ namespace JaegerSoft
                             });
 
                             string categoria = "";
+                            bool manejaInventario = true;
 
-                            using (var cmd = new OleDbCommand("select Existencia, Categoria from Inventario where Id='" + idProd + "';", con, transaccion))
+                            using (var cmd = new OleDbCommand("select Existencia, Categoria, ManejaInventario from Inventario where Id='" + idProd + "';", con, transaccion))
                             {
                                 using (var reader = cmd.ExecuteReader())
                                 {
@@ -501,19 +502,26 @@ namespace JaegerSoft
                                     {
                                         exis = Convert.ToDouble(reader["Existencia"].ToString());
                                         categoria = reader["Categoria"].ToString();
+                                        if (reader["ManejaInventario"] != DBNull.Value)
+                                        {
+                                            manejaInventario = Convert.ToBoolean(reader["ManejaInventario"]);
+                                        }
                                     }
                                 }
                             }
 
                             existencia = exis - cantidad;
 
-                            using (var cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existencia + "', FechaUltimaVenta = NOW() Where Id='" + idProd + "';", con, transaccion))
+                            if (manejaInventario)
                             {
-                                cmd.ExecuteNonQuery();
-                            }
-                            using (var cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + idProd + "','SALIDA','VENTA DE ARTICULO FOLIO: " + lblFolio.Text + "'," + exis + ",'" + existencia + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", con, transaccion))
-                            {
-                                cmd.ExecuteNonQuery();
+                                using (var cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existencia + "', FechaUltimaVenta = NOW() Where Id='" + idProd + "' AND ManejaInventario = True;", con, transaccion))
+                                {
+                                    cmd.ExecuteNonQuery();
+                                }
+                                using (var cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + idProd + "','SALIDA','VENTA DE ARTICULO FOLIO: " + lblFolio.Text + "'," + exis + ",'" + existencia + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", con, transaccion))
+                                {
+                                    cmd.ExecuteNonQuery();
+                                }
                             }
                             double utilidad = (precioVenta * cantidad) - (precioCompra * cantidad);
                             double descuentoProporcional = totalUtilidad > 0 ? (utilidad / totalUtilidad) * descuento : 0;
@@ -576,6 +584,15 @@ namespace JaegerSoft
                         {
                             if (pago.Value > 0)
                             {
+                                // Guardar el detalle del pago en la tabla VentasPagos
+                                string queryDetallePago = "INSERT INTO VentasPagos (FolioVenta, MetodoPago, Monto) VALUES (@Folio, @Metodo, @Monto)";
+                                using (var cmdPago = new OleDbCommand(queryDetallePago, con, transaccion))
+                                {
+                                    cmdPago.Parameters.AddWithValue("@Folio", lblFolio.Text);
+                                    cmdPago.Parameters.AddWithValue("@Metodo", pago.Key);
+                                    cmdPago.Parameters.AddWithValue("@Monto", pago.Value);
+                                    cmdPago.ExecuteNonQuery();
+                                }
                                 using (var cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Venta a contado folio " + lblFolio.Text + "','" + pago.Value + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + pago.Key + "');", con, transaccion))
                                 {
                                     cmd.ExecuteNonQuery();

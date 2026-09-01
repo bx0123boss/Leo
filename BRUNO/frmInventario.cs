@@ -857,11 +857,6 @@ namespace JaegerSoft
             }
         }
 
-        private void button16_Click(object sender, EventArgs e)
-        {
-            frmCaptura cap = new frmCaptura();
-            cap.ShowDialog();
-        }
 
         private void button17_Click(object sender, EventArgs e)
         {
@@ -1258,6 +1253,128 @@ namespace JaegerSoft
             });
 
             ActualizarKpiValues();
+        }
+        private void button16_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show(
+                "¿Deseas generar y abrir la plantilla de Excel para la Captura Inicial?",
+                "Plantilla de Captura Inicial",
+                MessageBoxButtons.YesNoCancel,
+                MessageBoxIcon.Question);
+
+            if (result == DialogResult.Cancel)
+            {
+                return;
+            }
+
+            if (result == DialogResult.Yes)
+            {
+                GenerarPlantillaExcelCaptura();
+            }
+
+            // Abrir la ventana de Captura Inicial
+            frmCapturaInicial cap = new frmCapturaInicial();
+            cap.ShowDialog();
+            this.Close();
+        }
+
+        private void GenerarPlantillaExcelCaptura()
+        {
+            try
+            {
+                this.Cursor = Cursors.WaitCursor;
+
+                var excelApp = new Microsoft.Office.Interop.Excel.Application();
+                Workbook wb = excelApp.Workbooks.Add(XlSheetType.xlWorksheet);
+                Worksheet ws = (Worksheet)wb.ActiveSheet;
+
+                ws.Name = "Hoja1"; // Nombre exacto para el SELECT de OleDb
+
+                // 1. Encabezados
+                string[] encabezados = new string[]
+                {
+            "Id",
+            "Nombre",
+            "PrecioVentaMayoreo",
+            "PrecioVenta",
+            "Existencia",
+            "Limite",
+            "Categoria",
+            "PrecioCompra",
+            "IVA",
+            "Unidad",
+            "ManejaInventario"
+                };
+
+                for (int i = 0; i < encabezados.Length; i++)
+                {
+                    ws.Cells[1, i + 1] = encabezados[i];
+                }
+
+                // Estilo de encabezados
+                Range headerRange = ws.Range[ws.Cells[1, 1], ws.Cells[1, encabezados.Length]];
+                headerRange.Font.Bold = true;
+                headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.FromArgb(41, 128, 185));
+                headerRange.Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.White);
+
+                // 2. Formato de Texto en Columna 'Id' (A:A) para no perder ceros
+                Range idColumn = ws.Range["A:A"];
+                idColumn.NumberFormat = "@";
+
+                // 3. Fila de Registro de Ejemplo (Fila 2)
+                ws.Cells[2, 1] = "PROD001";                             // Id
+                ws.Cells[2, 2] = "PRODUCTO DE EJEMPLO";                  // Nombre
+                ws.Cells[2, 3] = 85.00;                                 // PrecioVentaMayoreo
+                ws.Cells[2, 4] = 100.00;                                // PrecioVenta
+                ws.Cells[2, 5] = 10;                                    // Existencia
+                ws.Cells[2, 6] = 2;                                     // Limite
+                ws.Cells[2, 7] = "GENERAL";                             // Categoria
+                ws.Cells[2, 8] = 60.00;                                 // PrecioCompra (Especial)
+                ws.Cells[2, 9] = true;                                  // IVA
+                ws.Cells[2, 10] = "PIEZA";                              // Unidad
+                ws.Cells[2, 11] = true;                                 // ManejaInventario
+
+                // 4. Validación de datos tipo Selector Booleano (TRUE/FALSE) para IVA (I) y ManejaInventario (K)
+                // Se aplica desde la fila 2 hasta la 500 para permitir agregar productos rápidamente
+                string rangoBooleano = "VERDADERO, FALSO"; // O "TRUE, FALSE" segun idioma local de Excel
+
+                Range rangoIVA = ws.Range["I2:I500"];
+                rangoIVA.Validation.Delete();
+                rangoIVA.Validation.Add(
+                    XlDVType.xlValidateList,
+                    XlDVAlertStyle.xlValidAlertStop,
+                    XlFormatConditionOperator.xlBetween,
+                    rangoBooleano,
+                    Type.Missing
+                );
+
+                Range rangoManejaInv = ws.Range["K2:K500"];
+                rangoManejaInv.Validation.Delete();
+                rangoManejaInv.Validation.Add(
+                    XlDVType.xlValidateList,
+                    XlDVAlertStyle.xlValidAlertStop,
+                    XlFormatConditionOperator.xlBetween,
+                    rangoBooleano,
+                    Type.Missing
+                );
+
+                // Formatos visuales adicionales
+                ws.Range["C2:D500"].NumberFormat = "$#,##0.00"; // Moneda
+                ws.Range["H2:H500"].NumberFormat = "$#,##0.00"; // Moneda
+                ws.Range["E2:F500"].NumberFormat = "0";          // Cantidades entero
+
+                ws.Columns.AutoFit();
+                excelApp.Visible = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ocurrió un error al generar la plantilla de Excel: " + ex.Message,
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
         }
     }
 }

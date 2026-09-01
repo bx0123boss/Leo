@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -148,10 +148,20 @@ namespace JaegerSoft
                 double existencias = Convert.ToDouble(dataGridView1[2, i].Value.ToString());
                 double mov = Convert.ToDouble(dataGridView1[3, i].Value.ToString());
                 double suma = Convert.ToDouble(dataGridView1[4, i].Value.ToString());
-                cmd = new OleDbCommand("UPDATE Inventario SET Existencia='" + suma + "' where Id='" + id + "';", conectar);
-                cmd.ExecuteNonQuery();
-                cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha,Precio) values('" + id + "','ENTRADA','EXISTENCIA POR: "+movimiento+", FOLIO: " + idInsertado + "'," + existencias + ",'" + suma + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','NA');", conectar);
-                cmd.ExecuteNonQuery();
+
+                bool manejaInventario = true;
+                cmd = new OleDbCommand("SELECT ManejaInventario FROM Inventario WHERE Id='" + id + "';", conectar);
+                object resM = cmd.ExecuteScalar();
+                if (resM != null && resM != DBNull.Value) manejaInventario = Convert.ToBoolean(resM);
+
+                if (manejaInventario)
+                {
+                    cmd = new OleDbCommand("UPDATE Inventario SET Existencia='" + suma + "' where Id='" + id + "' AND ManejaInventario = True;", conectar);
+                    cmd.ExecuteNonQuery();
+                    cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha,Precio) values('" + id + "','ENTRADA','EXISTENCIA POR: "+movimiento+", FOLIO: " + idInsertado + "'," + existencias + ",'" + suma + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','NA');", conectar);
+                    cmd.ExecuteNonQuery();
+                }
+
                 cmd = new OleDbCommand("INSERT INTO ComprasMovimientos(Folio,IdProducto,Nombre,ExistenciasAntiguas,Movimiento,ExistenciasActuales,Tipo,Fecha) VALUES ('" + idInsertado + "','" + id + "','" + nombre + "','" + existencias + "','" + mov + "','" + suma + "','" + movimiento + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
                 cmd.ExecuteNonQuery();
             }

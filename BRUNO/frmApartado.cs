@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.OleDb;
 using System.Data.SqlClient;
 using System.Drawing;
@@ -28,7 +29,7 @@ namespace JaegerSoft
         {
             InitializeComponent();
             AplicarEstilos();
-
+            this.KeyPreview = true;
             // Suscribimos los eventos Leave para recalcular si el usuario sale del TextBox con el tabulador o el ratón
             this.txtDescuento.Leave += new System.EventHandler(this.txtDescuento_Leave);
             this.txtAbono.Leave += new System.EventHandler(this.txtAbono_Leave);
@@ -496,6 +497,220 @@ namespace JaegerSoft
             }
         }
 
+        private void frmApartado_KeyDown(object sender, KeyEventArgs e)
+        {
+
+            if (e.KeyCode == Keys.F8)
+            {
+                AbrirTraspasoExpress();
+                e.Handled = true;
+            }
+        }
+
+        private void AbrirTraspasoExpress()
+        {
+            Form modalExpress = new Form()
+            {
+                Width = 450,
+                Height = 300,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                Text = "Traspaso Express a Mostrador (Atajo F8)",
+                StartPosition = FormStartPosition.CenterScreen,
+                BackColor = Color.FromArgb(25, 25, 25),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 9.75F),
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
+
+            // Controles
+            Label lblAlmacen = new Label() { Left = 20, Top = 25, Text = "Traer de:", Width = 70 };
+            ComboBox cmbAlmacen = new ComboBox() { Left = 95, Top = 22, Width = 310, DropDownStyle = ComboBoxStyle.DropDownList };
+
+            Label lblCodigo = new Label() { Left = 20, Top = 70, Text = "Código:", Width = 70 };
+            TextBox txtCodigo = new TextBox() { Left = 95, Top = 68, Width = 230 };
+            Button btnBuscar = new Button() { Left = 335, Top = 66, Width = 70, Text = "Buscar", FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(52, 152, 219), Cursor = Cursors.Hand };
+            btnBuscar.FlatAppearance.BorderSize = 0;
+
+            Label lblProd = new Label() { Left = 95, Top = 100, Text = "[ Ingrese un código o presione Buscar ]", Width = 310, ForeColor = Color.LightGray };
+
+            Label lblCant = new Label() { Left = 20, Top = 135, Text = "Cantidad:", Width = 70 };
+            TextBox txtCant = new TextBox() { Left = 95, Top = 132, Width = 100, Text = "1" };
+
+            Button btnAceptar = new Button() { Left = 200, Top = 200, Width = 100, Text = "Traspasar", FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(46, 204, 113), Cursor = Cursors.Hand };
+            btnAceptar.FlatAppearance.BorderSize = 0;
+
+            Button btnCancelar = new Button() { Left = 315, Top = 200, Width = 90, Text = "Cancelar", FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(231, 76, 60), Cursor = Cursors.Hand };
+            btnCancelar.FlatAppearance.BorderSize = 0;
+
+            // Cargar almacenes dinámicos
+            try
+            {
+                if (conectar.State != ConnectionState.Open) conectar.Open();
+                using (var cmdA = new OleDbCommand("SELECT Id, Nombre FROM Almacenes ORDER BY Nombre", conectar))
+                using (var dr = cmdA.ExecuteReader())
+                {
+                    DataTable dt = new DataTable();
+                    dt.Load(dr);
+                    cmbAlmacen.DisplayMember = "Nombre";
+                    cmbAlmacen.ValueMember = "Id";
+                    cmbAlmacen.DataSource = dt;
+                }
+            }
+            catch { }
+
+            // Lógica de búsqueda manual
+            btnBuscar.Click += (s, ev) => {
+                using (frmBuscarProductos buscar = new frmBuscarProductos())
+                {
+                    buscar.textBox1.Text = txtCodigo.Text;
+                    if (buscar.ShowDialog() == DialogResult.OK)
+                    {
+                        txtCodigo.Text = buscar.ID;
+                        lblProd.Text = buscar.producto;
+                    }
+                }
+            };
+
+            // Lógica KeyPress en txtCodigo (Enter)
+            txtCodigo.KeyDown += (s, ev) => {
+                if (ev.KeyCode == Keys.Enter)
+                {
+                    ev.SuppressKeyPress = true;
+                    if (string.IsNullOrWhiteSpace(txtCodigo.Text)) return;
+
+                    try
+                    {
+                        if (conectar.State != ConnectionState.Open) conectar.Open();
+                        // Comprobar existencia
+                        var cmdCheck = new OleDbCommand("select count(*) from Inventario where Id='" + txtCodigo.Text.Trim() + "';", conectar);
+                        int count = Convert.ToInt32(cmdCheck.ExecuteScalar());
+
+                        if (count == 1)
+                        {
+                            var cmdName = new OleDbCommand("select Nombre from Inventario where Id='" + txtCodigo.Text.Trim() + "';", conectar);
+                            lblProd.Text = Convert.ToString(cmdName.ExecuteScalar());
+                        }
+                        else
+                        {
+                            btnBuscar.PerformClick(); // Abre el frmBuscarProducto
+                        }
+                    }
+                    catch { }
+                }
+            };
+
+            // Lógica Traspasar
+            btnAceptar.Click += (s, ev) => {
+                if (cmbAlmacen.SelectedValue == null) return;
+                string cod = txtCodigo.Text.Trim();
+                double cant = 0;
+
+                if (string.IsNullOrEmpty(cod) || !double.TryParse(txtCant.Text, out cant) || cant <= 0)
+                {
+                    MessageBox.Show("Verifique que el código y la cantidad sean correctos.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                int idAlmacen = Convert.ToInt32(cmbAlmacen.SelectedValue);
+
+                try
+                {
+                    if (conectar.State != ConnectionState.Open) conectar.Open();
+
+                    // Validar Stock en el almacén origen
+                    var cmdStock = new OleDbCommand("SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = @org AND IdProducto = @id", conectar);
+                    cmdStock.Parameters.AddWithValue("@org", idAlmacen);
+                    cmdStock.Parameters.AddWithValue("@id", cod);
+
+                    object resStock = cmdStock.ExecuteScalar();
+                    double stockDisponible = resStock != null ? Convert.ToDouble(resStock) : 0;
+
+                    if (cant > stockDisponible)
+                    {
+                        MessageBox.Show($"Stock insuficiente en el almacén seleccionado. Solo hay {stockDisponible} unidades disponibles.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    // Proceder con la transacción
+                    using (var trans = conectar.BeginTransaction())
+                    {
+                        try
+                        {
+                            // 1. Descontar del almacén
+                            var cmdSub = new OleDbCommand("UPDATE InventarioAlmacenes SET Existencia = Existencia - @qty WHERE IdAlmacen = @org AND IdProducto = @id", conectar, trans);
+                            cmdSub.Parameters.AddWithValue("@qty", cant);
+                            cmdSub.Parameters.AddWithValue("@org", idAlmacen);
+                            cmdSub.Parameters.AddWithValue("@id", cod);
+                            cmdSub.ExecuteNonQuery();
+
+                            // 2. Sumar al mostrador (Inventario)
+                            var cmdAdd = new OleDbCommand("UPDATE Inventario SET Existencia = Existencia + @qty WHERE Id = @id", conectar, trans);
+                            cmdAdd.Parameters.AddWithValue("@qty", cant);
+                            cmdAdd.Parameters.AddWithValue("@id", cod);
+                            cmdAdd.ExecuteNonQuery();
+
+                            // 3. Registrar Movimiento
+                            string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                            var cmdLog = new OleDbCommand("INSERT INTO MovimientosAlmacenes (IdOrigen, IdDestino, IdProducto, Cantidad, Fecha, Usuario) VALUES (@org, 0, @id, @qty, @fecha, @usu)", conectar, trans);
+                            cmdLog.Parameters.AddWithValue("@org", idAlmacen);
+                            cmdLog.Parameters.AddWithValue("@id", cod);
+                            cmdLog.Parameters.AddWithValue("@qty", cant);
+                            cmdLog.Parameters.AddWithValue("@fecha", fechaActual);
+                            cmdLog.Parameters.AddWithValue("@usu", string.IsNullOrEmpty(Sesion.NombreUsuario) ? "Sistema" : Sesion.NombreUsuario);
+                            cmdLog.ExecuteNonQuery();
+
+                            // 4. Kardex
+                            string kardexQuery = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) VALUES (@id, 'TRASPASO_ENTRADA', @desc, 0, 0, @fecha, 'NA')";
+                            using (var cmdK = new OleDbCommand(kardexQuery, conectar, trans))
+                            {
+                                cmdK.Parameters.AddWithValue("@id", cod);
+                                cmdK.Parameters.AddWithValue("@desc", $"TRASPASO EXPRESS DESDE ALMACÉN: {cmbAlmacen.Text}");
+                                cmdK.Parameters.AddWithValue("@fecha", fechaActual);
+                                cmdK.ExecuteNonQuery(); // (Omitimos antes/después por velocidad en modal, o lo agregas si es estricto)
+                            }
+
+                            trans.Commit();
+                            MessageBox.Show("Traspaso completado. El stock ya está en mostrador.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                            // Cerrar y autollenar el código en la pantalla de ventas
+                            modalExpress.DialogResult = DialogResult.OK;
+                            modalExpress.Close();
+
+                            // Simular que el cajero lo escaneó para que lo cobre de inmediato
+                            this.textBox1.Text = cod;
+                            this.textBox1.Focus();
+                            // Ejecutamos el evento Enter mágicamente
+                            textBox1_KeyPress(this.textBox1, new KeyPressEventArgs((char)Keys.Enter));
+                        }
+                        catch (Exception ex)
+                        {
+                            trans.Rollback();
+                            MessageBox.Show("Error durante el traspaso: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error: " + ex.Message);
+                }
+            };
+
+            btnCancelar.Click += (s, ev) => { modalExpress.DialogResult = DialogResult.Cancel; modalExpress.Close(); };
+
+            modalExpress.Controls.Add(lblAlmacen);
+            modalExpress.Controls.Add(cmbAlmacen);
+            modalExpress.Controls.Add(lblCodigo);
+            modalExpress.Controls.Add(txtCodigo);
+            modalExpress.Controls.Add(btnBuscar);
+            modalExpress.Controls.Add(lblProd);
+            modalExpress.Controls.Add(lblCant);
+            modalExpress.Controls.Add(txtCant);
+            modalExpress.Controls.Add(btnAceptar);
+            modalExpress.Controls.Add(btnCancelar);
+
+            modalExpress.ShowDialog();
+        }
         private List<Dictionary<string, string>> ObtenerHistorialDatosCliente(string idClient)
         {
             var historial = new List<Dictionary<string, string>>();

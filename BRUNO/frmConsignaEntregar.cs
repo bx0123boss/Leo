@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Data.OleDb;
 using System.Windows.Forms;
@@ -63,14 +63,26 @@ namespace JaegerSoft
                 {
                     try
                     {
+                        bool manejaInventario = true;
+                        string queryManejo = "SELECT ManejaInventario FROM Inventario WHERE Id = ?";
+                        using (OleDbCommand cmdM = new OleDbCommand(queryManejo, con, transaccion))
+                        {
+                            cmdM.Parameters.AddWithValue("?", _idProductoSeleccionado);
+                            object resM = cmdM.ExecuteScalar();
+                            if (resM != null && resM != DBNull.Value) manejaInventario = Convert.ToBoolean(resM);
+                        }
+
                         // A) RESTAR DEL INVENTARIO GENERAL 
                         // (Permitimos que quede en negativo, por eso no validamos stock previo)
-                        string queryInventario = "UPDATE Inventario SET Existencia = Existencia - ? WHERE Id = ?";
-                        using (OleDbCommand cmd = new OleDbCommand(queryInventario, con, transaccion))
+                        if (manejaInventario)
                         {
-                            cmd.Parameters.AddWithValue("?", cantidad);
-                            cmd.Parameters.AddWithValue("?", _idProductoSeleccionado);
-                            cmd.ExecuteNonQuery();
+                            string queryInventario = "UPDATE Inventario SET Existencia = Existencia - ? WHERE Id = ? AND ManejaInventario = True";
+                            using (OleDbCommand cmd = new OleDbCommand(queryInventario, con, transaccion))
+                            {
+                                cmd.Parameters.AddWithValue("?", cantidad);
+                                cmd.Parameters.AddWithValue("?", _idProductoSeleccionado);
+                                cmd.ExecuteNonQuery();
+                            }
                         }
 
                         // B) ACTUALIZAR O INSERTAR EN EL BALANCE DE LA CONSIGNA (UPSERT Lógico)
@@ -121,29 +133,32 @@ namespace JaegerSoft
                             cmdKardex.Parameters.AddWithValue("?", precioCongelado);
                             cmdKardex.ExecuteNonQuery();
                         }
-                        int existenciaAntes = 0;
-                        string queryExistencia = "SELECT Existencia FROM Inventario WHERE Id = ?";
-                        using (OleDbCommand cmdEx = new OleDbCommand(queryExistencia, con, transaccion))
+                        if (manejaInventario)
                         {
-                            cmdEx.Parameters.AddWithValue("?", _idProductoSeleccionado);
-                            object res = cmdEx.ExecuteScalar();
-                            if (res != null && res != DBNull.Value) existenciaAntes = Convert.ToInt32(res);
-                        }
+                            int existenciaAntes = 0;
+                            string queryExistencia = "SELECT Existencia FROM Inventario WHERE Id = ?";
+                            using (OleDbCommand cmdEx = new OleDbCommand(queryExistencia, con, transaccion))
+                            {
+                                cmdEx.Parameters.AddWithValue("?", _idProductoSeleccionado);
+                                object res = cmdEx.ExecuteScalar();
+                                if (res != null && res != DBNull.Value) existenciaAntes = Convert.ToInt32(res);
+                            }
 
-                        int existenciaDespues = existenciaAntes - cantidad;
+                            int existenciaDespues = existenciaAntes - cantidad;
 
-                        string fechaKardex = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
-                        string descripcionKardex = "SALIDA A CONSIGNA. CLIENTE: " + _nombreCliente;
-                        string queryKardexGen = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) VALUES (?, 'SALIDA', ?, ?, ?, ?)";
-                        using (OleDbCommand cmdK = new OleDbCommand(queryKardexGen, con, transaccion))
-                        {
-                            cmdK.Parameters.AddWithValue("?", _idProductoSeleccionado);
-                            cmdK.Parameters.AddWithValue("?", descripcionKardex);
-                            cmdK.Parameters.AddWithValue("?", existenciaAntes);
-                            cmdK.Parameters.AddWithValue("?", existenciaDespues);
-                            cmdK.Parameters.AddWithValue("?", fechaKardex);
-                            cmdK.ExecuteNonQuery();
+                            string fechaKardex = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                            string descripcionKardex = "SALIDA A CONSIGNA. CLIENTE: " + _nombreCliente;
+                            string queryKardexGen = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) VALUES (?, 'SALIDA', ?, ?, ?, ?)";
+                            using (OleDbCommand cmdK = new OleDbCommand(queryKardexGen, con, transaccion))
+                            {
+                                cmdK.Parameters.AddWithValue("?", _idProductoSeleccionado);
+                                cmdK.Parameters.AddWithValue("?", descripcionKardex);
+                                cmdK.Parameters.AddWithValue("?", existenciaAntes);
+                                cmdK.Parameters.AddWithValue("?", existenciaDespues);
+                                cmdK.Parameters.AddWithValue("?", fechaKardex);
+                                cmdK.ExecuteNonQuery();
 
+                            }
                         }
                             transaccion.Commit();
 

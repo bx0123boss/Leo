@@ -227,7 +227,7 @@
             this.Controls.Add(this.dataGridView1);
             this.Name = "frmHistorialVentas";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Historial Ventas";
+            this.Text = "Historial Ventas A Crédito";
             this.Load += new System.EventHandler(this.frmHistorialVentas_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);

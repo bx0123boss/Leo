@@ -366,8 +366,9 @@ namespace JaegerSoft
                             bool productoExiste = false;
                             double invActual = 0;
                             double precioDB = 0;
+                            bool manejaInventario = true;
 
-                            string queryCheck = "SELECT Existencia, Especial FROM Inventario WHERE Id = @Id";
+                            string queryCheck = "SELECT Existencia, Especial, ManejaInventario FROM Inventario WHERE Id = @Id";
                             using (OleDbCommand cmdCheck = new OleDbCommand(queryCheck, conn, transaction))
                             {
                                 cmdCheck.Parameters.AddWithValue("@Id", idProd);
@@ -378,6 +379,7 @@ namespace JaegerSoft
                                         productoExiste = true;
                                         invActual = Convert.ToDouble(reader[0]);
                                         precioDB = Convert.ToDouble(reader[1]);
+                                        if (reader[2] != DBNull.Value) manejaInventario = Convert.ToBoolean(reader[2]);
                                     }
                                 }
                             }
@@ -394,33 +396,47 @@ namespace JaegerSoft
                                     // Actualizar Inventario (Costo Real actualiza Especial si es mayor)
                                     double nuevoEspecial = costoReal > precioDB ? costoReal : precioDB;
 
-                                    string updInv = "UPDATE Inventario SET Especial = @Esp, Existencia = @Exis, PrecioVenta = @PVenta, FechaUltimaCompra = NOW() WHERE Id = @Id";
-                                    using (OleDbCommand cmdUpd = new OleDbCommand(updInv, conn, transaction))
+                                    if (manejaInventario)
                                     {
-                                        cmdUpd.Parameters.AddWithValue("@Esp", nuevoEspecial);
-                                        cmdUpd.Parameters.AddWithValue("@Exis", nuevas);
-                                        cmdUpd.Parameters.AddWithValue("@PVenta", precioVenta);
-                                        cmdUpd.Parameters.AddWithValue("@Id", idProd);
-                                        cmdUpd.ExecuteNonQuery();
-                                    }
+                                        string updInv = "UPDATE Inventario SET Especial = @Esp, Existencia = @Exis, PrecioVenta = @PVenta, FechaUltimaCompra = NOW() WHERE Id = @Id AND ManejaInventario = True";
+                                        using (OleDbCommand cmdUpd = new OleDbCommand(updInv, conn, transaction))
+                                        {
+                                            cmdUpd.Parameters.AddWithValue("@Esp", nuevoEspecial);
+                                            cmdUpd.Parameters.AddWithValue("@Exis", nuevas);
+                                            cmdUpd.Parameters.AddWithValue("@PVenta", precioVenta);
+                                            cmdUpd.Parameters.AddWithValue("@Id", idProd);
+                                            cmdUpd.ExecuteNonQuery();
+                                        }
 
-                                    // Kardex de entrada (Producto existente)
-                                    string insKardex1 = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) VALUES (@Id, 'ENTRADA', @Desc, @EA, @ED, @Fech, @Pre)";
-                                    using (OleDbCommand cmdKardex = new OleDbCommand(insKardex1, conn, transaction))
+                                        // Kardex de entrada (Producto existente)
+                                        string insKardex1 = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) VALUES (@Id, 'ENTRADA', @Desc, @EA, @ED, @Fech, @Pre)";
+                                        using (OleDbCommand cmdKardex = new OleDbCommand(insKardex1, conn, transaction))
+                                        {
+                                            cmdKardex.Parameters.AddWithValue("@Id", idProd);
+                                            cmdKardex.Parameters.AddWithValue("@Desc", "COMPRA DE ARTICULO FOLIO: " + txtFolio.Text);
+                                            cmdKardex.Parameters.AddWithValue("@EA", invActual);
+                                            cmdKardex.Parameters.AddWithValue("@ED", nuevas);
+                                            cmdKardex.Parameters.AddWithValue("@Fech", fechaActual);
+                                            cmdKardex.Parameters.AddWithValue("@Pre", precioVenta);
+                                            cmdKardex.ExecuteNonQuery();
+                                        }
+                                    }
+                                    else
                                     {
-                                        cmdKardex.Parameters.AddWithValue("@Id", idProd);
-                                        cmdKardex.Parameters.AddWithValue("@Desc", "COMPRA DE ARTICULO FOLIO: " + txtFolio.Text);
-                                        cmdKardex.Parameters.AddWithValue("@EA", invActual);
-                                        cmdKardex.Parameters.AddWithValue("@ED", nuevas);
-                                        cmdKardex.Parameters.AddWithValue("@Fech", fechaActual);
-                                        cmdKardex.Parameters.AddWithValue("@Pre", precioVenta);
-                                        cmdKardex.ExecuteNonQuery();
+                                        string updInv = "UPDATE Inventario SET Especial = @Esp, PrecioVenta = @PVenta, FechaUltimaCompra = NOW() WHERE Id = @Id";
+                                        using (OleDbCommand cmdUpd = new OleDbCommand(updInv, conn, transaction))
+                                        {
+                                            cmdUpd.Parameters.AddWithValue("@Esp", nuevoEspecial);
+                                            cmdUpd.Parameters.AddWithValue("@PVenta", precioVenta);
+                                            cmdUpd.Parameters.AddWithValue("@Id", idProd);
+                                            cmdUpd.ExecuteNonQuery();
+                                        }
                                     }
                                 }
                                 else
                                 {
                                     // Insertar nuevo en inventario
-                                    string insInv = "INSERT INTO Inventario (Id, Nombre, IVA, Especial, Existencia, Unidad, Activo, FechaUltimaCompra, PrecioVenta) VALUES (@Id, @Nom, @Iva, @CReal, @Exis, '0', Yes, NOW(), @PVenta)";
+                                    string insInv = "INSERT INTO Inventario (Id, Nombre, IVA, Especial, Existencia, Unidad, Activo, FechaUltimaCompra, PrecioVenta, ManejaInventario) VALUES (@Id, @Nom, @Iva, @CReal, @Exis, '0', Yes, NOW(), @PVenta, True)";
                                     using (OleDbCommand cmdIns = new OleDbCommand(insInv, conn, transaction))
                                     {
                                         cmdIns.Parameters.AddWithValue("@Id", idProd);
@@ -522,30 +538,36 @@ namespace JaegerSoft
                                 // Kardex de entrada en Almacén Dinámico
                                 if (productoExiste)
                                 {
-                                    string insKardex1 = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) VALUES (@Id, 'ENTRADA', @Desc, @EA, @ED, @Fech, @Pre)";
-                                    using (OleDbCommand cmdKardex = new OleDbCommand(insKardex1, conn, transaction))
+                                    if (manejaInventario)
                                     {
-                                        cmdKardex.Parameters.AddWithValue("@Id", idProd);
-                                        cmdKardex.Parameters.AddWithValue("@Desc", "COMPRA DE ARTICULO FOLIO: " + txtFolio.Text + " (ALMACEN: " + nombreAlmacenDestino + ")");
-                                        cmdKardex.Parameters.AddWithValue("@EA", invAlmacenActual);
-                                        cmdKardex.Parameters.AddWithValue("@ED", nuevasAlmacen);
-                                        cmdKardex.Parameters.AddWithValue("@Fech", fechaActual);
-                                        cmdKardex.Parameters.AddWithValue("@Pre", precioVenta);
-                                        cmdKardex.ExecuteNonQuery();
+                                        string insKardex1 = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) VALUES (@Id, 'ENTRADA', @Desc, @EA, @ED, @Fech, @Pre)";
+                                        using (OleDbCommand cmdKardex = new OleDbCommand(insKardex1, conn, transaction))
+                                        {
+                                            cmdKardex.Parameters.AddWithValue("@Id", idProd);
+                                            cmdKardex.Parameters.AddWithValue("@Desc", "COMPRA DE ARTICULO FOLIO: " + txtFolio.Text + " (ALMACEN: " + nombreAlmacenDestino + ")");
+                                            cmdKardex.Parameters.AddWithValue("@EA", invAlmacenActual);
+                                            cmdKardex.Parameters.AddWithValue("@ED", nuevasAlmacen);
+                                            cmdKardex.Parameters.AddWithValue("@Fech", fechaActual);
+                                            cmdKardex.Parameters.AddWithValue("@Pre", precioVenta);
+                                            cmdKardex.ExecuteNonQuery();
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    string insKardex2 = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, idProveedor, Proveedor) VALUES (@Id, 'ENTRADA', @Desc, 0, @ED, @Fech, @idProv, @NomProv)";
-                                    using (OleDbCommand cmdKardex = new OleDbCommand(insKardex2, conn, transaction))
+                                    if (manejaInventario)
                                     {
-                                        cmdKardex.Parameters.AddWithValue("@Id", idProd);
-                                        cmdKardex.Parameters.AddWithValue("@Desc", "COMPRA DE ARTICULO FOLIO: " + txtFolio.Text + " (ALMACEN: " + nombreAlmacenDestino + ")");
-                                        cmdKardex.Parameters.AddWithValue("@ED", cant);
-                                        cmdKardex.Parameters.AddWithValue("@Fech", fechaActual);
-                                        cmdKardex.Parameters.AddWithValue("@idProv", idProv);
-                                        cmdKardex.Parameters.AddWithValue("@NomProv", nombreProv);
-                                        cmdKardex.ExecuteNonQuery();
+                                        string insKardex2 = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, idProveedor, Proveedor) VALUES (@Id, 'ENTRADA', @Desc, 0, @ED, @Fech, @idProv, @NomProv)";
+                                        using (OleDbCommand cmdKardex = new OleDbCommand(insKardex2, conn, transaction))
+                                        {
+                                            cmdKardex.Parameters.AddWithValue("@Id", idProd);
+                                            cmdKardex.Parameters.AddWithValue("@Desc", "COMPRA DE ARTICULO FOLIO: " + txtFolio.Text + " (ALMACEN: " + nombreAlmacenDestino + ")");
+                                            cmdKardex.Parameters.AddWithValue("@ED", cant);
+                                            cmdKardex.Parameters.AddWithValue("@Fech", fechaActual);
+                                            cmdKardex.Parameters.AddWithValue("@idProv", idProv);
+                                            cmdKardex.Parameters.AddWithValue("@NomProv", nombreProv);
+                                            cmdKardex.ExecuteNonQuery();
+                                        }
                                     }
                                 }
                             }

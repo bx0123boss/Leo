@@ -1,4 +1,4 @@
-using PuntoVentaWeb.Data;
+ï»¿using PuntoVentaWeb.Data;
 using PuntoVentaWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,7 +7,7 @@ builder.WebHost.ConfigureKestrel(opciones =>
     opciones.ListenAnyIP(5000); // Escucha HTTP normal en toda la red
     opciones.ListenAnyIP(5001, opcionesEscucha =>
     {
-        // Escucha HTTPS y le decimos exactamente dónde está el certificado
+        // Escucha HTTPS y le decimos exactamente dÃ³nde estÃ¡ el certificado
         opcionesEscucha.UseHttps("certificado_pv.pfx", "MiClave123");
     });
 });
@@ -15,9 +15,12 @@ builder.WebHost.ConfigureKestrel(opciones =>
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<PuntoVentaWeb.Services.CotizacionService>();
+builder.Services.AddScoped<PuntoVentaWeb.Services.VentaService>();
+builder.Services.AddScoped<PuntoVentaWeb.Services.ImpresionPosService>();
 builder.Services.AddScoped<PuntoVentaWeb.Services.EmailService>();
 builder.Services.AddScoped<PuntoVentaWeb.Services.ClienteService>();
 builder.Services.AddScoped<PuntoVentaWeb.Services.ConfiguracionService>();
+builder.Services.AddHttpClient<WhatsAppService>();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddScoped(sp => new HttpClient());
 var app = builder.Build();
@@ -39,3 +42,4 @@ app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
 app.Run();
+

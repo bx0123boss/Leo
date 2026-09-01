@@ -44,7 +44,7 @@ namespace JaegerSoft
             this.button14 = new System.Windows.Forms.Button();
             this.button6 = new System.Windows.Forms.Button();
             this.button18 = new System.Windows.Forms.Button();
-            this.button16 = new System.Windows.Forms.Button();
+            this.button16 = new System.Windows.Forms.Button(); // Botón Carga Inicial
             this.button17 = new System.Windows.Forms.Button();
             this.button15 = new System.Windows.Forms.Button();
             this.button19 = new System.Windows.Forms.Button();
@@ -58,7 +58,7 @@ namespace JaegerSoft
             this.panelHeader = new System.Windows.Forms.Panel();
             this.panelFiltros = new System.Windows.Forms.TableLayoutPanel();
 
-            // KPI container → FlowLayoutPanel para que las tarjetas fluyan
+            // KPI container
             this.panelKpiContainer = new System.Windows.Forms.FlowLayoutPanel();
 
             // Tarjetas KPI
@@ -90,7 +90,7 @@ namespace JaegerSoft
             this.lblKpiCapitalInmovilizadoTitulo = new System.Windows.Forms.Label();
             this.lblKpiCapitalInmovilizado = new System.Windows.Forms.Label();
 
-            // Panel analítico → Panel estándar con contenedor para scroll
+            // Panel analítico
             this.panelAnaliticoWrapper = new System.Windows.Forms.Panel();
             this.panelAnalitico = new System.Windows.Forms.Panel();
             this.lblFinancieroTitulo = new System.Windows.Forms.Label();
@@ -134,9 +134,9 @@ namespace JaegerSoft
             this.dataGridView2.AllowUserToDeleteRows = false;
             this.dataGridView2.AllowUserToOrderColumns = true;
             this.dataGridView2.Anchor = System.Windows.Forms.AnchorStyles.Top
-                                     | System.Windows.Forms.AnchorStyles.Bottom
-                                     | System.Windows.Forms.AnchorStyles.Left
-                                     | System.Windows.Forms.AnchorStyles.Right;
+                                      | System.Windows.Forms.AnchorStyles.Bottom
+                                      | System.Windows.Forms.AnchorStyles.Left
+                                      | System.Windows.Forms.AnchorStyles.Right;
             this.dataGridView2.BackgroundColor = System.Drawing.Color.FromArgb(20, 20, 20);
             this.dataGridView2.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dataGridView2.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -161,7 +161,7 @@ namespace JaegerSoft
             this.dataGridView2.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView2_CellFormatting);
 
             // ═══════════════════════════════════════════════════════════════
-            // PANEL HEADER (toda la barra superior)
+            // PANEL HEADER
             // ═══════════════════════════════════════════════════════════════
             this.panelHeader.Anchor = System.Windows.Forms.AnchorStyles.Top
                                        | System.Windows.Forms.AnchorStyles.Left
@@ -175,12 +175,10 @@ namespace JaegerSoft
             this.panelHeader.Size = new System.Drawing.Size(1530, 200);
             this.panelHeader.TabIndex = 0;
 
-            // ───────────────────────────────────────────────────────────────
-            // panelFiltros  (TableLayoutPanel — lado izquierdo fijo ~510 px)
-            // ───────────────────────────────────────────────────────────────
+            // panelFiltros
             this.panelFiltros.Anchor = System.Windows.Forms.AnchorStyles.Top
-                                          | System.Windows.Forms.AnchorStyles.Bottom
-                                          | System.Windows.Forms.AnchorStyles.Left;
+                                           | System.Windows.Forms.AnchorStyles.Bottom
+                                           | System.Windows.Forms.AnchorStyles.Left;
             this.panelFiltros.BackColor = System.Drawing.Color.Transparent;
             this.panelFiltros.ColumnCount = 2;
             this.panelFiltros.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 165F));
@@ -196,7 +194,6 @@ namespace JaegerSoft
             this.panelFiltros.Size = new System.Drawing.Size(400, 200);
             this.panelFiltros.TabIndex = 0;
 
-            // label3 "Buscar por Nombre:"
             this.label3.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
@@ -205,7 +202,6 @@ namespace JaegerSoft
             this.label3.Text = "Buscar por Nombre:";
             this.panelFiltros.Controls.Add(this.label3, 0, 0);
 
-            // textBox1
             this.textBox1.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right | System.Windows.Forms.AnchorStyles.Top;
             this.textBox1.BackColor = System.Drawing.Color.FromArgb(50, 50, 50);
             this.textBox1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -217,7 +213,6 @@ namespace JaegerSoft
             this.textBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox1_KeyPress);
             this.panelFiltros.Controls.Add(this.textBox1, 1, 0);
 
-            // label14 "Buscar por ID:"
             this.label14.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             this.label14.AutoSize = true;
             this.label14.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
@@ -226,7 +221,6 @@ namespace JaegerSoft
             this.label14.Text = "Buscar por ID:";
             this.panelFiltros.Controls.Add(this.label14, 0, 1);
 
-            // textBox2
             this.textBox2.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right | System.Windows.Forms.AnchorStyles.Top;
             this.textBox2.BackColor = System.Drawing.Color.FromArgb(50, 50, 50);
             this.textBox2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -238,7 +232,6 @@ namespace JaegerSoft
             this.textBox2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox2_KeyPress);
             this.panelFiltros.Controls.Add(this.textBox2, 1, 1);
 
-            // label5 "Categorías:"
             this.label5.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
@@ -247,7 +240,6 @@ namespace JaegerSoft
             this.label5.Text = "Categorías:";
             this.panelFiltros.Controls.Add(this.label5, 0, 2);
 
-            // comboBox2
             this.comboBox2.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right | System.Windows.Forms.AnchorStyles.Top;
             this.comboBox2.BackColor = System.Drawing.Color.FromArgb(50, 50, 50);
             this.comboBox2.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
@@ -262,7 +254,6 @@ namespace JaegerSoft
             this.comboBox2.SelectedIndexChanged += new System.EventHandler(this.comboBox2_SelectedIndexChanged);
             this.panelFiltros.Controls.Add(this.comboBox2, 1, 2);
 
-            // checkBox1
             this.checkBox1.AutoSize = true;
             this.checkBox1.BackColor = System.Drawing.Color.Transparent;
             this.checkBox1.ForeColor = System.Drawing.Color.FromArgb(180, 180, 180);
@@ -274,9 +265,7 @@ namespace JaegerSoft
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             this.panelFiltros.Controls.Add(this.checkBox1, 1, 3);
 
-            // ═══════════════════════════════════════════════════════════════
-            // panelKpiContainer  → FlowLayoutPanel, ocupa el resto del header
-            // ═══════════════════════════════════════════════════════════════
+            // panelKpiContainer
             this.panelKpiContainer.Anchor = System.Windows.Forms.AnchorStyles.Top
                                                 | System.Windows.Forms.AnchorStyles.Bottom
                                                 | System.Windows.Forms.AnchorStyles.Left
@@ -291,9 +280,7 @@ namespace JaegerSoft
             this.panelKpiContainer.Size = new System.Drawing.Size(1130, 200);
             this.panelKpiContainer.TabIndex = 57;
 
-            // ───────────────────────────────────────────────────────────────
-            // Helper local: aplica estilo uniforme a cada tarjeta KPI
-            // ───────────────────────────────────────────────────────────────
+            // Helper local para Tarjetas KPI
             System.Windows.Forms.Padding cardMarginVal = new System.Windows.Forms.Padding(4, 4, 4, 4);
             System.Drawing.Size cardSz = new System.Drawing.Size(175, 95);
             System.Drawing.Color cardBg = System.Drawing.Color.FromArgb(40, 40, 40);
@@ -330,29 +317,23 @@ namespace JaegerSoft
                 card.Controls.Add(titulo);
             }
 
-            // Tarjetas conteo (fila 1)
             ConfigCard(cardCategorias, lblKpiCategoriasTitulo, lblKpiCategorias, "CATEGORÍAS ACTIVAS", "0");
             ConfigCard(cardArticulos, lblKpiArticulosTitulo, lblKpiArticulos, "ARTÍCULOS CATALOGADOS", "0");
             ConfigCard(cardStock, lblKpiStockTitulo, lblKpiStock, "EXISTENCIA GLOBAL", "0");
             ConfigCard(cardMargen, lblKpiMargenTitulo, lblKpiMargen, "MARGEN", "0 %");
 
-            // Tarjetas monetarias (fila 2 / wrap)
             ConfigCard(cardInversion, lblKpiInversionTitulo, lblKpiInversion, "INVERSIÓN ACTUAL", "$0.00", true);
             ConfigCard(cardVentaPotencial, lblKpiVentaPotencialTitulo, lblKpiVentaPotencial, "VENTA POTENCIAL", "$0.00", true);
             ConfigCard(cardUtilidad, lblKpiUtilidadTitulo, lblKpiUtilidad, "UTILIDAD ESPERADA", "$0.00", true);
             ConfigCard(cardStockCritico, lblKpiStockCriticoTitulo, lblKpiStockCritico, "STOCK CRÍTICO", "0 PROD.", true);
-            ConfigCard(cardCapitalInmovilizado, lblKpiCapitalInmovilizadoTitulo, lblKpiCapitalInmovilizado,
-                       "CAPITAL INMOVILIZADO", "$0.00", true);
+            ConfigCard(cardCapitalInmovilizado, lblKpiCapitalInmovilizadoTitulo, lblKpiCapitalInmovilizado, "CAPITAL INMOVILIZADO", "$0.00", true);
 
-            // Agregar tarjetas al FlowLayout (orden visible)
             this.panelKpiContainer.Controls.AddRange(new System.Windows.Forms.Control[] {
                 cardCategorias, cardArticulos, cardStock, cardMargen,
                 cardInversion, cardVentaPotencial, cardUtilidad, cardStockCritico, cardCapitalInmovilizado
             });
 
-            // ═══════════════════════════════════════════════════════════════
-            // panelAnaliticoWrapper  → Contenedor con Scroll
-            // ═══════════════════════════════════════════════════════════════
+            // panelAnaliticoWrapper
             this.panelAnaliticoWrapper.Anchor = System.Windows.Forms.AnchorStyles.Top
                                             | System.Windows.Forms.AnchorStyles.Left
                                             | System.Windows.Forms.AnchorStyles.Right;
@@ -364,9 +345,7 @@ namespace JaegerSoft
             this.panelAnaliticoWrapper.AutoScroll = true;
             this.panelAnaliticoWrapper.Controls.Add(this.panelAnalitico);
 
-            // ═══════════════════════════════════════════════════════════════
-            // panelAnalitico  → Panel interno de contenido fijo/mínimo
-            // ═══════════════════════════════════════════════════════════════
+            // panelAnalitico
             this.panelAnalitico.Anchor = System.Windows.Forms.AnchorStyles.Top
                                             | System.Windows.Forms.AnchorStyles.Left
                                             | System.Windows.Forms.AnchorStyles.Right;
@@ -377,27 +356,21 @@ namespace JaegerSoft
             this.panelAnalitico.MinimumSize = new System.Drawing.Size(1300, 72);
             this.panelAnalitico.Padding = new System.Windows.Forms.Padding(14, 6, 14, 4);
             this.panelAnalitico.TabIndex = 0;
-            
-            // Vincular visibilidad de panelAnalitico a panelAnaliticoWrapper
+
             this.panelAnalitico.VisibleChanged += (sender, e) => {
                 this.panelAnaliticoWrapper.Visible = this.panelAnalitico.Visible;
             };
 
             System.Drawing.Font fAnalitico = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
 
-            void AnLabel(System.Windows.Forms.Label lbl, string txt,
-                         bool isTitle, int col, int row, int colSpan = 1)
+            void AnLabel(System.Windows.Forms.Label lbl, string txt, bool isTitle, int col, int row, int colSpan = 1)
             {
                 lbl.AutoSize = true;
-                lbl.Font = isTitle
-                    ? new System.Drawing.Font("Segoe UI Semibold", 7.5F, System.Drawing.FontStyle.Bold)
-                    : fAnalitico;
-                lbl.ForeColor = isTitle
-                    ? System.Drawing.Color.FromArgb(120, 120, 120)
-                    : System.Drawing.Color.FromArgb(210, 210, 210);
+                lbl.Font = isTitle ? new System.Drawing.Font("Segoe UI Semibold", 7.5F, System.Drawing.FontStyle.Bold) : fAnalitico;
+                lbl.ForeColor = isTitle ? System.Drawing.Color.FromArgb(120, 120, 120) : System.Drawing.Color.FromArgb(210, 210, 210);
                 lbl.Text = txt;
                 lbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-                
+
                 int x = 14 + (col * 230);
                 int y = 6 + (row * 24);
                 lbl.Location = new System.Drawing.Point(x, y);
@@ -405,16 +378,13 @@ namespace JaegerSoft
                 this.panelAnalitico.Controls.Add(lbl);
             }
 
-            // Fila 0: títulos de sección
             AnLabel(lblFinancieroTitulo, "▸ INVENTARIO FINANCIERO", true, 0, 0, 3);
             AnLabel(lblRiesgoTitulo, "▸ RIESGO OPERATIVO", true, 3, 0, 3);
 
-            // Fila 1: datos financieros
             AnLabel(lblFinancieroInversion, "Inversión: $0.00", false, 0, 1);
             AnLabel(lblFinancieroVenta, "Venta Est.: $0.00", false, 1, 1);
             AnLabel(lblFinancieroUtilidad, "Ganancia: $0.00", false, 2, 1);
 
-            // Fila 2: datos financieros continuación + riesgo
             AnLabel(lblFinancieroMargen, "Margen: 0 %", false, 0, 2);
             AnLabel(lblFinancieroInmovilizado, "Inmovilizado: $0.00", false, 1, 2);
             AnLabel(lblRiesgoCriticos, "Críticos: 0 Prod.", false, 3, 1);
@@ -423,7 +393,7 @@ namespace JaegerSoft
             AnLabel(lblRiesgoReposicion, "Reposición: 0 Prod.", false, 4, 2);
 
             // ═══════════════════════════════════════════════════════════════
-            // panel6 — barra lateral derecha (acciones / reportes)
+            // panel6 — BARRA LATERAL DERECHA (ACCIONES Y CATALOGOS)
             // ═══════════════════════════════════════════════════════════════
             this.panel6.Anchor = System.Windows.Forms.AnchorStyles.Top
                                    | System.Windows.Forms.AnchorStyles.Bottom
@@ -437,7 +407,6 @@ namespace JaegerSoft
             this.panel6.Size = new System.Drawing.Size(219, 695);
             this.panel6.TabIndex = 50;
 
-            // Botones de la barra lateral: helper
             int btnY = 0;
             int btnW = 199;
             int btnH = 36;
@@ -465,8 +434,6 @@ namespace JaegerSoft
                 return b;
             }
 
-            System.Drawing.Color cAccion = System.Drawing.Color.FromArgb(52, 73, 94);
-            System.Drawing.Color cHovA = System.Drawing.Color.FromArgb(44, 62, 80);
             System.Drawing.Color cAzul = System.Drawing.Color.FromArgb(41, 128, 185);
             System.Drawing.Color cHovAzul = System.Drawing.Color.FromArgb(52, 152, 219);
             System.Drawing.Color cDark = System.Drawing.Color.FromArgb(40, 40, 40);
@@ -496,7 +463,12 @@ namespace JaegerSoft
                     System.Drawing.Color.FromArgb(231, 76, 60));
             button1.Click += new System.EventHandler(this.button1_Click);
 
-            btnY += 6; // separador visual
+            // NUEVO: Botón Carga Inicial Integrado manteniendo la armonía de color del panel
+            SideBtn(button16, "button16", "📥  CARGA INICIAL", cDark, cHovD, true);
+            button16.Visible = true;
+            button16.Click += new System.EventHandler(this.button16_Click);
+
+            btnY += 6; // Separador visual
             // — PARÁMETROS / CATÁLOGOS —
             lblCatalogos.AutoSize = true;
             lblCatalogos.Font = new System.Drawing.Font("Segoe UI Semibold", 7F, System.Drawing.FontStyle.Bold);
@@ -540,31 +512,28 @@ namespace JaegerSoft
             SideBtn(button18, "button18", "AJUSTES TARJETA", cDark, cHovD, true);
             button18.Click += new System.EventHandler(this.button18_Click);
 
-            // Botones ocultos (sin cambios funcionales)
-            button16.Location = new System.Drawing.Point(10, btnY + 40); button16.Size = new System.Drawing.Size(btnW, btnH);
-            button16.Name = "button16"; button16.Text = "Captura"; button16.Visible = false;
-            button16.Click += new System.EventHandler(this.button16_Click);
-
-            button17.Location = new System.Drawing.Point(10, btnY + 80); button17.Size = new System.Drawing.Size(btnW, btnH);
+            // Botones ocultos
+            button17.Location = new System.Drawing.Point(10, btnY + 40); button17.Size = new System.Drawing.Size(btnW, btnH);
             button17.Name = "button17"; button17.Text = "AGREGAR EXISTENCIAS"; button17.Visible = false;
             button17.Click += new System.EventHandler(this.button17_Click);
 
-            button15.Location = new System.Drawing.Point(10, btnY + 120); button15.Size = new System.Drawing.Size(btnW, btnH);
+            button15.Location = new System.Drawing.Point(10, btnY + 80); button15.Size = new System.Drawing.Size(btnW, btnH);
             button15.Name = "button15"; button15.Text = "Revisar límites"; button15.Visible = false;
             button15.Click += new System.EventHandler(this.button15_Click);
 
-            button19.Location = new System.Drawing.Point(10, btnY + 160); button19.Size = new System.Drawing.Size(btnW, btnH);
+            button19.Location = new System.Drawing.Point(10, btnY + 120); button19.Size = new System.Drawing.Size(btnW, btnH);
             button19.Name = "button19"; button19.Text = "RESUMEN FINANCIERO";
             button19.BackColor = cAzul; button19.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             button19.FlatAppearance.BorderSize = 0; button19.ForeColor = System.Drawing.Color.White;
             button19.Font = new System.Drawing.Font("Segoe UI Semibold", 9F, System.Drawing.FontStyle.Bold);
             button19.Visible = false;
 
-            // Agregar todos al panel6
+            // Agregar componentes a panel6
             this.panel6.Controls.Add(lblOperaciones);
             this.panel6.Controls.Add(BtnApartados);
             this.panel6.Controls.Add(button2);
             this.panel6.Controls.Add(button1);
+            this.panel6.Controls.Add(button16); // Se incluye button16
             this.panel6.Controls.Add(lblCatalogos);
             this.panel6.Controls.Add(button11);
             this.panel6.Controls.Add(button10);
@@ -578,7 +547,6 @@ namespace JaegerSoft
             this.panel6.Controls.Add(button14);
             this.panel6.Controls.Add(button6);
             this.panel6.Controls.Add(button18);
-            this.panel6.Controls.Add(button16);
             this.panel6.Controls.Add(button17);
             this.panel6.Controls.Add(button15);
             this.panel6.Controls.Add(button19);
@@ -587,8 +555,8 @@ namespace JaegerSoft
             // panelPaginador
             // ═══════════════════════════════════════════════════════════════
             this.panelPaginador.Anchor = System.Windows.Forms.AnchorStyles.Bottom
-                                          | System.Windows.Forms.AnchorStyles.Left
-                                          | System.Windows.Forms.AnchorStyles.Right;
+                                           | System.Windows.Forms.AnchorStyles.Left
+                                           | System.Windows.Forms.AnchorStyles.Right;
             this.panelPaginador.BackColor = System.Drawing.Color.FromArgb(28, 28, 28);
             this.panelPaginador.Location = new System.Drawing.Point(10, 934);
             this.panelPaginador.Name = "panelPaginador";
@@ -596,7 +564,6 @@ namespace JaegerSoft
             this.panelPaginador.TabIndex = 60;
             this.panelPaginador.Padding = new System.Windows.Forms.Padding(8, 8, 8, 8);
 
-            // lblEstado
             this.lblEstado.AutoSize = true;
             this.lblEstado.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
             this.lblEstado.ForeColor = System.Drawing.Color.FromArgb(180, 180, 180);
@@ -604,8 +571,7 @@ namespace JaegerSoft
             this.lblEstado.Name = "lblEstado";
             this.lblEstado.Text = "Paginador";
 
-            System.Windows.Forms.Button PagBtn(System.Windows.Forms.Button b,
-                                               string name, string text, int x)
+            System.Windows.Forms.Button PagBtn(System.Windows.Forms.Button b, string name, string text, int x)
             {
                 b.Cursor = System.Windows.Forms.Cursors.Hand;
                 b.FlatStyle = System.Windows.Forms.FlatStyle.Flat;

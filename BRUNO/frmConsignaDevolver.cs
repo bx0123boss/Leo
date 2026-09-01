@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.OleDb;
 using System.Data.SqlClient;
 using System.Windows.Forms;
@@ -90,40 +90,55 @@ namespace JaegerSoft
                             cmd.ExecuteNonQuery();
                         }
 
+                        bool manejaInventario = true;
+                        string queryManejo = "SELECT ManejaInventario FROM Inventario WHERE Id = ?";
+                        using (OleDbCommand cmdM = new OleDbCommand(queryManejo, con, transaccion))
+                        {
+                            cmdM.Parameters.AddWithValue("?", _idProducto);
+                            object resM = cmdM.ExecuteScalar();
+                            if (resM != null && resM != DBNull.Value) manejaInventario = Convert.ToBoolean(resM);
+                        }
+
                         // 3. INVENTARIO REAL: Sumamos el stock
                         // (Verifica si tu columna de stock se llama 'Existencia' o 'Cantidad' en la tabla Inventario)
-                        string queryInventario = @"
-                    UPDATE Inventario 
-                    SET Existencia = Existencia + ? 
-                    WHERE Id = ?";
+                        if (manejaInventario)
+                        {
+                            string queryInventario = @"
+                        UPDATE Inventario 
+                        SET Existencia = Existencia + ? 
+                        WHERE Id = ? AND ManejaInventario = True";
 
-                        using (OleDbCommand cmd = new OleDbCommand(queryInventario, con, transaccion))
-                        {
-                            cmd.Parameters.AddWithValue("?", cantidadDevolver);
-                            cmd.Parameters.AddWithValue("?", _idProducto);
-                            cmd.ExecuteNonQuery();
+                            using (OleDbCommand cmd = new OleDbCommand(queryInventario, con, transaccion))
+                            {
+                                cmd.Parameters.AddWithValue("?", cantidadDevolver);
+                                cmd.Parameters.AddWithValue("?", _idProducto);
+                                cmd.ExecuteNonQuery();
+                            }
                         }
-                        int existenciaAntes = 0;
-                        string queryExistencia = "SELECT Existencia FROM Inventario WHERE Id = ?";
-                        using (OleDbCommand cmdEx = new OleDbCommand(queryExistencia, con, transaccion))
+                        if (manejaInventario)
                         {
-                            cmdEx.Parameters.AddWithValue("?", _idProducto);
-                            object res = cmdEx.ExecuteScalar();
-                            if (res != null && res != DBNull.Value) existenciaAntes = Convert.ToInt32(res);
-                        }
+                            int existenciaAntes = 0;
+                            string queryExistencia = "SELECT Existencia FROM Inventario WHERE Id = ?";
+                            using (OleDbCommand cmdEx = new OleDbCommand(queryExistencia, con, transaccion))
+                            {
+                                cmdEx.Parameters.AddWithValue("?", _idProducto);
+                                object res = cmdEx.ExecuteScalar();
+                                if (res != null && res != DBNull.Value) existenciaAntes = Convert.ToInt32(res);
+                            }
 
-                        int existenciaDespues = existenciaAntes + cantidadDevolver; // Aquí sumamos porque regresó
-                        string fechaKardex = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
-                        string descripcionKardex = "DEVOLUCIÓN DE CONSIGNA. CLIENTE ID: " + _idCliente.ToString();
-                        string queryKardexGen = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) VALUES (?, 'ENTRADA', ?, ?, ?, ?)";
-                        using (OleDbCommand cmdK = new OleDbCommand(queryKardexGen, con, transaccion))
-                        {
-                            cmdK.Parameters.AddWithValue("?", _idProducto);
-                            cmdK.Parameters.AddWithValue("?", descripcionKardex);
-                            cmdK.Parameters.AddWithValue("?", existenciaAntes);
-                            cmdK.Parameters.AddWithValue("?", existenciaDespues);
-                            cmdK.Parameters.AddWithValue("?", fechaKardex);
-                            cmdK.ExecuteNonQuery();
+                            int existenciaDespues = existenciaAntes + cantidadDevolver; // Aquí sumamos porque regresó
+                            string fechaKardex = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                            string descripcionKardex = "DEVOLUCIÓN DE CONSIGNA. CLIENTE ID: " + _idCliente.ToString();
+                            string queryKardexGen = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) VALUES (?, 'ENTRADA', ?, ?, ?, ?)";
+                            using (OleDbCommand cmdK = new OleDbCommand(queryKardexGen, con, transaccion))
+                            {
+                                cmdK.Parameters.AddWithValue("?", _idProducto);
+                                cmdK.Parameters.AddWithValue("?", descripcionKardex);
+                                cmdK.Parameters.AddWithValue("?", existenciaAntes);
+                                cmdK.Parameters.AddWithValue("?", existenciaDespues);
+                                cmdK.Parameters.AddWithValue("?", fechaKardex);
+                                cmdK.ExecuteNonQuery();
+                            }
                         }
                         transaccion.Commit();
 

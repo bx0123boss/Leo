@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
@@ -269,14 +269,26 @@ namespace JaegerSoft
                         {
                             existenciasTotales = Convert.ToDouble(dataGridView1[3, i].Value.ToString()) + Convert.ToDouble(Convert.ToString(reader[4].ToString()));
 
-                            cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
-                            cmd.ExecuteNonQuery();
+                            bool manejaInventario = true;
+                            if (reader["ManejaInventario"] != DBNull.Value)
+                            {
+                                manejaInventario = Convert.ToBoolean(reader["ManejaInventario"]);
+                            }
+
+                            if (manejaInventario)
+                            {
+                                cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[2, i].Value.ToString() + "' AND ManejaInventario = True;", conectar);
+                                cmd.ExecuteNonQuery();
+                            }
 
                             cmd = new OleDbCommand("UPDATE VentasContado set MontoTotal='0', Utilidad='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
                             cmd.ExecuteNonQuery();
 
-                            cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','ENTRADA','CANCELACION DE VENTA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
-                            cmd.ExecuteNonQuery();
+                            if (manejaInventario)
+                            {
+                                cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','ENTRADA','CANCELACION DE VENTA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                                cmd.ExecuteNonQuery();
+                            }
                         }
                         reader.Close();
                     }

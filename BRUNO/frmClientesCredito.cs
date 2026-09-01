@@ -32,8 +32,7 @@ namespace JaegerSoft
             histo.lblID.Text = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
             histo.lblNombre.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
             histo.adeudo = Convert.ToDouble(dataGridView1[7, dataGridView1.CurrentRow.Index].Value.ToString());
-            histo.Show();
-            this.Close();
+            histo.ShowDialog();
         }
 
         private void frmClientesCredito_Load(object sender, EventArgs e)
@@ -81,8 +80,7 @@ namespace JaegerSoft
             abonar.txtAdeudo.Text = dataGridView1[7, dataGridView1.CurrentRow.Index].Value.ToString();
             abonar.lblID.Text = dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString();
             abonar.lblCliente.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-            abonar.Show();
-            this.Close();
+            abonar.ShowDialog();
         }
 
         private void button7_Click(object sender, EventArgs e)

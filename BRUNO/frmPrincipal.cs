@@ -1,4 +1,6 @@
 using System;
+using System.Data;
+using System.Data.OleDb;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -16,6 +18,7 @@ namespace JaegerSoft
         public string NombreUsuario = "";
         public string idUsuario = "";
         public bool IsPuntoB { get; set; } =  false;
+        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         public frmPrincipal()
         {
             InitializeComponent();
@@ -366,7 +369,70 @@ namespace JaegerSoft
             Application.Exit();
         }
 
-        private void pictureBox1_Click(object sender, EventArgs e) { }
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            ActualizarAdeudosClientes();
+        }
+        private void ActualizarAdeudosClientes()
+        {
+            try
+            {
+                if (conectar.State != ConnectionState.Open)
+                    conectar.Open();
+
+                // Obtener todos los clientes
+                string sqlClientes = "SELECT Id FROM Clientes";
+
+                using (OleDbCommand cmdClientes = new OleDbCommand(sqlClientes, conectar))
+                using (OleDbDataReader reader = cmdClientes.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int idCliente = Convert.ToInt32(reader["Id"]);
+
+                        // Obtener suma de saldos de sus ventas
+                        string sqlSaldo =
+                            "SELECT Sum(Saldo) " +
+                            "FROM Ventas2 " +
+                            "WHERE IdCliente = ?";
+
+                        double totalSaldo = 0;
+
+                        using (OleDbCommand cmdSaldo = new OleDbCommand(sqlSaldo, conectar))
+                        {
+                            cmdSaldo.Parameters.AddWithValue("@IdCliente", idCliente);
+
+                            object resultado = cmdSaldo.ExecuteScalar();
+
+                            if (resultado != DBNull.Value && resultado != null)
+                                totalSaldo = Convert.ToDouble(resultado);
+                        }
+
+                        // Actualizar Clientes.Adeudo
+                        string sqlUpdate =
+                            "UPDATE Clientes " +
+                            "SET Adeudo = ? " +
+                            "WHERE Id = ?";
+
+                        using (OleDbCommand cmdUpdate = new OleDbCommand(sqlUpdate, conectar))
+                        {
+                            cmdUpdate.Parameters.AddWithValue("@Adeudo", totalSaldo);
+                            cmdUpdate.Parameters.AddWithValue("@Id", idCliente);
+
+                            cmdUpdate.ExecuteNonQuery();
+                        }
+                    }
+                } 
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Error al actualizar los adeudos:\n\n" + ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
         protected override void FrmBase_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Escape)

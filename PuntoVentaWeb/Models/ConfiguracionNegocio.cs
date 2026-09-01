@@ -10,4 +10,8 @@ public class ConfiguracionNegocio
     public string PasswordEmisor { get; set; }
     public string Whatsapp { get; set; }
     public bool Bascula { get; set; } = false;
+    public string WhatsAppPhoneNumberId { get; set; }
+    public string WhatsAppBusinessId { get; set; }
+    public string WhatsAppAccessToken { get; set; }
+    public string WhatsAppApiVersion { get; set; }
 }

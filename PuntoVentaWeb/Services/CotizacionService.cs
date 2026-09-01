@@ -26,16 +26,16 @@ public class CotizacionService
         {
             await con.OpenAsync();
 
-            // Seleccionamos directamente el Total y Observaciones de la tabla
-            string sql = @"SELECT TOP 100 
-                        Id, 
-                        Fecha, 
-                        ClienteNombre, 
-                        Total, 
-                        Observaciones 
-                       FROM Cotizaciones 
-                       WHERE Total >= 0
-                       ORDER BY Id DESC";
+            string sql = @"SELECT TOP 100
+                Id,
+                Fecha,
+                ClienteId,
+                ClienteNombre,
+                Total,
+                Observaciones
+               FROM Cotizaciones
+               WHERE Total >= 0
+               ORDER BY Id DESC";
 
             using (var cmd = new SqlCommand(sql, con))
             {
@@ -47,9 +47,18 @@ public class CotizacionService
                         {
                             Id = (int)reader["Id"],
                             Fecha = (DateTime)reader["Fecha"],
-                            ClienteNombre = reader["ClienteNombre"] != DBNull.Value ? reader["ClienteNombre"].ToString() : "Público",
-                            Total = reader["Total"] != DBNull.Value ? Convert.ToDecimal(reader["Total"]) : 0,
-                            Observaciones = reader["Observaciones"] != DBNull.Value ? reader["Observaciones"].ToString() : ""
+                            ClienteId = reader["ClienteId"] != DBNull.Value
+                             ? Convert.ToInt32(reader["ClienteId"])
+                             : 0,
+                                    ClienteNombre = reader["ClienteNombre"] != DBNull.Value
+                             ? reader["ClienteNombre"].ToString()
+                             : "Público",
+                                    Total = reader["Total"] != DBNull.Value
+                             ? Convert.ToDecimal(reader["Total"])
+                             : 0,
+                            Observaciones = reader["Observaciones"] != DBNull.Value
+                         ? reader["Observaciones"].ToString()
+                         : ""
                         });
                     }
                 }
@@ -492,7 +501,7 @@ public class CotizacionService
             {
                 await con.OpenAsync();
 
-                string query = "SELECT TOP 1 Lugar, DatosTicket, FooterCorreoCotizacion, ConIva, LogoPath, CorreoEmisor,  PasswordEmisor, Whatsapp, Bascula FROM Configuracion";
+                string query = "SELECT TOP 1 * FROM Configuracion";
 
                 using (var cmd = new OdbcCommand(query, con))
                 {
@@ -519,6 +528,25 @@ public class CotizacionService
                             config.Whatsapp = reader["Whatsapp"] != DBNull.Value ? reader["Whatsapp"].ToString() : "";
                             if (reader["Bascula"] != DBNull.Value)
                                 config.Bascula = Convert.ToBoolean(reader["Bascula"]);
+                            config.WhatsAppPhoneNumberId =
+                                reader["WhatsAppPhoneNumberId"] != DBNull.Value
+                                    ? reader["WhatsAppPhoneNumberId"].ToString()
+                                    : "";
+
+                            config.WhatsAppBusinessId =
+                                reader["WhatsAppBusinessId"] != DBNull.Value
+                                    ? reader["WhatsAppBusinessId"].ToString()
+                                    : "";
+
+                            config.WhatsAppAccessToken =
+                                reader["WhatsAppAccessToken"] != DBNull.Value
+                                    ? reader["WhatsAppAccessToken"].ToString()
+                                    : "";
+
+                            config.WhatsAppApiVersion =
+                                reader["WhatsAppApiVersion"] != DBNull.Value
+                                    ? reader["WhatsAppApiVersion"].ToString()
+                                    : "";
                         }
                     }
                 }

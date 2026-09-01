@@ -389,6 +389,9 @@ namespace JaegerSoft
             EstilizarDataGridView(this.dataGridView6);
 
             EstilizarBotonPrimario(this.button1);
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
         }
 
         private void button1_Click(object sender, EventArgs e)

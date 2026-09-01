@@ -364,6 +364,23 @@ public class TicketPrinter
 
         return lineas;
     }
+    public void AbrirCajon(string printerName)
+    {
+        if (string.IsNullOrEmpty(printerName)) return;
+
+        try
+        {
+            // Secuencia ESC/POS para abrir cajón en la mayoría de miniprinters (Epson, Bixolon, EC Line, Star, etc.)
+            // ESC p m t1 t2 -> 27, 112, 0, 25, 250
+            byte[] drawerPulse = new byte[] { 27, 112, 0, 25, 250 };
+            RawPrinterHelper.SendBytesToPrinter(printerName, drawerPulse);
+        }
+        catch (Exception ex)
+        {
+            // Opcional: Manejar o registrar error en caso de que la impresora no responda
+            Console.WriteLine($"Error al intentar abrir el cajón: {ex.Message}");
+        }
+    }
 }
 public class Producto
 {

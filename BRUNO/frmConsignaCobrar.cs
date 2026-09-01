@@ -569,8 +569,9 @@ namespace JaegerSoft
                                 double exis = 0;
                                 double precioCompra = 0;
                                 string categoria = "";
+                                bool manejaInventario = true;
 
-                                using (var cmd = new OleDbCommand("select Existencia, Categoria, Especial from Inventario where Id='" + idProducto + "';", con, transaccion))
+                                using (var cmd = new OleDbCommand("select Existencia, Categoria, Especial, ManejaInventario from Inventario where Id='" + idProducto + "';", con, transaccion))
                                 {
                                     using (var reader = cmd.ExecuteReader())
                                     {
@@ -579,6 +580,10 @@ namespace JaegerSoft
                                             exis = Convert.ToDouble(reader["Existencia"].ToString());
                                             categoria = reader["Categoria"].ToString();
                                             precioCompra = reader["Especial"] != DBNull.Value ? Convert.ToDouble(reader["Especial"]) : 0;
+                                            if (reader["ManejaInventario"] != DBNull.Value)
+                                            {
+                                                manejaInventario = Convert.ToBoolean(reader["ManejaInventario"]);
+                                            }
                                         }
                                     }
                                 }
@@ -608,10 +613,13 @@ namespace JaegerSoft
                                 }
 
                                 // D) Kardex General de la tienda (Sin restar stock, existencia antes y después es igual)
-                                string queryKardexGen = "insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + idProducto + "','VENTA','VENTA DE CONSIGNA FOLIO: " + folioVenta + "'," + exis + ",'" + exis + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');";
-                                using (var cmd = new OleDbCommand(queryKardexGen, con, transaccion))
+                                if (manejaInventario)
                                 {
-                                    cmd.ExecuteNonQuery();
+                                    string queryKardexGen = "insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + idProducto + "','VENTA','VENTA DE CONSIGNA FOLIO: " + folioVenta + "'," + exis + ",'" + exis + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');";
+                                    using (var cmd = new OleDbCommand(queryKardexGen, con, transaccion))
+                                    {
+                                        cmd.ExecuteNonQuery();
+                                    }
                                 }
 
                                 // E) Guardar en VentasContado (Detalle de Venta)
@@ -623,10 +631,13 @@ namespace JaegerSoft
                                 }
 
                                 // F) Actualizar FechaUltimaVenta en Inventario
-                                string queryUpdInv = "UPDATE Inventario SET FechaUltimaVenta = NOW() WHERE Id = '" + idProducto + "';";
-                                using (var cmd = new OleDbCommand(queryUpdInv, con, transaccion))
+                                if (manejaInventario)
                                 {
-                                    cmd.ExecuteNonQuery();
+                                    string queryUpdInv = "UPDATE Inventario SET FechaUltimaVenta = NOW() WHERE Id = '" + idProducto + "' AND ManejaInventario = True;";
+                                    using (var cmd = new OleDbCommand(queryUpdInv, con, transaccion))
+                                    {
+                                        cmd.ExecuteNonQuery();
+                                    }
                                 }
 
                                 // G) Agregar a la lista para imprimir el ticket

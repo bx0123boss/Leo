@@ -30,6 +30,7 @@ namespace JaegerSoft
         public System.Windows.Forms.TextBox txtDiasReposicion;
         public System.Windows.Forms.Label lblProveedor;
         public System.Windows.Forms.ComboBox cmbProveedor;
+        public System.Windows.Forms.CheckBox chkManejaInventario;
 
         public frmEditarProducto()
         {
@@ -47,6 +48,7 @@ namespace JaegerSoft
             this.txtDiasReposicion = new System.Windows.Forms.TextBox();
             this.lblProveedor = new System.Windows.Forms.Label();
             this.cmbProveedor = new System.Windows.Forms.ComboBox();
+            this.chkManejaInventario = new System.Windows.Forms.CheckBox();
 
             // Form client size adjustment
             this.ClientSize = new System.Drawing.Size(410, 400);
@@ -115,6 +117,17 @@ namespace JaegerSoft
             this.cmbProveedor.Name = "cmbProveedor";
             this.cmbProveedor.Size = new System.Drawing.Size(234, 21);
 
+            // chkManejaInventario
+            this.chkManejaInventario.AutoSize = true;
+            this.chkManejaInventario.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkManejaInventario.ForeColor = System.Drawing.Color.White;
+            this.chkManejaInventario.Location = new System.Drawing.Point(166, 335);
+            this.chkManejaInventario.Name = "chkManejaInventario";
+            this.chkManejaInventario.Size = new System.Drawing.Size(164, 22);
+            this.chkManejaInventario.Text = "Maneja Inventario";
+            this.chkManejaInventario.Checked = true;
+            this.chkManejaInventario.UseVisualStyleBackColor = true;
+
             // Add to controls list
             this.Controls.Add(this.lblLimiteReal);
             this.Controls.Add(this.txtLimiteReal);
@@ -124,9 +137,11 @@ namespace JaegerSoft
             this.Controls.Add(this.txtDiasReposicion);
             this.Controls.Add(this.lblProveedor);
             this.Controls.Add(this.cmbProveedor);
+            this.Controls.Add(this.chkManejaInventario);
 
             // Move button1 (Editar) down
-            this.button1.Location = new System.Drawing.Point(166, 345);
+            this.button1.Location = new System.Drawing.Point(166, 365);
+            this.ClientSize = new System.Drawing.Size(410, 420);
         }
 
         private void txtLimiteReal_KeyPress(object sender, KeyPressEventArgs e)
@@ -212,7 +227,8 @@ namespace JaegerSoft
                              "ProveedorPrincipal = ?, " +
                              "StockMaximo = ?, " +
                              "DiasReposicion = ?, " +
-                             "Limite = ? " +
+                             "Limite = ?, " +
+                             "ManejaInventario = ? " +
                              "WHERE Id = ?;";
 
                 using (OleDbCommand cmdUpdate = new OleDbCommand(sql, conectar))
@@ -229,6 +245,7 @@ namespace JaegerSoft
                     cmdUpdate.Parameters.AddWithValue("?", ParseDouble(txtStockMaximo.Text));    // StockMaximo
                     cmdUpdate.Parameters.AddWithValue("?", ParseInt(txtDiasReposicion.Text));    // DiasReposicion
                     cmdUpdate.Parameters.AddWithValue("?", ParseInt(txtLimiteReal.Text));        // Limite (Stock Minimo)
+                    cmdUpdate.Parameters.AddWithValue("?", chkManejaInventario.Checked);         // ManejaInventario
                     cmdUpdate.Parameters.AddWithValue("?", txtID.Text);                          // WHERE Id
 
                     cmdUpdate.ExecuteNonQuery();
@@ -292,6 +309,21 @@ namespace JaegerSoft
             cmbProveedor.Text = proveedor;
 
             precio = Convert.ToDouble(txtVenta.Text);
+
+            // Fetch ManejaInventario
+            try
+            {
+                using (OleDbCommand cmdManeja = new OleDbCommand("SELECT ManejaInventario FROM Inventario WHERE Id = ?", conectar))
+                {
+                    cmdManeja.Parameters.AddWithValue("?", txtID.Text);
+                    object res = cmdManeja.ExecuteScalar();
+                    if (res != null && res != DBNull.Value)
+                    {
+                        chkManejaInventario.Checked = Convert.ToBoolean(res);
+                    }
+                }
+            }
+            catch { }
         }
 
         private void frmEditarProducto_FormClosing(object sender, FormClosingEventArgs e)

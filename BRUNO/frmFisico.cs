@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -131,7 +131,7 @@ namespace JaegerSoft
 
                 // 3. Preparamos los comandos del ciclo (es mucho más rápido prepararlos una vez)
                 string queryDetalle = "INSERT INTO FisicoDetallado(Id, Nombre, Existen, Fisico, Diferencia, IdFisico) VALUES(@id, @nombre, @existen, @fisico, @diferencia, @idFisico)";
-                string queryUpdate = "UPDATE Inventario SET Existencia=@fisico WHERE Id=@id";
+                string queryUpdate = "UPDATE Inventario SET Existencia=@fisico WHERE Id=@id AND ManejaInventario = True";
 
                 using (OleDbCommand cmdDetalle = new OleDbCommand(queryDetalle, conectar, transaccion))
                 using (OleDbCommand cmdUpd = new OleDbCommand(queryUpdate, conectar, transaccion))

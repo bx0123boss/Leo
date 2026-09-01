@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -61,10 +61,19 @@ namespace JaegerSoft
             }
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
-                cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + dataGridView1[5, i].Value.ToString() + "' Where Id='" + dataGridView1[3, i].Value.ToString() + "';", conectar);
-                cmd.ExecuteNonQuery();
-                cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[3, i].Value.ToString() + "','ENTRADA','COMPRA DE ARTICULO FOLIO: " + txtFolio.Text + "'," + dataGridView1[4, i].Value.ToString() + ",'" + dataGridView1[5, i].Value.ToString() + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
-                cmd.ExecuteNonQuery();
+                bool manejaInventario = true;
+                cmd = new OleDbCommand("SELECT ManejaInventario FROM Inventario WHERE Id='" + dataGridView1[3, i].Value.ToString() + "';", conectar);
+                object resM = cmd.ExecuteScalar();
+                if (resM != null && resM != DBNull.Value) manejaInventario = Convert.ToBoolean(resM);
+
+                if (manejaInventario)
+                {
+                    cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + dataGridView1[5, i].Value.ToString() + "' Where Id='" + dataGridView1[3, i].Value.ToString() + "' AND ManejaInventario = True;", conectar);
+                    cmd.ExecuteNonQuery();
+                    cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[3, i].Value.ToString() + "','ENTRADA','COMPRA DE ARTICULO FOLIO: " + txtFolio.Text + "'," + dataGridView1[4, i].Value.ToString() + ",'" + dataGridView1[5, i].Value.ToString() + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                    cmd.ExecuteNonQuery();
+                }
+
                 cmd = new OleDbCommand("insert into ComprasC(FolioCompra,IdProducto,CantidadAnterior,CantidadActual,Producto,Fecha) values('" + txtFolio.Text + "','" + dataGridView1[3, i].Value.ToString() + "','" + dataGridView1[4, i].Value.ToString() + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
                 cmd.ExecuteNonQuery();
             }

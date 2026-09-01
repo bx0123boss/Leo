@@ -25,6 +25,7 @@ namespace JaegerSoft
         private System.Windows.Forms.TextBox txtDiasReposicion;
         private System.Windows.Forms.Label lblProveedor;
         private System.Windows.Forms.ComboBox cmbProveedor;
+        private System.Windows.Forms.CheckBox chkManejaInventario;
 
         public frmAgregarInventario()
         {
@@ -41,6 +42,7 @@ namespace JaegerSoft
             this.txtDiasReposicion = new System.Windows.Forms.TextBox();
             this.lblProveedor = new System.Windows.Forms.Label();
             this.cmbProveedor = new System.Windows.Forms.ComboBox();
+            this.chkManejaInventario = new System.Windows.Forms.CheckBox();
 
             // lblStockMaximo
             this.lblStockMaximo.AutoSize = true;
@@ -90,6 +92,17 @@ namespace JaegerSoft
             this.cmbProveedor.Name = "cmbProveedor";
             this.cmbProveedor.Size = new System.Drawing.Size(379, 28);
 
+            // chkManejaInventario
+            this.chkManejaInventario.AutoSize = true;
+            this.chkManejaInventario.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkManejaInventario.ForeColor = System.Drawing.Color.White;
+            this.chkManejaInventario.Location = new System.Drawing.Point(162, 420);
+            this.chkManejaInventario.Name = "chkManejaInventario";
+            this.chkManejaInventario.Size = new System.Drawing.Size(164, 22);
+            this.chkManejaInventario.Text = "Maneja Inventario";
+            this.chkManejaInventario.Checked = true;
+            this.chkManejaInventario.UseVisualStyleBackColor = true;
+
             // Add controls to groupBox1
             this.groupBox1.Controls.Add(this.lblStockMaximo);
             this.groupBox1.Controls.Add(this.txtStockMaximo);
@@ -97,10 +110,11 @@ namespace JaegerSoft
             this.groupBox1.Controls.Add(this.txtDiasReposicion);
             this.groupBox1.Controls.Add(this.lblProveedor);
             this.groupBox1.Controls.Add(this.cmbProveedor);
+            this.groupBox1.Controls.Add(this.chkManejaInventario);
 
             // Adjust layout of parent container
-            this.groupBox1.Height = 480;
-            this.button1.Location = new System.Drawing.Point(245, 430);
+            this.groupBox1.Height = 500;
+            this.button1.Location = new System.Drawing.Point(245, 450);
         }
 
         private void txtStockMaximo_KeyPress(object sender, KeyPressEventArgs e)
@@ -319,8 +333,8 @@ namespace JaegerSoft
                     return;
                 }
 
-                string sql = "insert into [" + lblOrigen.Text + "] (Id, Nombre, PrecioVentaMayoreo, PrecioVenta, Existencia, Limite, Categoria, Especial, IVA, Unidad, Uni, ProveedorPrincipal, StockMaximo, DiasReposicion) " +
-                             "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+                string sql = "insert into [" + lblOrigen.Text + "] (Id, Nombre, PrecioVentaMayoreo, PrecioVenta, Existencia, Limite, Categoria, Especial, IVA, Unidad, Uni, ProveedorPrincipal, StockMaximo, DiasReposicion, ManejaInventario) " +
+                             "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
                 using (OleDbCommand cmdInsert = new OleDbCommand(sql, conectar))
                 {
@@ -338,6 +352,7 @@ namespace JaegerSoft
                     cmdInsert.Parameters.AddWithValue("?", cmbProveedor.Text);            // ProveedorPrincipal
                     cmdInsert.Parameters.AddWithValue("?", ParseDouble(txtStockMaximo.Text)); // StockMaximo
                     cmdInsert.Parameters.AddWithValue("?", ParseInt(txtDiasReposicion.Text)); // DiasReposicion
+                    cmdInsert.Parameters.AddWithValue("?", chkManejaInventario.Checked);      // ManejaInventario
 
                     cmdInsert.ExecuteNonQuery();
                 }
@@ -365,6 +380,7 @@ namespace JaegerSoft
                 if (txtStockMaximo != null) txtStockMaximo.Text = "0";
                 if (txtDiasReposicion != null) txtDiasReposicion.Text = "0";
                 if (cmbProveedor != null) cmbProveedor.SelectedIndex = -1;
+                if (chkManejaInventario != null) chkManejaInventario.Checked = true;
             }
             catch (Exception ex)
             {
