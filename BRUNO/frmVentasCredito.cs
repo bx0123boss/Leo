@@ -6,7 +6,6 @@ using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-
 namespace JaegerSoft
 {
     public partial class frmVentasCredito : frmBase

@@ -29,7 +29,6 @@ public class VentaService
         {
             using var con = new OdbcConnection(_accessConn);
             await con.OpenAsync();
-            // Leemos directo de la tabla Categorias en Access
             string query = "SELECT Id, Nombre FROM Categorias ORDER BY Nombre";
             using var cmd = new OdbcCommand(query, con);
             using var reader = (OdbcDataReader)await cmd.ExecuteReaderAsync();
@@ -59,7 +58,7 @@ public class VentaService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al obtener categorías desde tabla Categorias en Access");
+            _logger.LogError(ex, "Error al obtener categorías desde Access");
             throw new Exception($"Error al cargar Categorias de Access: {ex.Message}");
         }
         return lista;
@@ -73,7 +72,7 @@ public class VentaService
             using var con = new OdbcConnection(_accessConn);
             await con.OpenAsync();
 
-            string query = "SELECT Id, Nombre, PrecioVenta, PrecioVentaMayoreo, Especial, Existencia, Categoria, IVA FROM Inventario";
+            string query = "SELECT Id, Nombre, PrecioVenta, PrecioVentaMayoreo, Especial, Categoria, IVA FROM Inventario";
             if (!string.IsNullOrWhiteSpace(categoria) && categoria != "0" && categoria != "TODOS")
             {
                 query += " WHERE Categoria = ?";
@@ -99,10 +98,6 @@ public class VentaService
                 if (reader["Especial"] != DBNull.Value)
                     double.TryParse(reader["Especial"].ToString(), out costo);
 
-                double exis = 0;
-                if (reader["Existencia"] != DBNull.Value)
-                    double.TryParse(reader["Existencia"].ToString(), out exis);
-
                 double iva = 0;
                 if (reader["IVA"] != DBNull.Value)
                     double.TryParse(reader["IVA"].ToString(), out iva);
@@ -113,7 +108,6 @@ public class VentaService
                     Nombre = reader["Nombre"]?.ToString() ?? "",
                     Precio = precio,
                     CostoTotal = costo,
-                    Existencia = exis,
                     Categoria = reader["Categoria"]?.ToString() ?? "",
                     Iva = iva
                 });
@@ -121,42 +115,53 @@ public class VentaService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al obtener productos desde tabla Inventario en Access");
+            _logger.LogError(ex, "Error al obtener productos desde Access");
             throw new Exception($"Error al cargar Inventario de Access: {ex.Message}");
         }
         return lista;
     }
 
-    public async Task<string> ObtenerFolioAsync(string tipoVenta)
+    public async Task<ProductoVenta?> BuscarProductoPorIdAsync(string idProducto)
     {
-        string campoFolio = tipoVenta.ToUpper() switch
-        {
-            "CREDITO" => "FolioCredito",
-            "APARTADO" => "FolioApartado",
-            _ => "FolioContado"
-        };
-
         try
         {
             using var con = new OdbcConnection(_accessConn);
             await con.OpenAsync();
-            string query = "SELECT Numero FROM Folios WHERE Folio = ?";
+            string query = "SELECT Id, Nombre, PrecioVenta, PrecioVentaMayoreo, Especial, Categoria, IVA FROM Inventario WHERE Id = ?";
             using var cmd = new OdbcCommand(query, con);
-            cmd.Parameters.AddWithValue("?", campoFolio);
+            cmd.Parameters.AddWithValue("?", idProducto);
 
-            var val = await cmd.ExecuteScalarAsync();
-            int num = val != null && val != DBNull.Value ? Convert.ToInt32(val) : 1;
+            using var reader = (OdbcDataReader)await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                double precio = 0;
+                if (reader["PrecioVenta"] != DBNull.Value)
+                    double.TryParse(reader["PrecioVenta"].ToString(), out precio);
 
-            if (tipoVenta.ToUpper() == "APARTADO")
-                return "A" + num.ToString("0000");
+                double costo = 0;
+                if (reader["Especial"] != DBNull.Value)
+                    double.TryParse(reader["Especial"].ToString(), out costo);
 
-            return num.ToString();
+                double iva = 0;
+                if (reader["IVA"] != DBNull.Value)
+                    double.TryParse(reader["IVA"].ToString(), out iva);
+
+                return new ProductoVenta
+                {
+                    Id = reader["Id"]?.ToString() ?? "",
+                    Nombre = reader["Nombre"]?.ToString() ?? "",
+                    Precio = precio,
+                    CostoTotal = costo,
+                    Categoria = reader["Categoria"]?.ToString() ?? "",
+                    Iva = iva
+                };
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al obtener folio");
-            return "1";
+            _logger.LogError(ex, "Error al buscar producto por ID");
         }
+        return null;
     }
 
     public async Task<List<ClienteVentaDto>> BuscarClientesAsync(string busqueda = "")
@@ -262,16 +267,52 @@ public class VentaService
         {
             var fVal = await cmdF.ExecuteScalarAsync();
             int fol = fVal != null && fVal != DBNull.Value ? Convert.ToInt32(fVal) : 1;
-            req.Folio = fol.ToString();
+            req.Folio = "VR" + fol.ToString("0000");
 
             using var cmdUpdF = new OdbcCommand("UPDATE Folios SET Numero = ? WHERE Folio = 'FolioContado'", con, trans);
             cmdUpdF.Parameters.AddWithValue("?", fol + 1);
             await cmdUpdF.ExecuteNonQueryAsync();
         }
 
+        double totalUtilidadBruta = 0;
         foreach (var it in req.Items)
         {
-            double utilidad = Math.Round((it.Precio - it.Costo) * it.Cantidad, 2);
+            double venta = it.Precio * it.Cantidad;
+            double compra = it.Costo * it.Cantidad;
+            totalUtilidadBruta += (venta - compra);
+        }
+
+        foreach (var it in req.Items)
+        {
+            string categoria = it.Categoria ?? "";
+            bool manejaInventario = true;
+            double exis = 0;
+
+            string qCheckInv = "SELECT Existencia, Categoria, ManejaInventario FROM Inventario WHERE Id = ?";
+            using (var cmdChk = new OdbcCommand(qCheckInv, con, trans))
+            {
+                cmdChk.Parameters.AddWithValue("?", it.ProductoId);
+                using (var rdr = await cmdChk.ExecuteReaderAsync())
+                {
+                    if (await rdr.ReadAsync())
+                    {
+                        if (rdr["Existencia"] != DBNull.Value)
+                            double.TryParse(rdr["Existencia"].ToString(), out exis);
+
+                        if (rdr["Categoria"] != DBNull.Value)
+                            categoria = rdr["Categoria"].ToString() ?? "";
+
+                        if (rdr["ManejaInventario"] != DBNull.Value)
+                            bool.TryParse(rdr["ManejaInventario"].ToString(), out manejaInventario);
+                    }
+                }
+            }
+
+            double precioVentaNeto = Math.Round(it.Precio / 1.16, 2);
+            double utilidadBruta = (precioVentaNeto * it.Cantidad) - (it.Costo * it.Cantidad);
+            double descuentoProporcional = totalUtilidadBruta > 0 ? (utilidadBruta / totalUtilidadBruta) * req.Descuento : 0;
+            double nuevaUtilidad = utilidadBruta - descuentoProporcional;
+
             string insertDetalle = @"INSERT INTO VentasContado (FolioVenta, IdProducto, Cantidad, Producto, MontoTotal, idCliente, Fecha, Utilidad, Categoria) 
                                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             using (var cmdDet = new OdbcCommand(insertDetalle, con, trans))
@@ -283,28 +324,32 @@ public class VentaService
                 cmdDet.Parameters.AddWithValue("?", it.Subtotal.ToString());
                 cmdDet.Parameters.AddWithValue("?", string.IsNullOrEmpty(req.IdCliente) ? "0" : req.IdCliente);
                 cmdDet.Parameters.AddWithValue("?", fechaStr);
-                cmdDet.Parameters.AddWithValue("?", utilidad.ToString());
-                cmdDet.Parameters.AddWithValue("?", it.Categoria ?? "");
+                cmdDet.Parameters.AddWithValue("?", nuevaUtilidad.ToString());
+                cmdDet.Parameters.AddWithValue("?", categoria);
                 await cmdDet.ExecuteNonQueryAsync();
             }
 
-            using (var cmdInv = new OdbcCommand("UPDATE Inventario SET Existencia = Existencia - ? WHERE Id = ?", con, trans))
+            if (manejaInventario)
             {
-                cmdInv.Parameters.AddWithValue("?", it.Cantidad);
-                cmdInv.Parameters.AddWithValue("?", it.ProductoId);
-                await cmdInv.ExecuteNonQueryAsync();
-            }
+                double nuevaExistencia = exis - it.Cantidad;
+                using (var cmdInv = new OdbcCommand("UPDATE Inventario SET Existencia = ?, FechaUltimaVenta = NOW() WHERE Id = ? AND ManejaInventario = True", con, trans))
+                {
+                    cmdInv.Parameters.AddWithValue("?", nuevaExistencia);
+                    cmdInv.Parameters.AddWithValue("?", it.ProductoId);
+                    await cmdInv.ExecuteNonQueryAsync();
+                }
 
-            string kardexQ = @"INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) 
-                               VALUES (?, 'SALIDA', ?, ?, ?, ?)";
-            using (var cmdK = new OdbcCommand(kardexQ, con, trans))
-            {
-                cmdK.Parameters.AddWithValue("?", it.ProductoId);
-                cmdK.Parameters.AddWithValue("?", $"VENTA FOLIO: {req.Folio}");
-                cmdK.Parameters.AddWithValue("?", it.Existencia);
-                cmdK.Parameters.AddWithValue("?", it.Existencia - it.Cantidad);
-                cmdK.Parameters.AddWithValue("?", fechaStr);
-                await cmdK.ExecuteNonQueryAsync();
+                string kardexQ = @"INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) 
+                                   VALUES (?, 'SALIDA', ?, ?, ?, ?)";
+                using (var cmdK = new OdbcCommand(kardexQ, con, trans))
+                {
+                    cmdK.Parameters.AddWithValue("?", it.ProductoId);
+                    cmdK.Parameters.AddWithValue("?", $"VENTA DE ARTICULO FOLIO: {req.Folio}");
+                    cmdK.Parameters.AddWithValue("?", exis);
+                    cmdK.Parameters.AddWithValue("?", nuevaExistencia);
+                    cmdK.Parameters.AddWithValue("?", fechaStr);
+                    await cmdK.ExecuteNonQueryAsync();
+                }
             }
         }
 
@@ -326,22 +371,46 @@ public class VentaService
                 if (p.Value > 0)
                 {
                     string qPago = "INSERT INTO VentasPagos (FolioVenta, MetodoPago, Monto) VALUES (?, ?, ?)";
-                    using var cmdP = new OdbcCommand(qPago, con, trans);
-                    cmdP.Parameters.AddWithValue("?", req.Folio);
-                    cmdP.Parameters.AddWithValue("?", p.Key);
-                    cmdP.Parameters.AddWithValue("?", p.Value);
-                    await cmdP.ExecuteNonQueryAsync();
+                    using (var cmdP = new OdbcCommand(qPago, con, trans))
+                    {
+                        cmdP.Parameters.AddWithValue("?", req.Folio);
+                        cmdP.Parameters.AddWithValue("?", p.Key);
+                        cmdP.Parameters.AddWithValue("?", p.Value);
+                        await cmdP.ExecuteNonQueryAsync();
+                    }
+
+                    string qCorte = "INSERT INTO Corte (Concepto, Monto, FechaHora, Pago) VALUES (?, ?, ?, ?)";
+                    using (var cmdC = new OdbcCommand(qCorte, con, trans))
+                    {
+                        cmdC.Parameters.AddWithValue("?", $"Venta a contado folio {req.Folio}");
+                        cmdC.Parameters.AddWithValue("?", p.Value.ToString());
+                        cmdC.Parameters.AddWithValue("?", fechaStr);
+                        cmdC.Parameters.AddWithValue("?", p.Key);
+                        await cmdC.ExecuteNonQueryAsync();
+                    }
                 }
             }
         }
         else
         {
             string qPago = "INSERT INTO VentasPagos (FolioVenta, MetodoPago, Monto) VALUES (?, ?, ?)";
-            using var cmdP = new OdbcCommand(qPago, con, trans);
-            cmdP.Parameters.AddWithValue("?", req.Folio);
-            cmdP.Parameters.AddWithValue("?", req.MetodoPago);
-            cmdP.Parameters.AddWithValue("?", req.Total);
-            await cmdP.ExecuteNonQueryAsync();
+            using (var cmdP = new OdbcCommand(qPago, con, trans))
+            {
+                cmdP.Parameters.AddWithValue("?", req.Folio);
+                cmdP.Parameters.AddWithValue("?", req.MetodoPago);
+                cmdP.Parameters.AddWithValue("?", req.Total);
+                await cmdP.ExecuteNonQueryAsync();
+            }
+
+            string qCorte = "INSERT INTO Corte (Concepto, Monto, FechaHora, Pago) VALUES (?, ?, ?, ?)";
+            using (var cmdC = new OdbcCommand(qCorte, con, trans))
+            {
+                cmdC.Parameters.AddWithValue("?", $"Venta a contado folio {req.Folio}");
+                cmdC.Parameters.AddWithValue("?", req.Total.ToString());
+                cmdC.Parameters.AddWithValue("?", fechaStr);
+                cmdC.Parameters.AddWithValue("?", req.MetodoPago);
+                await cmdC.ExecuteNonQueryAsync();
+            }
         }
 
         string qCajero = "INSERT INTO VentasCajero (IdUsuario, Usuario, FolioVenta, Total, Fecha, Cajero) VALUES (?, ?, ?, ?, ?, ?)";
@@ -359,21 +428,244 @@ public class VentaService
 
     private async Task ProcesarVentaCredito(OdbcConnection con, OdbcTransaction trans, VentaGuardarRequest req, string fechaStr)
     {
+        // 1. Validar Cliente y Límite de Crédito
+        if (string.IsNullOrEmpty(req.IdCliente) || req.IdCliente == "0")
+        {
+            throw new Exception("Seleccione un cliente válido para realizar una venta a crédito.");
+        }
+
+        double adeudoActual = 0;
+        double limiteCredito = 0;
+
+        string qCliente = "SELECT Adeudo, Limite FROM Clientes WHERE Id = ?";
+        using (var cmdCli = new OdbcCommand(qCliente, con, trans))
+        {
+            cmdCli.Parameters.AddWithValue("?", req.IdCliente);
+            using (var rdr = await cmdCli.ExecuteReaderAsync())
+            {
+                if (await rdr.ReadAsync())
+                {
+                    if (rdr["Adeudo"] != DBNull.Value) double.TryParse(rdr["Adeudo"].ToString(), out adeudoActual);
+                    if (rdr["Limite"] != DBNull.Value) double.TryParse(rdr["Limite"].ToString(), out limiteCredito);
+                }
+                else
+                {
+                    throw new Exception("El cliente seleccionado no existe.");
+                }
+            }
+        }
+
+        // Límite < Adeudo Actual + Total de la Venta
+        if (limiteCredito < (adeudoActual + req.Total))
+        {
+            throw new Exception($"El límite de crédito (${limiteCredito:N2}) será excedido con la compra actual. Adeudo actual: ${adeudoActual:N2}");
+        }
+
+        // 2. Obtener y Formatear Folio de Crédito (Formato 'C0000')
         string queryFolio = "SELECT Numero FROM Folios WHERE Folio='FolioCredito'";
         using (var cmdF = new OdbcCommand(queryFolio, con, trans))
         {
             var fVal = await cmdF.ExecuteScalarAsync();
             int fol = fVal != null && fVal != DBNull.Value ? Convert.ToInt32(fVal) : 1;
-            req.Folio = fol.ToString();
+            req.Folio = "C" + fol.ToString("0000");
 
-            using var cmdUpdF = new OdbcCommand("UPDATE Folios SET Numero = ? WHERE Folio = 'FolioCredito'", con, trans);
-            cmdUpdF.Parameters.AddWithValue("?", fol + 1);
+            using var cmdUpdF = new OdbcCommand("UPDATE Folios SET Numero = Numero + 1 WHERE Folio = 'FolioCredito'", con, trans);
             await cmdUpdF.ExecuteNonQueryAsync();
         }
 
+        // 3. Procesar Productos, VentasCredito, Inventario y Kardex
         foreach (var it in req.Items)
         {
+            string categoria = it.Categoria ?? "";
+            bool manejaInventario = true;
+            double exis = 0;
+
+            string qCheckInv = "SELECT Existencia, Categoria, ManejaInventario FROM Inventario WHERE Id = ?";
+            using (var cmdChk = new OdbcCommand(qCheckInv, con, trans))
+            {
+                cmdChk.Parameters.AddWithValue("?", it.ProductoId);
+                using (var rdr = await cmdChk.ExecuteReaderAsync())
+                {
+                    if (await rdr.ReadAsync())
+                    {
+                        if (rdr["Existencia"] != DBNull.Value) double.TryParse(rdr["Existencia"].ToString(), out exis);
+                        if (rdr["Categoria"] != DBNull.Value) categoria = rdr["Categoria"].ToString() ?? "";
+                        if (rdr["ManejaInventario"] != DBNull.Value) bool.TryParse(rdr["ManejaInventario"].ToString(), out manejaInventario);
+                    }
+                }
+            }
+
+            if (manejaInventario && (exis - it.Cantidad) < 0)
+            {
+                throw new Exception($"Stock insuficiente en: {it.Nombre}");
+            }
+
+            if (manejaInventario)
+            {
+                using (var cmdInv = new OdbcCommand("UPDATE Inventario SET Existencia = Existencia - ?, FechaUltimaVenta = NOW() WHERE Id = ? AND ManejaInventario = True", con, trans))
+                {
+                    cmdInv.Parameters.AddWithValue("?", it.Cantidad);
+                    cmdInv.Parameters.AddWithValue("?", it.ProductoId);
+                    await cmdInv.ExecuteNonQueryAsync();
+                }
+            }
+
             string insertDet = @"INSERT INTO VentasCredito (FolioVenta, IdProducto, Cantidad, Producto, MontoTotal, IdCliente, Fecha, categoria) 
+                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            using (var cmdDet = new OdbcCommand(insertDet, con, trans))
+            {
+                cmdDet.Parameters.AddWithValue("?", req.Folio);
+                cmdDet.Parameters.AddWithValue("?", it.ProductoId);
+                cmdDet.Parameters.AddWithValue("?", it.Cantidad);
+                cmdDet.Parameters.AddWithValue("?", it.Nombre);
+                cmdDet.Parameters.AddWithValue("?", it.Subtotal);
+                cmdDet.Parameters.AddWithValue("?", req.IdCliente);
+                cmdDet.Parameters.AddWithValue("?", fechaStr);
+                cmdDet.Parameters.AddWithValue("?", categoria);
+                await cmdDet.ExecuteNonQueryAsync();
+            }
+
+            if (manejaInventario)
+            {
+                string kardexQ = @"INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) 
+                                   VALUES (?, 'SALIDA', ?, ?, ?, ?)";
+                using (var cmdK = new OdbcCommand(kardexQ, con, trans))
+                {
+                    cmdK.Parameters.AddWithValue("?", it.ProductoId);
+                    cmdK.Parameters.AddWithValue("?", $"VENTA A CREDITO DE ARTICULO FOLIO: {req.Folio}");
+                    cmdK.Parameters.AddWithValue("?", exis);
+                    cmdK.Parameters.AddWithValue("?", exis - it.Cantidad);
+                    cmdK.Parameters.AddWithValue("?", fechaStr);
+                    await cmdK.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        // 4. Procesar Abono Inicial (Si aplica) -> Inserción en Abonos y Corte
+        if (req.AbonoInicial > 0)
+        {
+            string insertAbono = "INSERT INTO Abonos (Abono, idCliente, Fecha, Nombre, Folio, Estatus) VALUES (?, ?, ?, ?, ?, 'PAGADO')";
+            using (var cmdAb = new OdbcCommand(insertAbono, con, trans))
+            {
+                cmdAb.Parameters.AddWithValue("?", req.AbonoInicial.ToString());
+                cmdAb.Parameters.AddWithValue("?", req.IdCliente);
+                cmdAb.Parameters.AddWithValue("?", fechaStr);
+                cmdAb.Parameters.AddWithValue("?", req.NombreCliente);
+                cmdAb.Parameters.AddWithValue("?", req.Folio);
+                await cmdAb.ExecuteNonQueryAsync();
+            }
+
+            // Inserción en tabla CORTE
+            string insertCorte = "INSERT INTO Corte (Concepto, Monto, FechaHora, Pago) VALUES (?, ?, ?, ?)";
+            using (var cmdCor = new OdbcCommand(insertCorte, con, trans))
+            {
+                cmdCor.Parameters.AddWithValue("?", $"Abono de la venta a credito folio {req.Folio}");
+                cmdCor.Parameters.AddWithValue("?", req.AbonoInicial.ToString());
+                cmdCor.Parameters.AddWithValue("?", fechaStr);
+                cmdCor.Parameters.AddWithValue("?", req.MetodoPago);
+                await cmdCor.ExecuteNonQueryAsync();
+            }
+        }
+
+        // 5. Insertar Encabezado de Venta a Crédito en Ventas2
+        string insertVenta2 = "INSERT INTO Ventas2 (Monto, Fecha, Folio, IdCliente, Estatus, Saldo) VALUES (?, ?, ?, ?, 'COBRADO', ?)";
+        using (var cmdV2 = new OdbcCommand(insertVenta2, con, trans))
+        {
+            cmdV2.Parameters.AddWithValue("?", req.Total.ToString());
+            cmdV2.Parameters.AddWithValue("?", fechaStr);
+            cmdV2.Parameters.AddWithValue("?", req.Folio);
+            cmdV2.Parameters.AddWithValue("?", req.IdCliente);
+            cmdV2.Parameters.AddWithValue("?", req.Total.ToString());
+            await cmdV2.ExecuteNonQueryAsync();
+        }
+
+        // 6. Actualizar Nuevo Adeudo en Tabla Clientes (Adeudo + Total - AbonoInicial)
+        double nuevoAdeudoCalculado = adeudoActual + (req.Total - req.AbonoInicial);
+        string updateCliente = "UPDATE Clientes SET Adeudo = ? WHERE Id = ?";
+        using (var cmdCl = new OdbcCommand(updateCliente, con, trans))
+        {
+            cmdCl.Parameters.AddWithValue("?", nuevoAdeudoCalculado);
+            cmdCl.Parameters.AddWithValue("?", req.IdCliente);
+            await cmdCl.ExecuteNonQueryAsync();
+        }
+    }
+    private async Task ProcesarVentaApartado(OdbcConnection con, OdbcTransaction trans, VentaGuardarRequest req, string fechaStr)
+    {
+        // 1. Validar Cliente Obligatorio
+        if (string.IsNullOrEmpty(req.IdCliente) || req.IdCliente == "0")
+        {
+            throw new Exception("Ingrese el cliente para poder hacer el apartado.");
+        }
+
+        // 2. Generación e incremento ATÓMICO del Folio (Formato 'A0000')
+        string queryFolio = "SELECT Numero FROM Folios WHERE Folio='FolioApartado'";
+        using (var cmdF = new OdbcCommand(queryFolio, con, trans))
+        {
+            var fVal = await cmdF.ExecuteScalarAsync();
+            int fol = fVal != null && fVal != DBNull.Value ? Convert.ToInt32(fVal) : 1;
+            req.Folio = "A" + fol.ToString("0000");
+
+            using var cmdUpdF = new OdbcCommand("UPDATE Folios SET Numero = Numero + 1 WHERE Folio = 'FolioApartado'", con, trans);
+            await cmdUpdF.ExecuteNonQueryAsync();
+        }
+
+        // 3. Procesar Productos, Existencias, VentasApartados y Kardex
+        foreach (var it in req.Items)
+        {
+            double exis = 0;
+            string qCheckInv = "SELECT Existencia FROM Inventario WHERE Id = ?";
+            using (var cmdChk = new OdbcCommand(qCheckInv, con, trans))
+            {
+                cmdChk.Parameters.AddWithValue("?", it.ProductoId);
+                using (var rdr = await cmdChk.ExecuteReaderAsync())
+                {
+                    if (await rdr.ReadAsync() && rdr["Existencia"] != DBNull.Value)
+                    {
+                        double.TryParse(rdr["Existencia"].ToString(), out exis);
+                    }
+                }
+            }
+
+            double existenciaFutura = exis - it.Cantidad;
+            string estatusApartado = "DESCONTADO DE INVENTARIO";
+
+            if (existenciaFutura < 0)
+            {
+                // Si la existencia no alcanza, no se descuenta inventario y queda PENDIENTE
+                estatusApartado = "PENDIENTE";
+
+                // Actualizar únicamente FechaUltimaVenta
+                using (var cmdUpdInv = new OdbcCommand("UPDATE Inventario SET FechaUltimaVenta = NOW() WHERE Id = ?", con, trans))
+                {
+                    cmdUpdInv.Parameters.AddWithValue("?", it.ProductoId);
+                    await cmdUpdInv.ExecuteNonQueryAsync();
+                }
+            }
+            else
+            {
+                // Si la existencia alcanza, se descuenta de inventario y se actualiza FechaUltimaVenta
+                using (var cmdUpdInv = new OdbcCommand("UPDATE Inventario SET Existencia = ?, FechaUltimaVenta = NOW() WHERE Id = ?", con, trans))
+                {
+                    cmdUpdInv.Parameters.AddWithValue("?", existenciaFutura);
+                    cmdUpdInv.Parameters.AddWithValue("?", it.ProductoId);
+                    await cmdUpdInv.ExecuteNonQueryAsync();
+                }
+
+                // Insertar en Kardex
+                string kardexQ = @"INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) 
+                                   VALUES (?, 'SALIDA', ?, ?, ?, ?)";
+                using (var cmdK = new OdbcCommand(kardexQ, con, trans))
+                {
+                    cmdK.Parameters.AddWithValue("?", it.ProductoId);
+                    cmdK.Parameters.AddWithValue("?", $"APARTADO DE ARTICULO FOLIO: {req.Folio}");
+                    cmdK.Parameters.AddWithValue("?", exis);
+                    cmdK.Parameters.AddWithValue("?", existenciaFutura);
+                    cmdK.Parameters.AddWithValue("?", fechaStr);
+                    await cmdK.ExecuteNonQueryAsync();
+                }
+            }
+
+            string insertDet = @"INSERT INTO VentasApartados (FolioVenta, idProducto, Cantidad, Producto, MontoTotal, IdCliente, Fecha, Estatus) 
                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             using (var cmdDet = new OdbcCommand(insertDet, con, trans))
             {
@@ -384,144 +676,34 @@ public class VentaService
                 cmdDet.Parameters.AddWithValue("?", it.Subtotal.ToString());
                 cmdDet.Parameters.AddWithValue("?", req.IdCliente);
                 cmdDet.Parameters.AddWithValue("?", fechaStr);
-                cmdDet.Parameters.AddWithValue("?", it.Categoria ?? "");
+                cmdDet.Parameters.AddWithValue("?", estatusApartado);
                 await cmdDet.ExecuteNonQueryAsync();
             }
-
-            using (var cmdInv = new OdbcCommand("UPDATE Inventario SET Existencia = Existencia - ? WHERE Id = ?", con, trans))
-            {
-                cmdInv.Parameters.AddWithValue("?", it.Cantidad);
-                cmdInv.Parameters.AddWithValue("?", it.ProductoId);
-                await cmdInv.ExecuteNonQueryAsync();
-            }
-
-            string kardexQ = @"INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) 
-                               VALUES (?, 'SALIDA', ?, ?, ?, ?)";
-            using (var cmdK = new OdbcCommand(kardexQ, con, trans))
-            {
-                cmdK.Parameters.AddWithValue("?", it.ProductoId);
-                cmdK.Parameters.AddWithValue("?", $"VENTA A CREDITO FOLIO: {req.Folio}");
-                cmdK.Parameters.AddWithValue("?", it.Existencia);
-                cmdK.Parameters.AddWithValue("?", it.Existencia - it.Cantidad);
-                cmdK.Parameters.AddWithValue("?", fechaStr);
-                await cmdK.ExecuteNonQueryAsync();
-            }
         }
 
-        if (req.AbonoInicial > 0)
-        {
-            string insertAbono = "INSERT INTO Abonos (Abono, idCliente, Fecha, Nombre, Folio, Estatus) VALUES (?, ?, ?, ?, ?, 'ABONO DE VENTA')";
-            using var cmdAb = new OdbcCommand(insertAbono, con, trans);
-            cmdAb.Parameters.AddWithValue("?", req.AbonoInicial.ToString());
-            cmdAb.Parameters.AddWithValue("?", req.IdCliente);
-            cmdAb.Parameters.AddWithValue("?", fechaStr);
-            cmdAb.Parameters.AddWithValue("?", req.NombreCliente);
-            cmdAb.Parameters.AddWithValue("?", req.Folio);
-            await cmdAb.ExecuteNonQueryAsync();
+        double abonoGuardar = req.AbonoInicial;
+        double granTotal = req.Total; // Total ya con descuento
+        double restanteGuardar = Math.Max(0, granTotal - abonoGuardar);
 
-            string insertCorte = "INSERT INTO Corte (Concepto, Monto, FechaHora, Pago) VALUES (?, ?, ?, ?)";
-            using var cmdCor = new OdbcCommand(insertCorte, con, trans);
-            cmdCor.Parameters.AddWithValue("?", $"Abono de la venta a credito folio {req.Folio}");
-            cmdCor.Parameters.AddWithValue("?", req.AbonoInicial.ToString());
-            cmdCor.Parameters.AddWithValue("?", fechaStr);
-            cmdCor.Parameters.AddWithValue("?", req.MetodoPago);
-            await cmdCor.ExecuteNonQueryAsync();
-        }
-
-        double saldoPendiente = req.Total - req.AbonoInicial;
-        string insertVenta2 = "INSERT INTO Ventas2 (Monto, Fecha, Folio, IdCliente, Estatus, Saldo) VALUES (?, ?, ?, ?, 'COBRADO', ?)";
-        using (var cmdV2 = new OdbcCommand(insertVenta2, con, trans))
-        {
-            cmdV2.Parameters.AddWithValue("?", req.Total.ToString());
-            cmdV2.Parameters.AddWithValue("?", fechaStr);
-            cmdV2.Parameters.AddWithValue("?", req.Folio);
-            cmdV2.Parameters.AddWithValue("?", req.IdCliente);
-            cmdV2.Parameters.AddWithValue("?", saldoPendiente.ToString());
-            await cmdV2.ExecuteNonQueryAsync();
-        }
-
-        string updateCliente = "UPDATE Clientes SET Adeudo = Adeudo + ? WHERE Id = ?";
-        using (var cmdCl = new OdbcCommand(updateCliente, con, trans))
-        {
-            cmdCl.Parameters.AddWithValue("?", saldoPendiente);
-            cmdCl.Parameters.AddWithValue("?", req.IdCliente);
-            await cmdCl.ExecuteNonQueryAsync();
-        }
-    }
-
-    private async Task ProcesarVentaApartado(OdbcConnection con, OdbcTransaction trans, VentaGuardarRequest req, string fechaStr)
-    {
-        string queryFolio = "SELECT Numero FROM Folios WHERE Folio='FolioApartado'";
-        int fol = 1;
-        using (var cmdF = new OdbcCommand(queryFolio, con, trans))
-        {
-            var fVal = await cmdF.ExecuteScalarAsync();
-            fol = fVal != null && fVal != DBNull.Value ? Convert.ToInt32(fVal) : 1;
-            req.Folio = "A" + fol.ToString("0000");
-
-            using var cmdUpdF = new OdbcCommand("UPDATE Folios SET Numero = ? WHERE Folio = 'FolioApartado'", con, trans);
-            cmdUpdF.Parameters.AddWithValue("?", fol + 1);
-            await cmdUpdF.ExecuteNonQueryAsync();
-        }
-
-        foreach (var it in req.Items)
-        {
-            string insertDet = @"INSERT INTO VentasApartados (FolioVenta, idProducto, Cantidad, Producto, MontoTotal, IdCliente, Fecha, Estatus) 
-                                 VALUES (?, ?, ?, ?, ?, ?, ?, 'DESCONTADO DE INVENTARIO')";
-            using (var cmdDet = new OdbcCommand(insertDet, con, trans))
-            {
-                cmdDet.Parameters.AddWithValue("?", req.Folio);
-                cmdDet.Parameters.AddWithValue("?", it.ProductoId);
-                cmdDet.Parameters.AddWithValue("?", it.Cantidad.ToString());
-                cmdDet.Parameters.AddWithValue("?", it.Nombre);
-                cmdDet.Parameters.AddWithValue("?", it.Subtotal.ToString());
-                cmdDet.Parameters.AddWithValue("?", req.IdCliente);
-                cmdDet.Parameters.AddWithValue("?", fechaStr);
-                await cmdDet.ExecuteNonQueryAsync();
-            }
-
-            using (var cmdInv = new OdbcCommand("UPDATE Inventario SET Existencia = Existencia - ? WHERE Id = ?", con, trans))
-            {
-                cmdInv.Parameters.AddWithValue("?", it.Cantidad);
-                cmdInv.Parameters.AddWithValue("?", it.ProductoId);
-                await cmdInv.ExecuteNonQueryAsync();
-            }
-
-            string kardexQ = @"INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) 
-                               VALUES (?, 'SALIDA', ?, ?, ?, ?)";
-            using (var cmdK = new OdbcCommand(kardexQ, con, trans))
-            {
-                cmdK.Parameters.AddWithValue("?", it.ProductoId);
-                cmdK.Parameters.AddWithValue("?", $"APARTADO DE ARTICULO FOLIO: {req.Folio}");
-                cmdK.Parameters.AddWithValue("?", it.Existencia);
-                cmdK.Parameters.AddWithValue("?", it.Existencia - it.Cantidad);
-                cmdK.Parameters.AddWithValue("?", fechaStr);
-                await cmdK.ExecuteNonQueryAsync();
-            }
-        }
-
-        double abono = req.AbonoInicial;
-        double restante = req.Total - abono;
         string insertApartado = @"INSERT INTO Apartados (MontoTotal, Fecha, Folio, IdCliente, NombreCliente, Abono, Restante) 
                                   VALUES (?, ?, ?, ?, ?, ?, ?)";
         using (var cmdAp = new OdbcCommand(insertApartado, con, trans))
         {
-            cmdAp.Parameters.AddWithValue("?", req.Total.ToString());
+            cmdAp.Parameters.AddWithValue("?", granTotal.ToString());
             cmdAp.Parameters.AddWithValue("?", fechaStr);
             cmdAp.Parameters.AddWithValue("?", req.Folio);
             cmdAp.Parameters.AddWithValue("?", req.IdCliente);
             cmdAp.Parameters.AddWithValue("?", req.NombreCliente);
-            cmdAp.Parameters.AddWithValue("?", abono.ToString());
-            cmdAp.Parameters.AddWithValue("?", restante.ToString());
+            cmdAp.Parameters.AddWithValue("?", abonoGuardar.ToString());
+            cmdAp.Parameters.AddWithValue("?", restanteGuardar.ToString());
             await cmdAp.ExecuteNonQueryAsync();
         }
 
-        if (abono > 0)
+        string insertCorte = "INSERT INTO Corte (Concepto, Monto, FechaHora, Pago) VALUES (?, ?, ?, ?)";
+        using (var cmdCor = new OdbcCommand(insertCorte, con, trans))
         {
-            string insertCorte = "INSERT INTO Corte (Concepto, Monto, FechaHora, Pago) VALUES (?, ?, ?, ?)";
-            using var cmdCor = new OdbcCommand(insertCorte, con, trans);
             cmdCor.Parameters.AddWithValue("?", $"Abono del apartado con folio {req.Folio}");
-            cmdCor.Parameters.AddWithValue("?", abono.ToString());
+            cmdCor.Parameters.AddWithValue("?", abonoGuardar.ToString());
             cmdCor.Parameters.AddWithValue("?", fechaStr);
             cmdCor.Parameters.AddWithValue("?", req.MetodoPago);
             await cmdCor.ExecuteNonQueryAsync();

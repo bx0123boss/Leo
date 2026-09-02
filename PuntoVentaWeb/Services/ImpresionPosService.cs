@@ -1,13 +1,15 @@
 ﻿namespace PuntoVentaWeb.Services;
 
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using PuntoVentaWeb.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Odbc;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using PuntoVentaWeb.Models;
+
+using ProductoTicket = global::Producto;
 
 public class ImpresionPosService
 {
@@ -22,117 +24,153 @@ public class ImpresionPosService
         _accessConn = _config.GetConnectionString("Access") ?? @"Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=C:\Jaeger Soft\Jaeger.accdb;Pwd=75941232;";
     }
 
-    public async Task ImprimirTicketVentaAsync(VentaGuardarRequest req)
+    public Task ImprimirTicketVentaAsync(VentaGuardarRequest req)
     {
-        await Task.Run(() =>
+        try
         {
-            try
+            var config = CargarConfiguracionNegocio();
+
+            List<ProductoTicket> productosParaImprimir = new List<ProductoTicket>();
+            foreach (var item in req.Items)
             {
-                // 1. Cargar configuración de negocio desde Access
-                string lugar = "";
-                string impresora = "";
-                string logoPath = "";
-                string[] datosTicket = Array.Empty<string>();
-                string[] pieDeTicket = Array.Empty<string>();
-                bool conIva = false;
-
-                using (var conexion = new OdbcConnection(_accessConn))
+                productosParaImprimir.Add(new ProductoTicket
                 {
-                    conexion.Open();
-                    string query = "SELECT TOP 1 * FROM Configuracion WHERE Id = 1";
-                    using var cmd = new OdbcCommand(query, conexion);
-                    using var reader = cmd.ExecuteReader();
-                    if (reader.Read())
-                    {
-                        lugar = reader["Lugar"]?.ToString() ?? "";
-                        impresora = reader["Impresora"]?.ToString() ?? "";
-                        logoPath = reader["logoPath"]?.ToString() ?? "";
-                        conIva = reader["ConIva"] != DBNull.Value && Convert.ToBoolean(reader["ConIva"]);
+                    Nombre = item.Nombre,
+                    PrecioUnitario = Math.Round(item.Precio / 1.16, 2),
+                    Cantidad = item.Cantidad,
+                    Total = item.Subtotal,
+                    Comentario = item.Comentario ?? ""
+                });
+            }
 
+            Dictionary<string, double> totales = new Dictionary<string, double>();
+
+            if (req.Descuento > 0)
+            {
+                totales.Add("Descuento", req.Descuento);
+            }
+
+            if (config.ConIva)
+            {
+                totales.Add("Subtotal", Math.Round(req.Total / 1.16, 2));
+                totales.Add("IVA", Math.Round((req.Total / 1.16) * 0.16, 2));
+            }
+
+            totales.Add("Total", req.Total);
+
+            if (req.TipoVenta.Equals("CONTADO", StringComparison.OrdinalIgnoreCase))
+            {
+                totales.Add("Recibido", req.MontoRecibido > 0 ? req.MontoRecibido : req.Total);
+                totales.Add("Cambio", req.Cambio);
+            }
+            else if (req.TipoVenta.Equals("CREDITO", StringComparison.OrdinalIgnoreCase))
+            {
+                totales.Add("Abono", req.AbonoInicial);
+                totales.Add("Saldo Insoluto", req.Restante);
+            }
+            else if (req.TipoVenta.Equals("APARTADO", StringComparison.OrdinalIgnoreCase))
+            {
+                totales.Add("Abono", req.AbonoInicial);
+                totales.Add("Restante", req.Restante);
+            }
+
+                global::TicketPrinter ticket = new global::TicketPrinter(
+                    config.DatosTicket,
+                    config.PieDeTicket,
+                    config.LogoPath,
+                    productosParaImprimir,
+                    req.Folio,
+                    "",
+                    req.NombreCliente,
+                    req.Total,
+                    false,
+                    totales,
+                    req.MetodoPago
+                );
+
+                if (!string.IsNullOrWhiteSpace(config.Impresora))
+                {
+                    ticket.ImprimirTicket(config.Impresora);
+                }
+                else
+                {
+                    ticket.ImprimirTicket();
+                }
+            
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al procesar la impresión de la venta desde ImpresionPosService");
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private (string Lugar, string Impresora, string LogoPath, string[] DatosTicket, string[] PieDeTicket, bool ConIva, bool EsMediaCarta) CargarConfiguracionNegocio()
+    {
+        string lugar = "";
+        string impresora = "";
+        string logoPath = @"C:\Jaeger Soft\LOGO.png";
+        string[] datosTicket = Array.Empty<string>();
+        string[] pieDeTicket = Array.Empty<string>();
+        bool conIva = false;
+        bool esMediaCarta = false;
+
+        try
+        {
+            using (var conexion = new OdbcConnection(_accessConn))
+            {
+                conexion.Open();
+                string query = "SELECT TOP 1 * FROM Configuracion WHERE Id = 1";
+                using var cmd = new OdbcCommand(query, conexion);
+                using var reader = cmd.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    var schemaTable = reader.GetSchemaTable();
+                    var columnasDisponibles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    if (schemaTable != null)
+                    {
+                        foreach (DataRow row in schemaTable.Rows)
+                        {
+                            columnasDisponibles.Add(row["ColumnName"].ToString() ?? "");
+                        }
+                    }
+
+                    if (columnasDisponibles.Contains("Lugar"))
+                        lugar = reader["Lugar"]?.ToString() ?? "";
+
+                    if (columnasDisponibles.Contains("Impresora"))
+                        impresora = reader["Impresora"]?.ToString() ?? "";
+
+                    if (columnasDisponibles.Contains("logoPath") && !string.IsNullOrWhiteSpace(reader["logoPath"]?.ToString()))
+                        logoPath = reader["logoPath"].ToString();
+
+                    if (columnasDisponibles.Contains("ConIva") && reader["ConIva"] != DBNull.Value)
+                        conIva = Convert.ToBoolean(reader["ConIva"]);
+
+                    if (columnasDisponibles.Contains("MediaCarta") && reader["MediaCarta"] != DBNull.Value)
+                        esMediaCarta = Convert.ToBoolean(reader["MediaCarta"]);
+
+                    if (columnasDisponibles.Contains("DatosTicket"))
+                    {
                         string rawDatos = reader["DatosTicket"]?.ToString() ?? "";
                         datosTicket = rawDatos.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                    }
 
+                    if (columnasDisponibles.Contains("PieDeTicket"))
+                    {
                         string rawPie = reader["PieDeTicket"]?.ToString() ?? "";
                         pieDeTicket = rawPie.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                     }
                 }
-
-                // 2. Mapear productos al modelo Producto que espera TicketPrinter
-                List<global::Producto> productosTicket = new List<global::Producto>();
-                foreach (var item in req.Items)
-                {
-                    productosTicket.Add(new global::Producto
-                    {
-                        Nombre = item.Nombre,
-                        PrecioUnitario = item.Precio,
-                        Cantidad = item.Cantidad,
-                        Total = item.Subtotal,
-                        Comentario = item.Comentario
-                    });
-                }
-
-                // 3. Preparar el diccionario de totales
-                Dictionary<string, double> totales = new Dictionary<string, double>();
-                if (req.Descuento > 0)
-                {
-                    totales.Add("Descuento", req.Descuento);
-                }
-
-                if (conIva)
-                {
-                    totales.Add("Subtotal", Math.Round(req.Total / 1.16, 2));
-                    totales.Add("IVA", Math.Round((req.Total / 1.16) * 0.16, 2));
-                }
-
-                totales.Add("Total", req.Total);
-
-                string clienteImpresion = req.NombreCliente;
-                string metodoPagoImpresion = req.MetodoPago;
-
-                if (req.TipoVenta.Equals("CONTADO", StringComparison.OrdinalIgnoreCase))
-                {
-                    totales.Add("Recibido", req.MontoRecibido > 0 ? req.MontoRecibido : req.Total);
-                    totales.Add("Cambio", req.Cambio);
-                }
-                else if (req.TipoVenta.Equals("CREDITO", StringComparison.OrdinalIgnoreCase))
-                {
-                    totales.Add("Abono", req.AbonoInicial);
-                    totales.Add("Saldo Actual", req.Restante);
-                }
-                else if (req.TipoVenta.Equals("APARTADO", StringComparison.OrdinalIgnoreCase))
-                {
-                    totales.Add("Abono", req.AbonoInicial);
-                    totales.Add("Restante", req.Restante);
-                }
-
-                // 4. Instanciar e Imprimir con TicketPrinter
-                TicketPrinter ticketPrinter = new TicketPrinter(
-                    datosTicket,
-                    pieDeTicket,
-                    logoPath,
-                    productosTicket,
-                    req.Folio,
-                    "",
-                    clienteImpresion,
-                    req.Total,
-                    false,
-                    totales,
-                    metodoPagoImpresion
-                );
-
-                if (!string.IsNullOrWhiteSpace(impresora))
-                {
-                    ticketPrinter.ImprimirTicket(impresora);
-                }
-                else
-                {
-                    ticketPrinter.ImprimirTicket();
-                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al imprimir ticket con TicketPrinter");
-            }
-        });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error consultando la tabla Configuracion en Access");
+        }
+
+        return (lugar, impresora, logoPath, datosTicket, pieDeTicket, conIva, esMediaCarta);
     }
 }

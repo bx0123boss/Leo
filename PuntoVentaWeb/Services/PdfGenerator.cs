@@ -3,10 +3,8 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using PuntoVentaWeb.Models;
 using Microsoft.Extensions.Configuration; // Necesario para leer appsettings
-using System.Data.SqlClient; // O Microsoft.Data.SqlClient
-using System;
-using System.Collections.Generic;
-using System.IO;
+using Microsoft.Data.SqlClient;
+using Color = QuestPDF.Infrastructure.Color;
 
 namespace PuntoVentaWeb.Services;
 

@@ -54,6 +54,8 @@ public class VentaGuardarRequest
     public double AbonoInicial { get; set; }
     public double Restante { get; set; }
     public string Observaciones { get; set; } = "";
+    public string DatosCotizacion { get; set; } = "";
+    public string FolioCotizacion { get; set; } = "";
     public string Usuario { get; set; } = "Admin";
     public string IdUsuario { get; set; } = "1";
     public List<ItemCarritoVenta> Items { get; set; } = new();

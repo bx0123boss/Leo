@@ -2,8 +2,10 @@
 @page "/ventas/{ModoInicial}"
 @using PuntoVentaWeb.Models
 @using PuntoVentaWeb.Services
+@inject CotizacionService _cotizacionService
 @inject VentaService VentaService
 @inject ImpresionPosService ImpresionService
+@inject HttpClient Http
 @inject IJSRuntime JS
 @inject NavigationManager Nav
 
@@ -31,15 +33,15 @@
                     }
 
                     <span class="fw-bold text-dark small bg-light px-2 py-1 rounded border">
-                        Folio: <span class="text-primary">@folioActual</span>
+                        Estado: <span class="text-success">NUEVA VENTA</span>
                     </span>
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
-                    <div class="input-group input-group-sm" style="max-width: 220px;">
-                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control" placeholder="Buscar producto..." 
-                               @bind="textoBusqueda" @bind:event="oninput" @onkeyup="FiltrarProductos" />
+                    <div class="input-group input-group-sm" style="max-width: 260px;">
+                        <span class="input-group-text bg-white"><i class="bi bi-qr-code-scan"></i></span>
+                        <input type="text" class="form-control fw-bold" placeholder="Escanear o buscar código..."
+                               @bind="textoBusqueda" @bind:event="oninput" @onkeydown="ProcesarBusquedaOEscaneo" autofocus />
                         @if (!string.IsNullOrEmpty(textoBusqueda))
                         {
                             <button class="btn btn-outline-secondary" @onclick="LimpiarBusqueda"><i class="bi bi-x"></i></button>
@@ -97,7 +99,7 @@
         </div>
     </div>
 
-    @* --- GRID DE PRODUCTOS --- *@
+    @* --- GRID DE PRODUCTOS OPTIMIZADO --- *@
     <div class="products-container p-3">
         @if (cargando)
         {
@@ -122,7 +124,7 @@
                     var cantEnCarrito = carrito.Where(x => x.ProductoId == prod.Id).Sum(x => x.Cantidad);
                     <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                         <div class="card product-card h-100 border-0 shadow-sm position-relative"
-                             @onclick="() => AbrirModalCantidad(prod)">
+                             @onclick="() => AgregarProductoConBascula(prod)">
 
                             @if (cantEnCarrito > 0)
                             {
@@ -146,9 +148,6 @@
                                     <h6 class="card-title text-dark fw-bold mb-1 small text-truncate-2" title="@prod.Nombre">
                                         @prod.Nombre
                                     </h6>
-                                    <span class="badge bg-light text-muted border mb-1" style="font-size: 0.7rem;">
-                                        Stock: @prod.Existencia.ToString("0.##")
-                                    </span>
                                 </div>
                                 <div class="price-tag fw-bold text-primary fs-5 mt-auto pt-1">
                                     $@prod.Precio.ToString("N2")
@@ -185,6 +184,7 @@
             </button>
         </div>
     </div>
+
     @* --- DRAWER LATERAL DEL CARRITO --- *@
     @if (mostrarCarrito)
     {
@@ -260,67 +260,6 @@
         </div>
     }
 
-    @* --- MODAL DE AGREGAR / EDITAR CANTIDAD TÁCTIL --- *@
-    @if (mostrarModalCantidad && productoSeleccionado != null)
-    {
-        <div class="modal-backdrop fade show"></div>
-        <div class="modal fade show d-block" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow-lg">
-                    <div class="modal-header bg-dark text-white">
-                        <h5 class="modal-title fw-bold">@productoSeleccionado.Nombre</h5>
-                        <button type="button" class="btn-close btn-close-white" @onclick="() => mostrarModalCantidad = false"></button>
-                    </div>
-
-                    <div class="modal-body text-center p-4">
-                        <div class="text-success fw-bold fs-3 mb-3">
-                            Precio: $@productoSeleccionado.Precio.ToString("N2")
-                        </div>
-
-                        <div class="d-flex justify-content-center align-items-center gap-3 mb-4">
-                            <button class="btn btn-outline-secondary rounded-circle shadow-sm" style="width: 60px; height: 60px;"
-                                    @onclick="() => { if (cantidadTemporal > 1) cantidadTemporal--; }">
-                                <i class="bi bi-dash fs-2"></i>
-                            </button>
-
-                            <input type="number" class="form-control text-center fw-bold fs-2 shadow-sm"
-                                   style="width: 110px;" min="1" step="any" @bind="cantidadTemporal" />
-
-                            <button class="btn btn-outline-secondary rounded-circle shadow-sm" style="width: 60px; height: 60px;"
-                                    @onclick="() => cantidadTemporal++">
-                                <i class="bi bi-plus fs-2"></i>
-                            </button>
-                        </div>
-
-                        <div class="d-flex justify-content-center gap-2 mb-3">
-                            @foreach (var n in new[] { 1, 2, 3, 5, 10 })
-                            {
-                                <button class="btn btn-sm btn-outline-primary fw-bold px-3 py-2 rounded-3"
-                                        @onclick="() => cantidadTemporal = n">
-                                    @n
-                                </button>
-                            }
-                        </div>
-
-                        <div class="text-start mb-2">
-                            <label class="form-label small fw-bold text-muted">Comentario / Nota para este artículo:</label>
-                            <input type="text" class="form-control" placeholder="Ej. Detalle o especificación..." @bind="comentarioTemporal" />
-                        </div>
-                    </div>
-
-                    <div class="modal-footer bg-light p-3 d-flex justify-content-between align-items-center">
-                        <div class="fs-5 fw-bold text-dark">
-                            Subtotal: <span class="text-success">$@((productoSeleccionado.Precio * cantidadTemporal).ToString("N2"))</span>
-                        </div>
-                        <button type="button" class="btn btn-primary px-4 py-2 fw-bold" @onclick="ConfirmarAgregarAlCarrito">
-                            <i class="bi bi-cart-plus me-1"></i> Agregar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
     @* --- MODAL BUSCAR CLIENTE --- *@
     @if (mostrarModalClientes)
     {
@@ -357,7 +296,7 @@
                                     <div>
                                         <h6 class="mb-1 fw-bold text-dark">@cl.Nombre</h6>
                                         <div class="small text-muted">
-                                            <i class="bi bi-telephone me-1"></i>@(string.IsNullOrEmpty(cl.Telefono) ? "Sin tel" : cl.Telefono) | 
+                                            <i class="bi bi-telephone me-1"></i>@(string.IsNullOrEmpty(cl.Telefono) ? "Sin tel" : cl.Telefono) |
                                             <i class="bi bi-geo-alt me-1"></i>@(string.IsNullOrEmpty(cl.Direccion) ? "Sin dirección" : cl.Direccion)
                                         </div>
                                     </div>
@@ -545,14 +484,14 @@
         padding-bottom: 4px;
     }
 
-    .categories-scroll::-webkit-scrollbar {
-        height: 5px;
-    }
+        .categories-scroll::-webkit-scrollbar {
+            height: 5px;
+        }
 
-    .categories-scroll::-webkit-scrollbar-thumb {
-        background: #ced4da;
-        border-radius: 4px;
-    }
+        .categories-scroll::-webkit-scrollbar-thumb {
+            background: #ced4da;
+            border-radius: 4px;
+        }
 
     .btn-category {
         border: none;
@@ -565,10 +504,10 @@
         flex-shrink: 0;
     }
 
-    .btn-category:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
+        .btn-category:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
 
     .cat-selected {
         outline: 3px solid #000000;
@@ -582,14 +521,14 @@
         background: #ffffff;
     }
 
-    .product-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.12) !important;
-    }
+        .product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.12) !important;
+        }
 
-    .product-card:active {
-        transform: scale(0.97);
-    }
+        .product-card:active {
+            transform: scale(0.97);
+        }
 
     .text-truncate-2 {
         display: -webkit-box;
@@ -634,11 +573,9 @@
     public string? ModoInicial { get; set; }
 
     private string modoVenta = "CONTADO";
-    private string folioActual = "1";
     private bool cargando = true;
     private bool guardandoVenta = false;
     private bool mostrarCarrito = false;
-    private bool mostrarModalCantidad = false;
     private bool mostrarModalClientes = false;
     private bool mostrarModalCobro = false;
 
@@ -654,10 +591,6 @@
     private List<ClienteVentaDto> listaClientes = new();
     private List<ClienteVentaDto> listaClientesFiltrados = new();
 
-    private ProductoVenta? productoSeleccionado;
-    private double cantidadTemporal = 1;
-    private string comentarioTemporal = "";
-
     private ClienteVentaDto? clienteSeleccionado;
     private double descuentoGlobal = 0;
     private string metodoPagoSeleccionado = "Efectivo";
@@ -667,7 +600,7 @@
     private double SubtotalCalculado => carrito.Sum(x => x.Subtotal);
     private double TotalCalculado => Math.Max(0, SubtotalCalculado - descuentoGlobal);
     private double CambioCalculado => Math.Max(0, montoRecibido - TotalCalculado);
-
+    bool Bascula = false;
     private string TituloModo => modoVenta switch
     {
         "CREDITO" => "Venta a Crédito",
@@ -707,7 +640,8 @@
                 _ => "CONTADO"
             };
         }
-
+        var configNegocio = await _cotizacionService.ObtenerConfiguracion();
+        Bascula = configNegocio.Bascula;
         await CargarDatosIniciales();
     }
 
@@ -719,7 +653,6 @@
             categorias = await VentaService.ObtenerCategoriasAsync();
             todosProductos = await VentaService.ObtenerProductosAsync();
             productosFiltrados = todosProductos;
-            folioActual = await VentaService.ObtenerFolioAsync(modoVenta);
         }
         catch (Exception ex)
         {
@@ -731,10 +664,119 @@
         }
     }
 
+    private async Task ProcesarBusquedaOEscaneo(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            if (string.IsNullOrWhiteSpace(textoBusqueda)) return;
+
+            string input = textoBusqueda.Trim();
+
+            if (input.StartsWith("PRE:", StringComparison.OrdinalIgnoreCase))
+            {
+                await ProcesarPreventaQR(input);
+                textoBusqueda = "";
+                return;
+            }
+
+            var productoEncontrado = todosProductos.FirstOrDefault(p => p.Id.Equals(input, StringComparison.OrdinalIgnoreCase));
+            if (productoEncontrado != null)
+            {
+                await AgregarProductoConBascula(productoEncontrado);
+                textoBusqueda = "";
+            }
+            else
+            {
+                FiltrarProductos();
+            }
+        }
+        else
+        {
+            FiltrarProductos();
+        }
+    }
+
+    private async Task ProcesarPreventaQR(string cadenaQR)
+    {
+        try
+        {
+            string datos = cadenaQR.Substring(4);
+            string[] items = datos.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var item in items)
+            {
+                string[] partes = item.Split(':');
+                if (partes.Length == 2)
+                {
+                    string idProd = partes[0];
+                    if (double.TryParse(partes[1], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double cant))
+                    {
+                        var prod = await VentaService.BuscarProductoPorIdAsync(idProd);
+                        if (prod != null)
+                        {
+                            AgregarDirectoAlCarrito(prod, cant);
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error al procesar QR de preventa: {ex.Message}");
+        }
+    }
+
+    private async Task<double> ObtenerPesoBasculaLocalAsync()
+    {
+        if (!Bascula)
+        { return 1; } // Si la bascula está deshabilitada, retornamos 1 como cantidad por defecto
+        try
+        {
+            var res = await Http.GetStringAsync("http://localhost:8080/peso/");
+            if (!string.IsNullOrEmpty(res) && res != "ERROR")
+            {
+                if (double.TryParse(res, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double peso))
+                {
+                    return peso > 0 ? peso : 1;
+                }
+            }
+        }
+        catch { }
+        return 1;
+    }
+
+    private async Task AgregarProductoConBascula(ProductoVenta prod)
+    {
+        double pesoBasc = await ObtenerPesoBasculaLocalAsync();
+        AgregarDirectoAlCarrito(prod, pesoBasc);
+    }
+
+    private void AgregarDirectoAlCarrito(ProductoVenta prod, double cantidad)
+    {
+        var existente = carrito.FirstOrDefault(x => x.ProductoId == prod.Id && string.IsNullOrEmpty(x.Comentario));
+        if (existente != null)
+        {
+            existente.Cantidad += cantidad;
+        }
+        else
+        {
+            carrito.Add(new ItemCarritoVenta
+            {
+                ProductoId = prod.Id,
+                Nombre = prod.Nombre,
+                Precio = prod.Precio,
+                Cantidad = cantidad,
+                Costo = prod.CostoTotal,
+                Categoria = prod.Categoria,
+                Existencia = prod.Existencia,
+                Iva = prod.Iva
+            });
+        }
+    }
+
     private async Task CambiarModo(string nuevoModo)
     {
         modoVenta = nuevoModo;
-        folioActual = await VentaService.ObtenerFolioAsync(modoVenta);
 
         if (modoVenta != "CONTADO" && clienteSeleccionado == null)
         {
@@ -756,7 +798,7 @@
 
         if (!string.IsNullOrWhiteSpace(categoriaSeleccionadaNombre))
         {
-            lista = lista.Where(x => 
+            lista = lista.Where(x =>
                 x.Categoria.Equals(categoriaSeleccionadaNombre, StringComparison.OrdinalIgnoreCase) ||
                 (categoriaSeleccionadaId > 0 && x.IdCategoria == categoriaSeleccionadaId));
         }
@@ -774,43 +816,6 @@
     {
         textoBusqueda = "";
         FiltrarProductos();
-    }
-
-    private void AbrirModalCantidad(ProductoVenta prod)
-    {
-        productoSeleccionado = prod;
-        cantidadTemporal = 1;
-        comentarioTemporal = "";
-        mostrarModalCantidad = true;
-    }
-
-    private void ConfirmarAgregarAlCarrito()
-    {
-        if (productoSeleccionado == null || cantidadTemporal <= 0) return;
-
-        var existente = carrito.FirstOrDefault(x => x.ProductoId == productoSeleccionado.Id && x.Comentario == comentarioTemporal);
-        if (existente != null)
-        {
-            existente.Cantidad += cantidadTemporal;
-        }
-        else
-        {
-            carrito.Add(new ItemCarritoVenta
-            {
-                ProductoId = productoSeleccionado.Id,
-                Nombre = productoSeleccionado.Nombre,
-                Precio = productoSeleccionado.Precio,
-                Cantidad = cantidadTemporal,
-                Costo = productoSeleccionado.CostoTotal,
-                Comentario = comentarioTemporal,
-                Categoria = productoSeleccionado.Categoria,
-                Existencia = productoSeleccionado.Existencia,
-                Iva = productoSeleccionado.Iva
-            });
-        }
-
-        mostrarModalCantidad = false;
-        productoSeleccionado = null;
     }
 
     private void ModificarCantidadCarrito(ItemCarritoVenta item, double delta)
@@ -848,7 +853,7 @@
         }
         else
         {
-            listaClientesFiltrados = listaClientes.Where(c => 
+            listaClientesFiltrados = listaClientes.Where(c =>
                 c.Nombre.Contains(busquedaCliente, StringComparison.OrdinalIgnoreCase) ||
                 c.Telefono.Contains(busquedaCliente, StringComparison.OrdinalIgnoreCase)).ToList();
         }
@@ -903,7 +908,7 @@
             var req = new VentaGuardarRequest
             {
                 TipoVenta = modoVenta,
-                Folio = folioActual,
+                Folio = "", // Dejamos vacío: se asigna e incrementa en la transacción de Access
                 IdCliente = clienteSeleccionado?.Id ?? "0",
                 NombreCliente = clienteSeleccionado?.Nombre ?? "PUBLICO EN GENERAL",
                 DireccionCliente = clienteSeleccionado?.Direccion ?? "",
@@ -916,6 +921,8 @@
                 Cambio = CambioCalculado,
                 AbonoInicial = abonoInicial,
                 Restante = TotalCalculado - abonoInicial,
+                IdUsuario= "1",
+                Usuario=  "cajero 1",
                 Items = new List<ItemCarritoVenta>(carrito)
             };
 
@@ -924,7 +931,6 @@
             {
                 req.Folio = resultado.FolioFinal;
 
-                // Impresión física de Ticket con TicketPrinter
                 try
                 {
                     await ImpresionService.ImprimirTicketVentaAsync(req);
@@ -940,7 +946,6 @@
                 descuentoGlobal = 0;
                 if (modoVenta == "CONTADO") clienteSeleccionado = null;
                 mostrarModalCobro = false;
-                folioActual = await VentaService.ObtenerFolioAsync(modoVenta);
                 todosProductos = await VentaService.ObtenerProductosAsync();
                 FiltrarProductos();
             }
