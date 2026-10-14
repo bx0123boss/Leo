@@ -3,6 +3,7 @@ using iTextSharp.text.pdf;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text;
@@ -26,6 +27,8 @@ namespace JaegerSoft
             this.KeyPreview = true;
 
             this.KeyDown += FrmBase_KeyDown;
+            this.Load += FrmBase_Load;
+            this.FormClosing += FrmBase_FormClosing;
         }
 
         protected virtual void FrmBase_KeyDown(object sender, KeyEventArgs e)
@@ -33,6 +36,15 @@ namespace JaegerSoft
             if (e.KeyCode == Keys.Escape)
             {
                 this.Close();
+            }
+        }
+
+        private void FrmBase_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Si la opción está habilitada, cerramos el teclado al cerrar el Form
+            if (Conexion.AbrirTeclado)
+            {
+                CerrarTeclado();
             }
         }
         /// <summary>
@@ -650,5 +662,85 @@ namespace JaegerSoft
                 cmb.DropDownWidth = newWidth;
             }
         }
+        private void FrmBase_Load(object sender, EventArgs e)
+        {
+            if (!this.DesignMode)
+            {
+                RegistrarEventosTecladoTouch(this);
+            }
+        }
+        /// <summary>
+        /// Recorre recursivamente todos los controles del Formulario y registra
+        /// el evento GotFocus/Click en los TextBox para abrir el teclado virtual.
+        /// </summary>
+        private void RegistrarEventosTecladoTouch(Control parentControl)
+        {
+            foreach (Control ctrl in parentControl.Controls)
+            {
+                if (ctrl is TextBox txt)
+                {
+                    // Desuscribimos primero para evitar eventos duplicados
+                    txt.GotFocus -= TextBox_GotFocus_AbrirTeclado;
+                    txt.GotFocus += TextBox_GotFocus_AbrirTeclado;
+                }
+
+                // Recorrido recursivo para controles contenedores (Panels, GroupBoxes, TabControls, etc.)
+                if (ctrl.HasChildren)
+                {
+                    RegistrarEventosTecladoTouch(ctrl);
+                }
+            }
+        }
+
+        private void TextBox_GotFocus_AbrirTeclado(object sender, EventArgs e)
+        {
+            if (Conexion.AbrirTeclado)
+            {
+                AbrirTeclado();
+            }
+        }
+
+        /// <summary>
+        /// Abre el ejecutable FreeVK solo si no se encuentra en ejecución actualmente.
+        /// </summary>
+        private void AbrirTeclado()
+        {
+            string RutaTeclado = @"C:\Jaeger Soft\FreeVK.exe";
+            try
+            {
+                if (File.Exists(RutaTeclado))
+                {
+                    // Verifica si el proceso YA está corriendo para evitar abrir múltiples instancias
+                    if (Process.GetProcessesByName("FreeVK").Length == 0)
+                    {
+                        Process.Start(RutaTeclado);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al abrir el teclado: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Cierra todas las instancias abiertas del teclado virtual FreeVK.
+        /// </summary>
+        public void CerrarTeclado()
+        {
+            try
+            {
+                foreach (var proceso in Process.GetProcessesByName("FreeVK"))
+                {
+                    proceso.Kill();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al cerrar el teclado: " + ex.Message);
+            }
+        }
     }
+
+
 }

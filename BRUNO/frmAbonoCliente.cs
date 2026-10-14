@@ -13,13 +13,9 @@ using System.Globalization;
 
 namespace JaegerSoft
 {
-    public partial class frmAbonoCliente : Form
+    public partial class frmAbonoCliente : frmBase
     {
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-
-        // OleDbConnection conectar = new OleDbConnection(
-        //     @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-
         OleDbCommand cmd;
 
         public string folio = "";
@@ -43,6 +39,11 @@ namespace JaegerSoft
                 txtAdeudo.Text = saldo.ToString();
             else
                 txtAdeudo.Text = adeudo.ToString();
+            EstilizarTextBox(txtAdeudo);
+            EstilizarTextBox(txtAbono);
+            EstilizarTextBox(txtRestante);
+            EstilizarComboBox(cmbPago);
+            EstilizarBotonPrimario(button1);
         }
 
         // ============================================================

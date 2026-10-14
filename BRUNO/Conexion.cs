@@ -28,7 +28,8 @@ namespace JaegerSoft
         public static string Whatsapp;
         public static bool Bascula;
         public static bool PuntoB;
-        
+        public static bool AbrirTeclado { get; internal set; } = false;
+
         public static void CargarConfiguracion(int id)
         {
             using (var conexion = new OleDbConnection(CadCon))
@@ -56,6 +57,7 @@ namespace JaegerSoft
                             Whatsapp = reader["Whatsapp"].ToString();
                             Bascula = Convert.ToBoolean(reader["Bascula"].ToString());
                             PuntoB = Convert.ToBoolean(reader["PuntoB"].ToString());
+                            AbrirTeclado = Convert.ToBoolean(reader["AbrirTeclado"].ToString());
                         }
                     }
                 }

@@ -157,6 +157,7 @@ namespace JaegerSoft
                 frmPrincipal menu = new frmPrincipal();
                 menu.usuario = Sesion.NombreUsuario; 
                 menu.Show();
+                CerrarTeclado();
                 this.Hide();
             }
             else

@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace JaegerSoft
 {
-    public partial class frmAbonoApartado : Form
+    public partial class frmAbonoApartado : frmBase
     {
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);             
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
@@ -28,6 +28,11 @@ namespace JaegerSoft
         {
             cmbPago.SelectedIndex = 0; 
             conectar.Open();
+            EstilizarTextBox(txtAbono);
+            EstilizarTextBox(txtAdeudo);
+            EstilizarTextBox(txtRestante);
+            EstilizarComboBox(cmbPago);
+            EstilizarBotonPrimario(button1);
         }
 
         private void txtAbono_Layout(object sender, LayoutEventArgs e)
@@ -38,16 +43,25 @@ namespace JaegerSoft
 
         private void txtAbono_Leave(object sender, EventArgs e)
         {
-            if ((Convert.ToDouble(txtAdeudo.Text) - Convert.ToDouble(txtAbono.Text)) < 0)
+            try
+            {
+                if ((Convert.ToDouble(txtAdeudo.Text) - Convert.ToDouble(txtAbono.Text)) < 0)
+                {
+                    MessageBox.Show("Ingrese una cantidad valida", "ALTO", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    txtAbono.Clear();
+                    txtAbono.Focus();
+                }
+                else
+                {
+                    txtRestante.Text = "" + (Convert.ToDouble(txtAdeudo.Text) - Convert.ToDouble(txtAbono.Text));
+                    abonado = abonado + Convert.ToDouble(txtAbono.Text);
+                }
+            }
+            catch (Exception ex)
             {
                 MessageBox.Show("Ingrese una cantidad valida", "ALTO", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 txtAbono.Clear();
                 txtAbono.Focus();
-            }
-            else
-            {
-                txtRestante.Text = "" + (Convert.ToDouble(txtAdeudo.Text) - Convert.ToDouble(txtAbono.Text));
-                abonado = abonado + Convert.ToDouble(txtAbono.Text);
             }
         }
 

@@ -2,13 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.OleDb;
+using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data.OleDb;
-using System.Globalization;
 
 namespace JaegerSoft
 {
@@ -17,7 +19,7 @@ namespace JaegerSoft
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
         OleDbCommand cmd;
-
+        private string rutaImagenSeleccionada = "";
         // Custom fields for new database columns
         private System.Windows.Forms.Label lblStockMaximo;
         private System.Windows.Forms.TextBox txtStockMaximo;
@@ -113,8 +115,8 @@ namespace JaegerSoft
             this.groupBox1.Controls.Add(this.chkManejaInventario);
 
             // Adjust layout of parent container
-            this.groupBox1.Height = 500;
-            this.button1.Location = new System.Drawing.Point(245, 450);
+            this.groupBox1.Height = 530;
+            this.button1.Location = new System.Drawing.Point(245, 481);
         }
 
         private void txtStockMaximo_KeyPress(object sender, KeyPressEventArgs e)
@@ -170,7 +172,8 @@ namespace JaegerSoft
             {
                 e.Handled = true;
             }
-        }        private void txtID_Leave(object sender, EventArgs e)
+        }
+        private void txtID_Leave(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtID.Text)) return;
 
@@ -239,6 +242,26 @@ namespace JaegerSoft
             //cmbCategoria.SelectedIndex = 0;
             comboBox1.SelectedIndex = 0;
             LlenarProveedores();
+            AbrirTeclado();
+        }
+        private void AbrirTeclado()
+        {
+            string RutaTeclado = @"C:\Jaeger Soft\FreeVK.exe";
+            try
+            {
+                if (File.Exists(RutaTeclado))
+                {
+                    // Verifica si el proceso YA está corriendo para evitar abrir múltiples instancias
+                    if (Process.GetProcessesByName("FreeVK").Length == 0)
+                    {
+                        Process.Start(RutaTeclado);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al abrir el teclado: " + ex.Message);
+            }
         }
 
         private void LlenarProveedores()
@@ -333,26 +356,35 @@ namespace JaegerSoft
                     return;
                 }
 
-                string sql = "insert into [" + lblOrigen.Text + "] (Id, Nombre, PrecioVentaMayoreo, PrecioVenta, Existencia, Limite, Categoria, Especial, IVA, Unidad, Uni, ProveedorPrincipal, StockMaximo, DiasReposicion, ManejaInventario) " +
-                             "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+                string sql = "insert into [" + lblOrigen.Text + "] " +
+               "(Id, Nombre, PrecioVentaMayoreo, PrecioVenta, Existencia, Limite, Categoria, " +
+               " Especial, IVA, Unidad, Uni, ProveedorPrincipal, StockMaximo, DiasReposicion, " +
+               " ManejaInventario, EsInsumo, EsReceta, ImagenUrl) " +
+               "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
                 using (OleDbCommand cmdInsert = new OleDbCommand(sql, conectar))
                 {
                     cmdInsert.Parameters.AddWithValue("?", txtID.Text);
                     cmdInsert.Parameters.AddWithValue("?", txtProducto.Text);
-                    cmdInsert.Parameters.AddWithValue("?", ParseDecimal(txtCompra.Text)); // PrecioVentaMayoreo
-                    cmdInsert.Parameters.AddWithValue("?", ParseDecimal(txtVenta.Text));  // PrecioVenta
-                    cmdInsert.Parameters.AddWithValue("?", ParseDouble(txtCantidad.Text)); // Existencia
-                    cmdInsert.Parameters.AddWithValue("?", ParseInt(txtLimite.Text));      // Limite (Stock Minimo)
+                    cmdInsert.Parameters.AddWithValue("?", ParseDecimal(txtCompra.Text));
+                    cmdInsert.Parameters.AddWithValue("?", ParseDecimal(txtVenta.Text));
+                    cmdInsert.Parameters.AddWithValue("?", ParseDouble(txtCantidad.Text));
+                    cmdInsert.Parameters.AddWithValue("?", ParseInt(txtLimite.Text));
                     cmdInsert.Parameters.AddWithValue("?", cmbCategoria.Text);
-                    cmdInsert.Parameters.AddWithValue("?", ParseDouble(txtEspecial.Text)); // Especial (Precio Compra)
-                    cmdInsert.Parameters.AddWithValue("?", comboBox1.Text);               // IVA (Impuesto)
+                    cmdInsert.Parameters.AddWithValue("?", ParseDouble(txtEspecial.Text));
+                    cmdInsert.Parameters.AddWithValue("?", comboBox1.Text);
                     cmdInsert.Parameters.AddWithValue("?", cmbUnidad.SelectedValue != null ? cmbUnidad.SelectedValue.ToString() : "");
                     cmdInsert.Parameters.AddWithValue("?", cmbUnidad.Text);
-                    cmdInsert.Parameters.AddWithValue("?", cmbProveedor.Text);            // ProveedorPrincipal
-                    cmdInsert.Parameters.AddWithValue("?", ParseDouble(txtStockMaximo.Text)); // StockMaximo
-                    cmdInsert.Parameters.AddWithValue("?", ParseInt(txtDiasReposicion.Text)); // DiasReposicion
-                    cmdInsert.Parameters.AddWithValue("?", chkManejaInventario.Checked);      // ManejaInventario
+                    cmdInsert.Parameters.AddWithValue("?", cmbProveedor.Text);
+                    cmdInsert.Parameters.AddWithValue("?", ParseDouble(txtStockMaximo.Text));
+                    cmdInsert.Parameters.AddWithValue("?", ParseInt(txtDiasReposicion.Text));
+                    cmdInsert.Parameters.AddWithValue("?", chkManejaInventario.Checked);
+                    cmdInsert.Parameters.AddWithValue("?", ckbInsumo.Checked);
+                    cmdInsert.Parameters.AddWithValue("?", ckbReceta.Checked);
+
+                    // Guardamos la imagen (o null si no se seleccionó)
+                    string imagenUrl = GuardarImagenProducto(txtID.Text);
+                    cmdInsert.Parameters.AddWithValue("?", (object)imagenUrl ?? DBNull.Value);
 
                     cmdInsert.ExecuteNonQuery();
                 }
@@ -440,6 +472,68 @@ namespace JaegerSoft
                 e.Handled = false;
             else
                 e.Handled = true;
+        }
+        private void btnSeleccionarImagen_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Title = "Seleccionar imagen";
+                ofd.Filter = "Archivos de imagen|*.jpg;*.jpeg;*.png;*.bmp";
+
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    rutaImagenSeleccionada = ofd.FileName;
+                    try
+                    {
+                        // Liberamos la imagen anterior para no bloquear el archivo
+                        if (picProducto.Image != null)
+                        {
+                            picProducto.Image.Dispose();
+                            picProducto.Image = null;
+                        }
+                        picProducto.Image = Image.FromFile(rutaImagenSeleccionada);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.ToString());
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Copia la imagen seleccionada a la carpeta destino y devuelve la ruta relativa.
+        /// </summary>
+        private string GuardarImagenProducto(string idProducto)
+        {
+            if (string.IsNullOrWhiteSpace(rutaImagenSeleccionada))
+                return null;
+
+            string carpetaDestino = @"C:\Jaeger Soft\ModuloWeb\wwwroot\images\productos";
+
+            if (!Directory.Exists(carpetaDestino))
+                Directory.CreateDirectory(carpetaDestino);
+
+            string extension = Path.GetExtension(rutaImagenSeleccionada);
+            string nombreArchivo = idProducto + extension;
+            string destino = Path.Combine(carpetaDestino, nombreArchivo);
+
+            try
+            {
+                File.Copy(rutaImagenSeleccionada, destino, true);
+            }
+            catch (IOException)
+            {
+                // El archivo puede estar en uso; forzamos sobrescritura
+                if (picProducto.Image != null)
+                {
+                    picProducto.Image.Dispose();
+                    picProducto.Image = null;
+                }
+                File.Copy(rutaImagenSeleccionada, destino, true);
+            }
+
+            return $"images/productos/{nombreArchivo}";
         }
     }
 }

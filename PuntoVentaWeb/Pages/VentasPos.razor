@@ -8,256 +8,248 @@
 @inject HttpClient Http
 @inject IJSRuntime JS
 @inject NavigationManager Nav
+@implements IAsyncDisposable
 
-<div class="pos-container">
-    @* --- HEADER FIJO --- *@
-    <div class="sticky-header-group">
-        <div class="header-bar">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                <div class="d-flex align-items-center flex-wrap gap-2">
-                    <span class="badge rounded-pill @BadgeColorModo px-3 py-2 fs-6 shadow-sm">
-                        <i class="@IconoModo me-1"></i> @TituloModo
-                    </span>
+<div class="pos-layout">
+    @* ================= SECCIÓN IZQUIERDA: CATÁLOGO Y PRODUCTOS ================= *@
+    <div class="pos-catalog">
+        @* Barra Superior de Control y Búsqueda *@
+        <div class="pos-header-bar p-2 px-3 bg-white border-bottom d-flex align-items-center justify-content-between gap-2">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="badge @BadgeColorModo px-3 py-2 fs-6 shadow-sm">
+                    <i class="@IconoModo me-1"></i> @TituloModo
+                </span>
 
-                    <button class="btn btn-sm btn-outline-primary fw-bold bg-white shadow-sm rounded-pill px-3"
-                            @onclick="AbrirModalCliente">
-                        <i class="bi bi-person-fill text-primary me-1"></i>
-                        @(clienteSeleccionado != null ? clienteSeleccionado.Nombre : (modoVenta == "CONTADO" ? "Público en General" : "Seleccionar Cliente *"))
-                    </button>
-
-                    @if (clienteSeleccionado != null && modoVenta == "CREDITO")
-                    {
-                        <span class="badge bg-warning text-dark border">
-                            Adeudo: $@clienteSeleccionado.Adeudo.ToString("N2") | Límite: $@clienteSeleccionado.Limite.ToString("N2")
-                        </span>
-                    }
-
-                    <span class="fw-bold text-dark small bg-light px-2 py-1 rounded border">
-                        Estado: <span class="text-success">NUEVA VENTA</span>
-                    </span>
-                </div>
-
-                <div class="d-flex align-items-center gap-2">
-                    <div class="input-group input-group-sm" style="max-width: 260px;">
-                        <span class="input-group-text bg-white"><i class="bi bi-qr-code-scan"></i></span>
-                        <input type="text" class="form-control fw-bold" placeholder="Escanear o buscar código..."
-                               @bind="textoBusqueda" @bind:event="oninput" @onkeydown="ProcesarBusquedaOEscaneo" autofocus />
-                        @if (!string.IsNullOrEmpty(textoBusqueda))
-                        {
-                            <button class="btn btn-outline-secondary" @onclick="LimpiarBusqueda"><i class="bi bi-x"></i></button>
-                        }
-                    </div>
-
-                    <button class="btn btn-primary position-relative shadow-sm rounded-pill px-3" @onclick="ToggleCarrito">
-                        <i class="bi bi-cart3 fs-5 me-1"></i>
-                        <span class="fw-bold d-none d-md-inline">Carrito</span>
-                        @if (carrito.Count > 0)
-                        {
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow">
-                                @carrito.Sum(x => x.Cantidad)
-                            </span>
-                        }
-                    </button>
-                </div>
+                <button class="btn btn-sm btn-outline-primary fw-bold bg-white shadow-sm rounded-pill px-3"
+                        @onclick="AbrirModalCliente">
+                    <i class="bi bi-person-fill text-primary me-1"></i>
+                    @(clienteSeleccionado != null ? clienteSeleccionado.Nombre : (modoVenta == "CONTADO" ? "Público en General" : "Seleccionar Cliente *"))
+                </button>
             </div>
 
-            <div class="modalidad-selector d-flex gap-1 bg-light p-1 rounded-3 border">
-                <button class="btn btn-sm flex-fill fw-bold @(modoVenta == "CONTADO" ? "btn-primary shadow-sm" : "btn-light text-muted")"
-                        @onclick='() => CambiarModo("CONTADO")'>
-                    <i class="bi bi-cash-stack me-1"></i> Venta Normal (Contado)
-                </button>
-                <button class="btn btn-sm flex-fill fw-bold @(modoVenta == "CREDITO" ? "btn-warning text-dark shadow-sm" : "btn-light text-muted")"
-                        @onclick='() => CambiarModo("CREDITO")'>
-                    <i class="bi bi-credit-card-2-front-fill me-1"></i> A Crédito
-                </button>
-                <button class="btn btn-sm flex-fill fw-bold @(modoVenta == "APARTADO" ? "btn-info text-white shadow-sm" : "btn-light text-muted")"
-                        @onclick='() => CambiarModo("APARTADO")'>
-                    <i class="bi bi-bookmark-star-fill me-1"></i> Apartado
+            <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end" style="max-width: 420px;">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control bg-light border-start-0 fw-bold"
+                           placeholder="Escanear o buscar..."
+                           @bind="textoBusqueda" @bind:event="oninput" @bind:after="OnBusquedaChanged"
+                           @onkeydown="ProcesarBusquedaOEscaneo" autofocus />
+                    @if (!string.IsNullOrEmpty(textoBusqueda))
+                    {
+                        <button class="btn btn-outline-secondary border" @onclick="LimpiarBusqueda" title="Limpiar">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    }
+                </div>
+
+                @* BOTÓN SOLO VISIBLE EN MÓVIL/TABLET PARA ABRIR CARRITO *@
+                <button class="btn btn-primary btn-sm position-relative shadow-sm rounded-pill px-3 d-lg-none flex-shrink-0"
+                        @onclick="ToggleCarrito">
+                    <i class="bi bi-cart3 fs-6 me-1"></i>
+                    <span class="d-none d-sm-inline">@TotalCalculado.ToString("N2")</span>
+                    @if (carrito.Count > 0)
+                    {
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow">
+                            @carrito.Sum(x => x.Cantidad).ToString("0.##")
+                        </span>
+                    }
                 </button>
             </div>
         </div>
 
-        <div class="categories-wrapper border-top border-bottom py-2 bg-white">
-            <div class="categories-scroll d-flex gap-2 px-2">
-                <button class="btn-category @(string.IsNullOrEmpty(categoriaSeleccionadaNombre) ? "cat-selected" : "cat-normal")"
+        @* Barra de Selector de Modalidad *@
+        <div class="pos-mode-bar px-3 py-2 bg-light border-bottom d-flex gap-2">
+            <button class="btn btn-sm flex-fill fw-bold @(modoVenta == "CONTADO" ? "btn-primary shadow-sm" : "btn-outline-secondary bg-white")"
+                    @onclick='() => CambiarModo("CONTADO")'>
+                <i class="bi bi-cash-stack me-1"></i> Contado
+            </button>
+            <button class="btn btn-sm flex-fill fw-bold @(modoVenta == "CREDITO" ? "btn-warning text-dark shadow-sm" : "btn-outline-secondary bg-white")"
+                    @onclick='() => CambiarModo("CREDITO")'>
+                <i class="bi bi-credit-card-2-front-fill me-1"></i> Crédito
+            </button>
+            <button class="btn btn-sm flex-fill fw-bold @(modoVenta == "APARTADO" ? "btn-info text-white shadow-sm" : "btn-outline-secondary bg-white")"
+                    @onclick='() => CambiarModo("APARTADO")'>
+                <i class="bi bi-bookmark-star-fill me-1"></i> Apartado
+            </button>
+        </div>
+
+        @* Categorías *@
+        <div class="pos-categories-bar bg-white border-bottom px-2 py-2 position-relative d-flex align-items-center">
+            <button type="button" class="btn btn-scroll-arrow me-2 flex-shrink-0" @onclick='() => ScrollCategorias(-300)' title="Desplazar izquierda">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+
+            <div class="categories-two-rows overflow-auto flex-grow-1 no-scrollbar py-1"
+                 @ref="categoriesContainer"
+                 @onwheel="OnCategoriasWheel">
+
+                <button type="button" class="btn-category @(string.IsNullOrEmpty(categoriaSeleccionadaNombre) ? "cat-selected" : "cat-normal")"
                         style="background-color: #343a40; color: #ffffff;"
                         @onclick='() => SeleccionarCategoria("")'>
                     <i class="bi bi-grid-fill me-1"></i> TODOS
                 </button>
+
                 @foreach (var cat in categorias)
                 {
                     bool isSelected = categoriaSeleccionadaNombre == cat.Nombre || categoriaSeleccionadaId == cat.Id;
                     string estilo = $"background-color: #{cat.Color}; color: {cat.Letra};";
                     string claseExtra = isSelected ? "cat-selected" : "cat-normal";
 
-                    <button class="btn-category @claseExtra shadow-sm" style="@estilo"
+                    <button type="button" class="btn-category @claseExtra shadow-sm" style="@estilo"
                             @onclick="() => SeleccionarCategoria(cat.Nombre, cat.Id)">
                         @cat.Nombre
                     </button>
                 }
             </div>
+
+            <button type="button" class="btn btn-scroll-arrow ms-2 flex-shrink-0" @onclick='() => ScrollCategorias(300)' title="Desplazar derecha">
+                <i class="bi bi-chevron-right"></i>
+            </button>
         </div>
-    </div>
 
-    @* --- GRID DE PRODUCTOS OPTIMIZADO --- *@
-    <div class="products-container p-3">
-        @if (cargando)
-        {
-            <div class="text-center py-5">
-                <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2 text-muted fw-semibold">Cargando catálogo...</p>
-            </div>
-        }
-        else if (productosFiltrados.Count == 0)
-        {
-            <div class="text-center py-5 text-muted">
-                <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
-                <h5>No se encontraron productos</h5>
-                <p class="small">Prueba seleccionando otra categoría o limpiando la búsqueda.</p>
-            </div>
-        }
-        else
-        {
-            <div class="row g-2 g-md-3">
-                @foreach (var prod in productosFiltrados)
-                {
-                    var cantEnCarrito = carrito.Where(x => x.ProductoId == prod.Id).Sum(x => x.Cantidad);
-                    <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                        <div class="card product-card h-100 border-0 shadow-sm position-relative"
-                             @onclick="() => AgregarProductoConBascula(prod)">
+        @* Grilla de Productos *@
+        <div class="pos-products-grid p-3">
+            @if (cargando)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted fw-semibold">Cargando catálogo...</p>
+                </div>
+            }
+            else if (productosFiltrados.Count == 0)
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
+                    <h5>No se encontraron productos</h5>
+                </div>
+            }
+            else
+            {
+                <div class="row g-2">
+                    @foreach (var prod in productosFiltrados)
+                    {
+                        var cantEnCarrito = carrito.Where(x => x.ProductoId == prod.Id).Sum(x => x.Cantidad);
+                        var animando = _productoAnimandoId == prod.Id;
 
-                            @if (cantEnCarrito > 0)
-                            {
-                                <span class="position-absolute top-0 end-0 badge rounded-pill bg-success m-2 p-2 shadow fs-6">
-                                    @cantEnCarrito.ToString("0.##")
-                                </span>
-                            }
+                        <div class="col-6 col-sm-4 col-md-3 col-xl-2">
+                            <div class="card product-card h-100 border-0 shadow-sm position-relative p-2 @(animando ? "animate-add" : "")"
+                                 @onclick="() => AgregarProductoConBascula(prod)">
 
-                            <div class="card-body p-2 d-flex flex-column text-center justify-content-between">
-                                <div class="img-placeholder rounded-3 mb-2 p-2 bg-light d-flex align-items-center justify-content-center" style="height: 90px;">
-                                    @if (!string.IsNullOrEmpty(prod.ImagenUrl))
-                                    {
-                                        <img src="@prod.ImagenUrl" alt="@prod.Nombre" class="img-fluid rounded-3" style="max-height: 80px; object-fit: cover;" />
-                                    }
-                                    else
-                                    {
-                                        <span class="fs-1">📦</span>
-                                    }
-                                </div>
-                                <div>
-                                    <h6 class="card-title text-dark fw-bold mb-1 small text-truncate-2" title="@prod.Nombre">
-                                        @prod.Nombre
-                                    </h6>
-                                </div>
-                                <div class="price-tag fw-bold text-primary fs-5 mt-auto pt-1">
-                                    $@prod.Precio.ToString("N2")
+                                @if (cantEnCarrito > 0)
+                                {
+                                    <span class="position-absolute top-0 end-0 badge rounded-pill bg-success m-2 p-1 shadow fs-7">
+                                        @cantEnCarrito.ToString("0.##")
+                                    </span>
+                                }
+
+                                <div class="card-body p-1 d-flex flex-column text-center justify-content-between">
+                                    <div class="img-placeholder rounded-3 mb-2 p-1 bg-light d-flex align-items-center justify-content-center" style="height: 75px;">
+                                        @if (!string.IsNullOrEmpty(prod.ImagenUrl))
+                                        {
+                                            <img src="/@prod.ImagenUrl" alt="@prod.Nombre" class="img-fluid rounded-3" style="max-height: 70px; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <span class="fs-2">📦</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <h6 class="card-title text-dark fw-bold mb-1 extra-small text-truncate-2" title="@prod.Nombre">
+                                            @prod.Nombre
+                                        </h6>
+                                    </div>
+                                    <div class="price-tag fw-bold text-primary fs-6 mt-auto pt-1">
+                                        $@prod.Precio.ToString("N2")
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                }
-            </div>
-        }
+                    }
+                </div>
+            }
+        </div>
     </div>
 
-    @* --- BARRA TOTAL INFERIOR --- *@
-    <div class="bottom-bar bg-white border-top shadow-lg p-2 px-3 d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-3">
-            <div class="total-block">
-                <span class="total-label text-muted small d-block">Total (@carrito.Sum(x => x.Cantidad) arts):</span>
-                <span class="total-amount fs-3 fw-bold text-success">$@TotalCalculado.ToString("N2")</span>
+    @* ================= SECCIÓN DERECHA: CHECKOUT / CARRITO VISIBLE ================= *@
+    <div class="pos-checkout bg-white border-start d-flex flex-column @(mostrarCarrito ? "mobile-show" : "")">
+        <div class="checkout-header p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
+            <h6 class="m-0 fw-bold text-dark">
+                <i class="bi bi-cart3 me-2"></i>Detalle de Venta
+            </h6>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary rounded-pill fs-6">@carrito.Sum(x => x.Cantidad).ToString("0.##") arts</span>
+                <button class="btn btn-sm btn-outline-danger d-none d-lg-inline-flex"
+                        @onclick="VaciarCarrito"
+                        disabled="@(carrito.Count == 0)"
+                        title="Vaciar carrito (Ctrl+Supr)">
+                    <i class="bi bi-trash3"></i>
+                </button>
+                <button class="btn-close d-lg-none" @onclick="ToggleCarrito"></button>
             </div>
-            @if (descuentoGlobal > 0)
+        </div>
+
+        @* Items del Carrito *@
+        <div class="checkout-items flex-grow-1 p-3 overflow-auto">
+            @if (carrito.Count == 0)
             {
-                <span class="badge bg-danger">Desc: -$@descuentoGlobal.ToString("N2")</span>
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-cart-x fs-1 d-block mb-2"></i>
+                    <span>El carrito está vacío.</span>
+                </div>
+            }
+            @foreach (var item in carrito)
+            {
+                <div class="cart-item card mb-2 p-2 border shadow-sm">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="pe-2">
+                            <div class="fw-bold text-dark small">@item.Nombre</div>
+                            <div class="text-muted extra-small">
+                                $@item.Precio.ToString("N2") x @item.Cantidad.ToString("0.##")
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-primary fs-6 mb-1">$@item.Subtotal.ToString("N2")</div>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary btn-sm px-2 py-0" @onclick="() => ModificarCantidadCarrito(item, -1)">-</button>
+                                <button class="btn btn-outline-secondary btn-sm px-2 py-0" @onclick="() => ModificarCantidadCarrito(item, 1)">+</button>
+                                <button class="btn btn-outline-danger btn-sm px-2 py-0" @onclick="() => EliminarDelCarrito(item)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
         </div>
 
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary d-md-none" @onclick="ToggleCarrito">
-                <i class="bi bi-cart3"></i> Ver Lista
-            </button>
-            <button class="btn btn-success btn-lg px-4 fw-bold shadow"
-                    disabled="@(carrito.Count == 0)"
-                    @onclick="AbrirModalCobro">
+        @* Totales y Botón de Cobro *@
+        <div class="checkout-footer p-3 border-top bg-light">
+            <div class="d-flex justify-content-between small text-muted mb-1">
+                <span>Subtotal:</span>
+                <span>$@SubtotalCalculado.ToString("N2")</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="small fw-semibold">Descuento ($):</span>
+                <input type="number" class="form-control form-control-sm text-end" style="max-width: 100px;"
+                       min="0" step="1" @bind="descuentoGlobal" @bind:after="OnDescuentoChanged" />
+            </div>
+            <div class="d-flex justify-content-between align-items-center border-top pt-2 mb-3">
+                <span class="fw-bold fs-5 text-dark">Total:</span>
+                <span class="fw-bold fs-3 text-success">$@TotalCalculado.ToString("N2")</span>
+            </div>
+
+            <button class="btn btn-success w-100 py-3 fw-bold fs-5 shadow"
+                    disabled="@(carrito.Count == 0 || guardandoVenta)"
+                    @onclick="AbrirModalCobro"
+                    title="Cobrar (F2)">
                 <i class="bi bi-check2-circle me-1"></i> Cobrar / Finalizar
             </button>
         </div>
     </div>
 
-    @* --- DRAWER LATERAL DEL CARRITO --- *@
     @if (mostrarCarrito)
     {
-        <div class="cart-overlay" @onclick="ToggleCarrito">
-            <div class="cart-panel shadow-lg" @onclick:stopPropagation="true">
-                <div class="cart-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
-                    <h5 class="m-0 fw-bold"><i class="bi bi-cart-check me-2"></i>Detalle de Venta</h5>
-                    <button class="btn-close btn-close-white" @onclick="ToggleCarrito"></button>
-                </div>
-
-                <div class="cart-body p-3 overflow-auto flex-grow-1" style="max-height: calc(100vh - 220px);">
-                    @if (carrito.Count == 0)
-                    {
-                        <div class="text-center text-muted py-5">
-                            <i class="bi bi-cart-x fs-1 d-block mb-2"></i>
-                            El carrito está vacío.
-                        </div>
-                    }
-                    @foreach (var item in carrito)
-                    {
-                        <div class="cart-item card mb-2 p-2 border shadow-sm">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="pe-2">
-                                    <div class="fw-bold text-dark">@item.Nombre</div>
-                                    <div class="text-muted small">
-                                        $@item.Precio.ToString("N2") x @item.Cantidad.ToString("0.##")
-                                    </div>
-                                    @if (!string.IsNullOrWhiteSpace(item.Comentario))
-                                    {
-                                        <div class="small text-info fst-italic">
-                                            <i class="bi bi-chat-dots me-1"></i>@item.Comentario
-                                        </div>
-                                    }
-                                </div>
-                                <div class="text-end">
-                                    <div class="fw-bold text-primary fs-6 mb-1">$@item.Subtotal.ToString("N2")</div>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-secondary" @onclick="() => ModificarCantidadCarrito(item, -1)">-</button>
-                                        <button class="btn btn-outline-secondary" @onclick="() => ModificarCantidadCarrito(item, 1)">+</button>
-                                        <button class="btn btn-outline-danger" @onclick="() => EliminarDelCarrito(item)">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-
-                <div class="cart-footer p-3 bg-light border-top">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="fw-semibold">Subtotal:</span>
-                        <span>$@SubtotalCalculado.ToString("N2")</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="fw-semibold">Descuento:</span>
-                        <div class="input-group input-group-sm" style="max-width: 120px;">
-                            <span class="input-group-text">$</span>
-                            <input type="number" class="form-control text-end" min="0" step="1" @bind="descuentoGlobal" />
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between fs-4 fw-bold text-success border-top pt-2 mb-3">
-                        <span>Total:</span>
-                        <span>$@TotalCalculado.ToString("N2")</span>
-                    </div>
-                    <button class="btn btn-success w-100 py-2 fw-bold shadow"
-                            disabled="@(carrito.Count == 0)"
-                            @onclick="AbrirModalCobro">
-                        Proceder al Cobro
-                    </button>
-                </div>
-            </div>
-        </div>
+        <div class="cart-backdrop d-lg-none" @onclick="ToggleCarrito"></div>
     }
 
     @* --- MODAL BUSCAR CLIENTE --- *@
@@ -276,7 +268,7 @@
                         <div class="input-group mb-3">
                             <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
                             <input type="text" class="form-control" placeholder="Buscar por nombre o teléfono..."
-                                   @bind="busquedaCliente" @bind:event="oninput" @onkeyup="FiltrarClientes" />
+                                   @bind="busquedaCliente" @bind:event="oninput" @bind:after="FiltrarClientes" />
                         </div>
 
                         @if (modoVenta == "CONTADO")
@@ -315,258 +307,210 @@
 
     @* --- MODAL DE COBRO / FINALIZACIÓN --- *@
     @if (mostrarModalCobro)
-    {
-        <div class="modal-backdrop fade show"></div>
-        <div class="modal fade show d-block" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered modal-md">
-                <div class="modal-content border-0 shadow-lg">
-                    <div class="modal-header @HeaderColorCobro text-white">
-                        <h5 class="modal-title fw-bold">
-                            <i class="@IconoModo me-2"></i> Finalizar Venta: @TituloModo
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" @onclick="() => mostrarModalCobro = false"></button>
-                    </div>
+        {
+            <div class="modal-backdrop fade show"></div>
+            <div class="modal fade show d-block" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header @HeaderColorCobro text-white">
+                            <h5 class="modal-title fw-bold">
+                                <i class="@IconoModo me-2"></i> Finalizar Venta: @TituloModo
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" @onclick="() => mostrarModalCobro = false"></button>
+                        </div>
 
-                    <div class="modal-body p-4">
-                        <div class="bg-light p-3 rounded-3 mb-3 border">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Cliente:</span>
-                                <span class="fw-bold">@(clienteSeleccionado != null ? clienteSeleccionado.Nombre : "Público en General")</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Total a Pagar:</span>
-                                <span class="fw-bold fs-4 text-success">$@TotalCalculado.ToString("N2")</span>
+                        <div class="modal-body p-3">
+                            <div class="row g-3">
+                                @* ================= COLUMNA IZQUIERDA: DETALLE Y MÉTODOS DE PAGO ================= *@
+                                <div class="col-12 col-lg-7">
+                                    <div class="bg-light p-3 rounded-3 mb-3 border">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="text-muted">Cliente:</span>
+                                            <span class="fw-bold">@(clienteSeleccionado != null ? clienteSeleccionado.Nombre : "Público en General")</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="text-muted">Total a Pagar:</span>
+                                            <span class="fw-bold fs-3 text-success">$@TotalCalculado.ToString("N2")</span>
+                                        </div>
+                                    </div>
+
+                                    @if (modoVenta == "CONTADO")
+                                    {
+                                        <div class="form-check form-switch mb-3 p-2 bg-light rounded border ps-5">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="chkMixto"
+                                                   checked="@esPagoMixto" @onchange="TogglePagoMixto">
+                                            <label class="form-check-label fw-bold text-dark" for="chkMixto">
+                                                <i class="bi bi-wallet2 me-1"></i> Habilitar Pago Mixto / Múltiples Métodos
+                                            </label>
+                                        </div>
+
+                                        @if (!esPagoMixto)
+                                        {
+                                            @* PAGO SIMPLE *@
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Método de Pago Principal:</label>
+                                                <select class="form-select form-select-lg fw-semibold" @bind="metodoPagoSeleccionado">
+                                                    <option value="Efectivo">💵 Efectivo</option>
+                                                    <option value="Tarjeta">💳 Tarjeta (Crédito / Débito)</option>
+                                                    <option value="Transferencia">📲 Transferencia</option>
+                                                    <option value="Cheque">📜 Cheque</option>
+                                                </select>
+                                            </div>
+
+                                            @if (metodoPagoSeleccionado == "Efectivo")
+                                            {
+                                                <div class="mb-2">
+                                                    <label class="form-label fw-bold">Monto Recibido:</label>
+                                                    <div class="input-group input-group-lg">
+                                                        <span class="input-group-text">$</span>
+                                                        <input type="text" class="form-control fs-3 fw-bold text-success" readonly
+                                                               value="@textoCapturaNumpad" />
+                                                        <button class="btn btn-outline-danger" type="button" @onclick="LimpiarNumpad" title="Borrar entrada">
+                                                            <i class="bi bi-backspace-fill"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="mt-3 p-3 rounded border d-flex justify-content-between align-items-center
+                                                                            @(MontoRecibidoNumpad >= TotalCalculado ? "bg-success-subtle border-success" : "bg-warning-subtle border-warning")">
+                                                        <span class="fw-bold fs-5">Cambio:</span>
+                                                        <span class="fw-bold fs-3 @(MontoRecibidoNumpad >= TotalCalculado ? "text-success" : "text-danger")">
+                                                            $@CambioCalculadoNumpad.ToString("N2")
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            @* PAGO MIXTO *@
+                                            <div class="border rounded p-3 bg-white mb-2 shadow-sm">
+                                                <div class="row g-2 mb-2">
+                                                    <div class="col-6">
+                                                        <label class="form-label extra-small fw-bold m-0">MÉTODO</label>
+                                                        <select class="form-select form-select-sm fw-semibold" @bind="metodoPagoAgregando">
+                                                            <option value="Efectivo">💵 Efectivo</option>
+                                                            <option value="Tarjeta">💳 Tarjeta</option>
+                                                            <option value="Transferencia">📲 Transferencia</option>
+                                                            <option value="Cheque">📜 Cheque</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label class="form-label extra-small fw-bold m-0">MONTO A AGREGAR</label>
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text">$</span>
+                                                            <input type="text" class="form-control fw-bold bg-light" readonly value="@textoCapturaNumpad" />
+                                                            <button class="btn btn-primary fw-bold px-3" type="button" @onclick="AgregarPagoMixto">
+                                                                <i class="bi bi-plus-lg me-1"></i> Agregar
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                @* TABLA DE PAGOS AGREGADOS *@
+                                                <div class="table-responsive my-2" style="max-height: 140px;">
+                                                    <table class="table table-sm table-bordered align-middle m-0">
+                                                        <thead class="table-light extra-small text-uppercase">
+                                                            <tr>
+                                                                <th>Método</th>
+                                                                <th class="text-end">Monto</th>
+                                                                <th class="text-center" style="width: 40px;"></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="small">
+                                                            @if (pagosRealizados.Count == 0)
+                                                            {
+                                                                <tr>
+                                                                    <td colspan="3" class="text-center text-muted py-2">Sin pagos agregados</td>
+                                                                </tr>
+                                                            }
+                                                            @foreach (var p in pagosRealizados)
+                                                            {
+                                                                <tr>
+                                                                    <td class="fw-semibold">@p.Key</td>
+                                                                    <td class="text-end fw-bold text-primary">$@p.Value.ToString("N2")</td>
+                                                                    <td class="text-center">
+                                                                        <button class="btn btn-outline-danger btn-sm p-0 px-1 border-0" @onclick="() => EliminarPagoMixto(p.Key)">
+                                                                            <i class="bi bi-x-circle-fill"></i>
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                                    <button class="btn btn-sm btn-link text-danger p-0 text-decoration-none" @onclick="LimpiarPagosMixtos" disabled="@(pagosRealizados.Count == 0)">
+                                                        <i class="bi bi-trash"></i> Limpiar pagos
+                                                    </button>
+                                                    <div class="text-end">
+                                                        <div class="small">Restante: <span class="fw-bold text-danger">$@RestanteMixto.ToString("N2")</span></div>
+                                                        <div class="small">Cambio: <span class="fw-bold text-success">$@CambioMixto.ToString("N2")</span></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+
+                                @* ================= COLUMNA DERECHA: BOTONERA TÁCTIL Y NUMPAD ================= *@
+                                <div class="col-12 col-lg-5 border-start ps-lg-3">
+                                    <h6 class="fw-bold mb-2 text-muted"><i class="bi bi-calculator me-1"></i> Teclado Táctil</h6>
+
+                                    @* Botonera Rápida de Billetes (Mismo flpBilletes de WinForms) *@
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-4"><button type="button" class="btn btn-outline-secondary w-100 py-2 fw-bold" @onclick='() => PresionarBillete(50)'>$50</button></div>
+                                        <div class="col-4"><button type="button" class="btn btn-outline-secondary w-100 py-2 fw-bold" @onclick='() => PresionarBillete(100)'>$100</button></div>
+                                        <div class="col-4"><button type="button" class="btn btn-outline-secondary w-100 py-2 fw-bold" @onclick='() => PresionarBillete(200)'>$200</button></div>
+                                        <div class="col-4"><button type="button" class="btn btn-outline-secondary w-100 py-2 fw-bold" @onclick='() => PresionarBillete(500)'>$500</button></div>
+                                        <div class="col-4"><button type="button" class="btn btn-outline-secondary w-100 py-2 fw-bold" @onclick='() => PresionarBillete(1000)'>$1000</button></div>
+                                        <div class="col-4"><button type="button" class="btn btn-success-subtle text-success border-success w-100 py-2 fw-bold" @onclick="PresionarPagoExacto">EXACTO</button></div>
+                                    </div>
+
+                                    @* Teclado Numérico (Numpad) *@
+                                    <div class="row g-2 text-center">
+                                        <div class="col-4"><button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold shadow-sm" @onclick='() => PresionarNumpad("7")'>7</button></div>
+                                        <div class="col-4"><button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold shadow-sm" @onclick='() => PresionarNumpad("8")'>8</button></div>
+                                        <div class="col-4"><button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold shadow-sm" @onclick='() => PresionarNumpad("9")'>9</button></div>
+
+                                        <div class="col-4"><button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold shadow-sm" @onclick='() => PresionarNumpad("4")'>4</button></div>
+                                        <div class="col-4"><button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold shadow-sm" @onclick='() => PresionarNumpad("5")'>5</button></div>
+                                        <div class="col-4"><button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold shadow-sm" @onclick='() => PresionarNumpad("6")'>6</button></div>
+
+                                        <div class="col-4"><button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold shadow-sm" @onclick='() => PresionarNumpad("1")'>1</button></div>
+                                        <div class="col-4"><button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold shadow-sm" @onclick='() => PresionarNumpad("2")'>2</button></div>
+                                        <div class="col-4"><button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold shadow-sm" @onclick='() => PresionarNumpad("3")'>3</button></div>
+
+                                        <div class="col-4"><button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold shadow-sm" @onclick='() => PresionarNumpad("0")'>0</button></div>
+                                        <div class="col-4"><button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold shadow-sm" @onclick='() => PresionarNumpad(".")'>.</button></div>
+                                        <div class="col-4"><button type="button" class="btn btn-warning border w-100 py-3 fs-4 fw-bold shadow-sm" @onclick="BorrarUltimoNumpad"><i class="bi bi-backspace"></i></button></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        @if (modoVenta == "CONTADO")
-                        {
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Método de Pago Principal:</label>
-                                <select class="form-select form-select-lg fw-semibold" @bind="metodoPagoSeleccionado">
-                                    <option value="Efectivo">💵 Efectivo</option>
-                                    <option value="Tarjeta">💳 Tarjeta (Crédito / Débito)</option>
-                                    <option value="Transferencia">📲 Transferencia</option>
-                                    <option value="Cheque">📜 Cheque</option>
-                                </select>
-                            </div>
-
-                            @if (metodoPagoSeleccionado == "Efectivo")
-                            {
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Monto Recibido:</label>
-                                    <div class="input-group input-group-lg">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" class="form-control fs-3 fw-bold text-success"
-                                               step="any" @bind="montoRecibido" @bind:event="oninput" />
-                                    </div>
-                                    <div class="d-flex gap-2 mt-2">
-                                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => montoRecibido = TotalCalculado">Exacto</button>
-                                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => montoRecibido = 100">$100</button>
-                                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => montoRecibido = 200">$200</button>
-                                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => montoRecibido = 500">$500</button>
-                                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => montoRecibido = 1000">$1000</button>
-                                    </div>
-
-                                    <div class="mt-3 p-2 rounded bg-light border d-flex justify-content-between align-items-center">
-                                        <span class="fw-bold fs-5">Cambio:</span>
-                                        <span class="fw-bold fs-4 @(CambioCalculado >= 0 ? "text-primary" : "text-danger")">
-                                            $@CambioCalculado.ToString("N2")
-                                        </span>
-                                    </div>
-                                </div>
-                            }
-                        }
-                        else if (modoVenta == "CREDITO")
-                        {
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Enganche / Abono Inicial (Opcional):</label>
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control fs-3 fw-bold" step="any" @bind="abonoInicial" />
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Método de Pago del Abono:</label>
-                                <select class="form-select" @bind="metodoPagoSeleccionado">
-                                    <option value="Efectivo">Efectivo</option>
-                                    <option value="Tarjeta">Tarjeta</option>
-                                    <option value="Transferencia">Transferencia</option>
-                                </select>
-                            </div>
-                            <div class="p-3 bg-light rounded border">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span>Saldo que se cargará al crédito:</span>
-                                    <span class="fw-bold text-danger">$@((TotalCalculado - abonoInicial).ToString("N2"))</span>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>Nuevo Adeudo Total:</span>
-                                    <span class="fw-bold">$@(((clienteSeleccionado?.Adeudo ?? 0) + (TotalCalculado - abonoInicial)).ToString("N2"))</span>
-                                </div>
-                            </div>
-                        }
-                        else if (modoVenta == "APARTADO")
-                        {
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Monto de Anticipo / Abono Inicial:</label>
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control fs-3 fw-bold text-success" step="any" @bind="abonoInicial" />
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Método de Pago del Anticipo:</label>
-                                <select class="form-select" @bind="metodoPagoSeleccionado">
-                                    <option value="Efectivo">Efectivo</option>
-                                    <option value="Tarjeta">Tarjeta</option>
-                                    <option value="Transferencia">Transferencia</option>
-                                </select>
-                            </div>
-                            <div class="p-3 bg-light rounded border d-flex justify-content-between align-items-center">
-                                <span class="fw-bold">Restante por Liquidar:</span>
-                                <span class="fw-bold fs-4 text-danger">$@((TotalCalculado - abonoInicial).ToString("N2"))</span>
-                            </div>
-                        }
-                    </div>
-
-                    <div class="modal-footer bg-light p-3">
-                        <button type="button" class="btn btn-secondary" @onclick="() => mostrarModalCobro = false">Cancelar</button>
-                        <button type="button" class="btn btn-success px-4 py-2 fw-bold shadow"
-                                disabled="@guardandoVenta"
-                                @onclick="ProcesarCobroFinal">
-                            @if (guardandoVenta)
-                            {
-                                <span class="spinner-border spinner-border-sm me-1"></span>
-                                <span>Guardando...</span>
-                            }
-                            else
-                            {
-                                <i class="bi bi-check-circle-fill me-1"></i>
-                                <span>Confirmar e Imprimir</span>
-                            }
-                        </button>
+                        <div class="modal-footer bg-light p-3 d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary px-4 py-2" @onclick="() => mostrarModalCobro = false">Cancelar</button>
+                            <button type="button" class="btn btn-success px-5 py-2 fw-bold fs-5 shadow"
+                                    disabled="@guardandoVenta"
+                                    @onclick="ProcesarCobroFinal">
+                                @if (guardandoVenta)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                    <span>Guardando...</span>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                    <span>ACEPTAR E IMPRIMIR</span>
+                                }
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    }
+        }
 </div>
 
-<style>
-    .pos-container {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        background-color: #f8f9fa;
-        padding-bottom: 90px;
-    }
-
-    .sticky-header-group {
-        position: sticky;
-        top: 0;
-        z-index: 1020;
-        background: #ffffff;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-
-    .header-bar {
-        padding: 10px 16px;
-    }
-
-    .categories-wrapper {
-        overflow: hidden;
-    }
-
-    .categories-scroll {
-        overflow-x: auto;
-        white-space: nowrap;
-        scrollbar-width: thin;
-        padding-bottom: 4px;
-    }
-
-        .categories-scroll::-webkit-scrollbar {
-            height: 5px;
-        }
-
-        .categories-scroll::-webkit-scrollbar-thumb {
-            background: #ced4da;
-            border-radius: 4px;
-        }
-
-    .btn-category {
-        border: none;
-        border-radius: 20px;
-        padding: 8px 18px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s ease-in-out;
-        flex-shrink: 0;
-    }
-
-        .btn-category:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
-    .cat-selected {
-        outline: 3px solid #000000;
-        transform: scale(1.05);
-    }
-
-    .product-card {
-        cursor: pointer;
-        border-radius: 12px;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-        background: #ffffff;
-    }
-
-        .product-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.12) !important;
-        }
-
-        .product-card:active {
-            transform: scale(0.97);
-        }
-
-    .text-truncate-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        min-height: 2.4em;
-    }
-
-    .bottom-bar {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 1030;
-    }
-
-    .cart-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0,0,0,0.5);
-        z-index: 1050;
-        display: flex;
-        justify-content: flex-end;
-    }
-
-    .cart-panel {
-        width: 100%;
-        max-width: 420px;
-        height: 100%;
-        background: #ffffff;
-        display: flex;
-        flex-direction: column;
-    }
-</style>
 
 @code {
     [Parameter]
@@ -578,6 +522,7 @@
     private bool mostrarCarrito = false;
     private bool mostrarModalClientes = false;
     private bool mostrarModalCobro = false;
+    private ElementReference categoriesContainer;
 
     private int categoriaSeleccionadaId = 0;
     private string categoriaSeleccionadaNombre = "";
@@ -596,11 +541,109 @@
     private string metodoPagoSeleccionado = "Efectivo";
     private double montoRecibido = 0;
     private double abonoInicial = 0;
+    bool Bascula = false;
+
+    // Control de doble clic
+    private bool _procesandoProducto = false;
+    private string? _productoAnimandoId = null;
+
+    // Debounce de búsqueda
+    private System.Timers.Timer? _debounceBusqueda;
 
     private double SubtotalCalculado => carrito.Sum(x => x.Subtotal);
     private double TotalCalculado => Math.Max(0, SubtotalCalculado - descuentoGlobal);
     private double CambioCalculado => Math.Max(0, montoRecibido - TotalCalculado);
-    bool Bascula = false;
+
+    // --- VARIABLES PAGO MIXTO ---
+    private bool esPagoMixto = false;
+    private string metodoPagoAgregando = "Efectivo";
+    private double montoMetodoAgregando = 0;
+    private Dictionary<string, double> pagosRealizados = new();
+
+    private double SumaPagosMixtos => pagosRealizados.Sum(x => x.Value);
+    private double RestanteMixto => Math.Max(0, TotalCalculado - SumaPagosMixtos);
+    private double CambioMixto => Math.Max(0, SumaPagosMixtos - TotalCalculado);
+
+    private string textoCapturaNumpad = "0";
+
+    private double MontoRecibidoNumpad => double.TryParse(textoCapturaNumpad, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double val) ? val : 0;
+    private double CambioCalculadoNumpad => Math.Max(0, MontoRecibidoNumpad - TotalCalculado);
+  
+
+    private void BorrarUltimoNumpad()
+    {
+        if (textoCapturaNumpad.Length > 1)
+        {
+            textoCapturaNumpad = textoCapturaNumpad.Substring(0, textoCapturaNumpad.Length - 1);
+        }
+        else
+        {
+            textoCapturaNumpad = "0";
+        }
+
+        ActualizarMontosDesdeNumpad();
+    }
+
+    private void LimpiarNumpad()
+    {
+        textoCapturaNumpad = "0";
+        ActualizarMontosDesdeNumpad();
+    }
+
+    private void PresionarBillete(double valorBillete)
+    {
+        double actual = MontoRecibidoNumpad;
+        textoCapturaNumpad = (actual + valorBillete).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+        ActualizarMontosDesdeNumpad();
+    }
+
+    private void PresionarPagoExacto()
+    {
+        if (esPagoMixto)
+        {
+            montoMetodoAgregando = RestanteMixto;
+            textoCapturaNumpad = RestanteMixto.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+            montoRecibido = TotalCalculado;
+        }
+    }
+
+    private void ActualizarMontosDesdeNumpad()
+    {
+        double val = MontoRecibidoNumpad;
+        montoRecibido = val;
+        montoMetodoAgregando = val;
+    }
+
+    // Actualización en AbrirModalCobro para inicializar el Numpad
+    private async Task AbrirModalCobro()
+    {
+        if (carrito.Count == 0) return;
+
+        if (modoVenta != "CONTADO" && clienteSeleccionado == null)
+        {
+            await MostrarToast($"Para {TituloModo} es obligatorio seleccionar un cliente.", "warning");
+            await AbrirModalCliente();
+            return;
+        }
+
+        montoRecibido = TotalCalculado;
+        textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+        montoMetodoAgregando = TotalCalculado;
+        abonoInicial = modoVenta == "APARTADO" ? Math.Round(TotalCalculado * 0.20, 2) : 0;
+        mostrarCarrito = false;
+        mostrarModalCobro = true;
+    }
+
+    private void LimpiarPagosMixtos()
+    {
+        pagosRealizados.Clear();
+        montoMetodoAgregando = TotalCalculado;
+    }
+
     private string TituloModo => modoVenta switch
     {
         "CREDITO" => "Venta a Crédito",
@@ -645,6 +688,115 @@
         await CargarDatosIniciales();
     }
 
+    private async Task OnDescuentoChanged()
+    {
+        if (descuentoGlobal < 0) descuentoGlobal = 0;
+        if (descuentoGlobal > SubtotalCalculado) descuentoGlobal = SubtotalCalculado;
+
+        await PersistirCarrito();
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RecuperarCarrito();
+
+            await JS.InvokeVoidAsync("eval", @"
+                if (!window.__posAtajos) {
+                    window.__posAtajos = true;
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'F2') {
+                            e.preventDefault();
+                            document.querySelector('.checkout-footer .btn-success')?.click();
+                        }
+                        if (e.key === 'F4') {
+                            e.preventDefault();
+                            document.querySelector('.pos-header-bar .btn-outline-primary')?.click();
+                        }
+                        if (e.key === 'Escape') {
+                            document.querySelectorAll('.modal .btn-close').forEach(b => b.click());
+                        }
+                        if (e.key === 'Delete' && e.ctrlKey) {
+                            e.preventDefault();
+                            if (confirm('¿Vaciar el carrito?')) {
+                                document.querySelector('.checkout-header .btn-outline-danger')?.click();
+                            }
+                        }
+                    });
+                }
+            ");
+        }
+    }
+
+    private async Task RecuperarCarrito()
+    {
+        try
+        {
+            var json = await JS.InvokeAsync<string?>("localStorage.getItem", "pos_carrito");
+            if (!string.IsNullOrEmpty(json))
+            {
+                var items = System.Text.Json.JsonSerializer.Deserialize<List<ItemCarritoVenta>>(json);
+                if (items != null && items.Count > 0)
+                {
+                    carrito = items;
+                }
+            }
+
+            var desc = await JS.InvokeAsync<string?>("localStorage.getItem", "pos_descuento");
+            if (double.TryParse(desc, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var d))
+            {
+                descuentoGlobal = d;
+            }
+
+            StateHasChanged();
+        }
+        catch { }
+    }
+
+    private async Task PersistirCarrito()
+    {
+        try
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(carrito);
+            await JS.InvokeVoidAsync("localStorage.setItem", "pos_carrito", json);
+            await JS.InvokeVoidAsync("localStorage.setItem", "pos_descuento",
+                descuentoGlobal.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+        catch { }
+    }
+
+    private void OnBusquedaChanged()
+    {
+        _debounceBusqueda?.Stop();
+        _debounceBusqueda?.Dispose();
+        _debounceBusqueda = new System.Timers.Timer(150);
+        _debounceBusqueda.AutoReset = false;
+        _debounceBusqueda.Elapsed += (s, e) =>
+        {
+            InvokeAsync(() =>
+            {
+                FiltrarProductos();
+                StateHasChanged();
+            });
+        };
+        _debounceBusqueda.Start();
+    }
+
+    private async Task ScrollCategorias(int px)
+    {
+        await JS.InvokeVoidAsync("scrollElementBy", categoriesContainer, px);
+    }
+
+    private async Task OnCategoriasWheel(WheelEventArgs e)
+    {
+        if (e.DeltaY != 0)
+        {
+            await JS.InvokeVoidAsync("scrollElementBy", categoriesContainer, e.DeltaY > 0 ? 180 : -180);
+        }
+    }
+
     private async Task CargarDatosIniciales()
     {
         cargando = true;
@@ -656,7 +808,7 @@
         }
         catch (Exception ex)
         {
-            await JS.InvokeVoidAsync("alert", $"Error al cargar catálogo: {ex.Message}");
+            await MostrarToast($"Error al cargar catálogo: {ex.Message}", "danger");
         }
         finally
         {
@@ -679,7 +831,9 @@
                 return;
             }
 
-            var productoEncontrado = todosProductos.FirstOrDefault(p => p.Id.Equals(input, StringComparison.OrdinalIgnoreCase));
+            var productoEncontrado = todosProductos.FirstOrDefault(p =>
+                p.Id.Equals(input, StringComparison.OrdinalIgnoreCase));
+
             if (productoEncontrado != null)
             {
                 await AgregarProductoConBascula(productoEncontrado);
@@ -689,10 +843,6 @@
             {
                 FiltrarProductos();
             }
-        }
-        else
-        {
-            FiltrarProductos();
         }
     }
 
@@ -719,17 +869,18 @@
                     }
                 }
             }
+            await PersistirCarrito();
         }
         catch (Exception ex)
         {
-            await JS.InvokeVoidAsync("alert", $"Error al procesar QR de preventa: {ex.Message}");
+            await MostrarToast($"Error al procesar QR: {ex.Message}", "danger");
         }
     }
 
     private async Task<double> ObtenerPesoBasculaLocalAsync()
     {
-        if (!Bascula)
-        { return 1; } // Si la bascula está deshabilitada, retornamos 1 como cantidad por defecto
+        if (!Bascula) return 1;
+
         try
         {
             var res = await Http.GetStringAsync("http://localhost:8080/peso/");
@@ -747,13 +898,32 @@
 
     private async Task AgregarProductoConBascula(ProductoVenta prod)
     {
-        double pesoBasc = await ObtenerPesoBasculaLocalAsync();
-        AgregarDirectoAlCarrito(prod, pesoBasc);
+        if (_procesandoProducto) return;
+
+        _procesandoProducto = true;
+        _productoAnimandoId = prod.Id;
+        StateHasChanged();
+
+        try
+        {
+            double pesoBasc = await ObtenerPesoBasculaLocalAsync();
+            AgregarDirectoAlCarrito(prod, pesoBasc);
+            await PersistirCarrito();
+        }
+        finally
+        {
+            await Task.Delay(180);
+            _productoAnimandoId = null;
+            _procesandoProducto = false;
+            StateHasChanged();
+        }
     }
 
     private void AgregarDirectoAlCarrito(ProductoVenta prod, double cantidad)
     {
-        var existente = carrito.FirstOrDefault(x => x.ProductoId == prod.Id && string.IsNullOrEmpty(x.Comentario));
+        var existente = carrito.FirstOrDefault(x =>
+            x.ProductoId == prod.Id && string.IsNullOrEmpty(x.Comentario));
+
         if (existente != null)
         {
             existente.Cantidad += cantidad;
@@ -794,7 +964,7 @@
 
     private void FiltrarProductos()
     {
-        var lista = todosProductos.AsEnumerable();
+        var lista = todosProductos.AsEnumerable().Where(x => !x.EsInsumo);
 
         if (!string.IsNullOrWhiteSpace(categoriaSeleccionadaNombre))
         {
@@ -805,31 +975,57 @@
 
         if (!string.IsNullOrWhiteSpace(textoBusqueda))
         {
-            lista = lista.Where(x => x.Nombre.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase) ||
-                                     x.Id.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase));
-        }
+            var terminos = textoBusqueda.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var t in terminos)
+            {
+                var tLower = t.ToLowerInvariant();
+                lista = lista.Where(x =>
+                    x.Nombre.ToLowerInvariant().Contains(tLower) ||
+                    x.Id.ToLowerInvariant().Contains(tLower));
+            }
 
-        productosFiltrados = lista.ToList();
+            productosFiltrados = lista
+                .OrderByDescending(x => x.Nombre.StartsWith(textoBusqueda, StringComparison.OrdinalIgnoreCase))
+                .ThenBy(x => x.Nombre)
+                .ToList();
+        }
+        else
+        {
+            productosFiltrados = lista.ToList();
+        }
     }
 
     private void LimpiarBusqueda()
     {
         textoBusqueda = "";
         FiltrarProductos();
+        _ = JS.InvokeVoidAsync("focusBuscadorPOS");
     }
 
-    private void ModificarCantidadCarrito(ItemCarritoVenta item, double delta)
+    private async Task ModificarCantidadCarrito(ItemCarritoVenta item, double delta)
     {
         item.Cantidad += delta;
         if (item.Cantidad <= 0)
         {
             carrito.Remove(item);
         }
+        await PersistirCarrito();
     }
 
-    private void EliminarDelCarrito(ItemCarritoVenta item)
+    private async Task EliminarDelCarrito(ItemCarritoVenta item)
     {
         carrito.Remove(item);
+        await PersistirCarrito();
+        await MostrarToast($"'{item.Nombre}' eliminado", "warning");
+    }
+
+    private async Task VaciarCarrito()
+    {
+        if (carrito.Count == 0) return;
+        carrito.Clear();
+        descuentoGlobal = 0;
+        await PersistirCarrito();
+        await MostrarToast("Carrito vaciado", "info");
     }
 
     private void ToggleCarrito()
@@ -855,7 +1051,7 @@
         {
             listaClientesFiltrados = listaClientes.Where(c =>
                 c.Nombre.Contains(busquedaCliente, StringComparison.OrdinalIgnoreCase) ||
-                c.Telefono.Contains(busquedaCliente, StringComparison.OrdinalIgnoreCase)).ToList();
+                (c.Telefono ?? "").Contains(busquedaCliente, StringComparison.OrdinalIgnoreCase)).ToList();
         }
     }
 
@@ -871,44 +1067,47 @@
         mostrarModalClientes = false;
     }
 
-    private async Task AbrirModalCobro()
-    {
-        if (carrito.Count == 0) return;
-
-        if (modoVenta != "CONTADO" && clienteSeleccionado == null)
-        {
-            await JS.InvokeVoidAsync("alert", $"Para {TituloModo} es obligatorio seleccionar un cliente.");
-            await AbrirModalCliente();
-            return;
-        }
-
-        montoRecibido = TotalCalculado;
-        abonoInicial = modoVenta == "APARTADO" ? Math.Round(TotalCalculado * 0.20, 2) : 0;
-        mostrarCarrito = false;
-        mostrarModalCobro = true;
-    }
-
     private async Task ProcesarCobroFinal()
     {
         if (modoVenta != "CONTADO" && clienteSeleccionado == null)
         {
-            await JS.InvokeVoidAsync("alert", "Debes seleccionar un cliente.");
+            await MostrarToast("Debes seleccionar un cliente.", "warning");
             return;
         }
 
-        if (modoVenta == "CONTADO" && metodoPagoSeleccionado == "Efectivo" && montoRecibido < TotalCalculado)
+        if (modoVenta == "CONTADO")
         {
-            await JS.InvokeVoidAsync("alert", "El monto recibido es menor al total a pagar.");
-            return;
+            if (esPagoMixto)
+            {
+                if (SumaPagosMixtos < TotalCalculado)
+                {
+                    await MostrarToast($"Falta cubrir el total. Restante: ${RestanteMixto:N2}", "warning");
+                    return;
+                }
+            }
+            else if (metodoPagoSeleccionado == "Efectivo" && montoRecibido < TotalCalculado)
+            {
+                await MostrarToast("El monto recibido es menor al total a pagar.", "warning");
+                return;
+            }
         }
 
         guardandoVenta = true;
         try
         {
+            string metodoFinal = esPagoMixto ? "MIXTO" : metodoPagoSeleccionado;
+
+            double efectivoEntregado = esPagoMixto
+                ? pagosRealizados.Where(x => x.Key.Contains("Efectivo", StringComparison.OrdinalIgnoreCase)).Sum(x => x.Value)
+                : montoRecibido;
+
+            double cambioFinal = esPagoMixto ? CambioMixto : CambioCalculado;
+
+            // ⭐ CONSTRUCCIÓN COMPLETA CON EL DICCIONARIO 'PagosDetalle'
             var req = new VentaGuardarRequest
             {
                 TipoVenta = modoVenta,
-                Folio = "", // Dejamos vacío: se asigna e incrementa en la transacción de Access
+                Folio = "",
                 IdCliente = clienteSeleccionado?.Id ?? "0",
                 NombreCliente = clienteSeleccionado?.Nombre ?? "PUBLICO EN GENERAL",
                 DireccionCliente = clienteSeleccionado?.Direccion ?? "",
@@ -916,17 +1115,26 @@
                 Subtotal = SubtotalCalculado,
                 Descuento = descuentoGlobal,
                 Total = TotalCalculado,
-                MetodoPago = metodoPagoSeleccionado,
-                MontoRecibido = montoRecibido,
-                Cambio = CambioCalculado,
+                MetodoPago = metodoFinal,
+                MontoRecibido = efectivoEntregado,
+                Cambio = cambioFinal,
                 AbonoInicial = abonoInicial,
                 Restante = TotalCalculado - abonoInicial,
-                IdUsuario= "1",
-                Usuario=  "cajero 1",
-                Items = new List<ItemCarritoVenta>(carrito)
+                Observaciones = "",
+                DatosCotizacion = "",
+                FolioCotizacion = "",
+                IdUsuario = "1",
+                Usuario = "cajero 1",
+                Items = new List<ItemCarritoVenta>(carrito),
+
+                // ⭐ SE ASIGNA EL DICCIONARIO DE PAGOS PARA EL BACKEND
+                PagosDetalle = esPagoMixto
+                    ? new Dictionary<string, double>(pagosRealizados)
+                    : new Dictionary<string, double> { { metodoPagoSeleccionado, TotalCalculado } }
             };
 
             var resultado = await VentaService.GuardarVentaAsync(req);
+
             if (resultado.Exito)
             {
                 req.Folio = resultado.FolioFinal;
@@ -938,29 +1146,145 @@
                 catch (Exception exPrint)
                 {
                     Console.WriteLine($"Error al imprimir ticket: {exPrint.Message}");
+                    await MostrarToast("Venta guardada, pero falló la impresión.", "warning");
                 }
 
-                await JS.InvokeVoidAsync("alert", $"¡{TituloModo} registrada exitosamente!\nFolio: {resultado.FolioFinal}");
+                await MostrarToast($"¡{TituloModo} registrada! Folio: {resultado.FolioFinal}", "success");
 
                 carrito.Clear();
+                pagosRealizados.Clear();
                 descuentoGlobal = 0;
+                esPagoMixto = false;
+
                 if (modoVenta == "CONTADO") clienteSeleccionado = null;
                 mostrarModalCobro = false;
+                await PersistirCarrito();
+
                 todosProductos = await VentaService.ObtenerProductosAsync();
                 FiltrarProductos();
+
+                await JS.InvokeVoidAsync("focusBuscadorPOS");
             }
             else
             {
-                await JS.InvokeVoidAsync("alert", $"Error: {resultado.Mensaje}");
+                await MostrarToast($"Error: {resultado.Mensaje}", "danger");
             }
         }
         catch (Exception ex)
         {
-            await JS.InvokeVoidAsync("alert", $"Ocurrió un error: {ex.Message}");
+            await MostrarToast($"Ocurrió un error: {ex.Message}", "danger");
         }
         finally
         {
             guardandoVenta = false;
         }
+    }
+
+    private async Task MostrarToast(string mensaje, string tipo = "success")
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("mostrarToast", mensaje, tipo);
+        }
+        catch
+        {
+            await JS.InvokeVoidAsync("alert", mensaje);
+        }
+    }
+    // 1. Al presionar 'Agregar' en Pago Mixto
+    private void AgregarPagoMixto()
+    {
+        if (montoMetodoAgregando <= 0) return;
+
+        if (metodoPagoAgregando != "Efectivo" && montoMetodoAgregando > RestanteMixto)
+        {
+            _ = MostrarToast($"El pago no puede ser mayor al restante (${RestanteMixto:N2}).", "warning");
+            return;
+        }
+
+        if (pagosRealizados.ContainsKey(metodoPagoAgregando))
+        {
+            pagosRealizados[metodoPagoAgregando] += montoMetodoAgregando;
+        }
+        else
+        {
+            pagosRealizados.Add(metodoPagoAgregando, montoMetodoAgregando);
+        }
+
+        // ⭐ CLAVE UX: Autocalcular el restante actualizado inmediatamente
+        double nuevoRestante = Math.Max(0, TotalCalculado - SumaPagosMixtos);
+
+        // Si queda saldo pendiente, el Numpad propone el restante exacto; si ya es 0, propone 0
+        montoMetodoAgregando = nuevoRestante;
+        textoCapturaNumpad = nuevoRestante > 0
+            ? nuevoRestante.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)
+            : "0";
+    }
+
+    // 2. Al eliminar un pago de la lista de Pago Mixto
+    private void EliminarPagoMixto(string metodo)
+    {
+        if (pagosRealizados.ContainsKey(metodo))
+        {
+            pagosRealizados.Remove(metodo);
+
+            // ⭐ Recalcular automáticamente el nuevo restante para la siguiente captura
+            montoMetodoAgregando = RestanteMixto;
+            textoCapturaNumpad = RestanteMixto.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+        }
+    }
+
+    // 3. Al alternar entre Pago Simple y Pago Mixto (Toggle)
+    private void TogglePagoMixto(ChangeEventArgs e)
+    {
+        esPagoMixto = (bool)(e.Value ?? false);
+        pagosRealizados.Clear();
+
+        if (esPagoMixto)
+        {
+            // En mixto inicia sugiriendo el total/restante
+            montoMetodoAgregando = TotalCalculado;
+            textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            // En pago simple inicia con el valor total exacto
+            montoRecibido = TotalCalculado;
+            textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+        }
+    }
+
+    // 4. Mejorar la entrada de digitos en Numpad para reemplazo inteligente
+    private void PresionarNumpad(string digito)
+    {
+        // Si el texto actual coincide con el valor exacto del restante o total,
+        // al tocar el primer número se sobreescribe para evitar concatenar (ej: no convertir 20 en 205)
+        bool esMontoSugerido = textoCapturaNumpad == TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)
+                            || textoCapturaNumpad == RestanteMixto.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+        if (esMontoSugerido && digito != ".")
+        {
+            textoCapturaNumpad = digito;
+        }
+        else if (digito == ".")
+        {
+            if (!textoCapturaNumpad.Contains("."))
+                textoCapturaNumpad += ".";
+        }
+        else
+        {
+            if (textoCapturaNumpad == "0")
+                textoCapturaNumpad = digito;
+            else
+                textoCapturaNumpad += digito;
+        }
+
+        ActualizarMontosDesdeNumpad();
+    }
+    public async ValueTask DisposeAsync()
+    {
+        _debounceBusqueda?.Stop();
+        _debounceBusqueda?.Dispose();
+        await Task.CompletedTask;
     }
 }

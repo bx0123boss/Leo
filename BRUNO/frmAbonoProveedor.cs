@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace JaegerSoft
 {
-    public partial class frmAbonoProveedor : Form
+    public partial class frmAbonoProveedor : frmBase
     {
         private DataSet ds;
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
@@ -59,6 +59,9 @@ namespace JaegerSoft
             dataGridView2.DataSource = ds.Tables["Id"];
             dataGridView2.Columns[0].Visible = false;
             dataGridView2.Columns[1].Visible = false;
+            EstilizarBotonPrimario(button1);
+            EstilizarTextBox(txtMonto);
+            EstilizarTextBox(textBox1);
         }
 
         private void button1_Click(object sender, EventArgs e)

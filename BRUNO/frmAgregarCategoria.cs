@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace JaegerSoft
 {
-    public partial class frmAgregarCategoria : Form
+    public partial class frmAgregarCategoria : frmBase
     {
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         OleDbCommand cmd;
@@ -29,6 +29,12 @@ namespace JaegerSoft
             frmCategorias apart = new frmCategorias();
             apart.Show();
             this.Close();
+        }
+
+        private void frmAgregarCategoria_Load(object sender, EventArgs e)
+        {
+            EstilizarBotonPrimario(button1);
+            EstilizarTextBox(txtNombre);
         }
     }
 }

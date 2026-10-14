@@ -21,6 +21,8 @@ public class ProductoVenta
     public bool Comanda { get; set; }
     public string Origen { get; set; } = "";
     public double Iva { get; set; }
+    public bool EsInsumo { get; set; }   
+    public bool EsReceta { get; set; }
 }
 
 public class ItemCarritoVenta

@@ -52,6 +52,8 @@
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.ckbReceta = new System.Windows.Forms.CheckBox();
+            this.ckbInsumo = new System.Windows.Forms.CheckBox();
             this.label24 = new System.Windows.Forms.Label();
             this.cmbUnidad = new System.Windows.Forms.ComboBox();
             this.label23 = new System.Windows.Forms.Label();
@@ -72,9 +74,12 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
+            this.btnSeleccionarImagen = new System.Windows.Forms.Button();
+            this.picProducto = new System.Windows.Forms.PictureBox();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picProducto)).BeginInit();
             this.SuspendLayout();
             // 
             // button2
@@ -195,7 +200,7 @@
             // button1
             // 
             this.button1.ForeColor = System.Drawing.Color.Black;
-            this.button1.Location = new System.Drawing.Point(245, 321);
+            this.button1.Location = new System.Drawing.Point(222, 481);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(150, 30);
             this.button1.TabIndex = 10;
@@ -301,6 +306,8 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.ckbReceta);
+            this.groupBox1.Controls.Add(this.ckbInsumo);
             this.groupBox1.Controls.Add(this.label24);
             this.groupBox1.Controls.Add(this.cmbUnidad);
             this.groupBox1.Controls.Add(this.label23);
@@ -325,10 +332,30 @@
             this.groupBox1.ForeColor = System.Drawing.Color.White;
             this.groupBox1.Location = new System.Drawing.Point(25, 51);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(548, 360);
+            this.groupBox1.Size = new System.Drawing.Size(548, 535);
             this.groupBox1.TabIndex = 30;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Agregar Producto Nuevo";
+            // 
+            // ckbReceta
+            // 
+            this.ckbReceta.AutoSize = true;
+            this.ckbReceta.Location = new System.Drawing.Point(279, 451);
+            this.ckbReceta.Name = "ckbReceta";
+            this.ckbReceta.Size = new System.Drawing.Size(112, 24);
+            this.ckbReceta.TabIndex = 59;
+            this.ckbReceta.Text = "Es Receta";
+            this.ckbReceta.UseVisualStyleBackColor = true;
+            // 
+            // ckbInsumo
+            // 
+            this.ckbInsumo.AutoSize = true;
+            this.ckbInsumo.Location = new System.Drawing.Point(160, 452);
+            this.ckbInsumo.Name = "ckbInsumo";
+            this.ckbInsumo.Size = new System.Drawing.Size(113, 24);
+            this.ckbInsumo.TabIndex = 58;
+            this.ckbInsumo.Text = "Es Insumo";
+            this.ckbInsumo.UseVisualStyleBackColor = true;
             // 
             // label24
             // 
@@ -565,12 +592,38 @@
             this.label12.TabIndex = 13;
             this.label12.Text = "Nombre:";
             // 
+            // btnSeleccionarImagen
+            // 
+            this.btnSeleccionarImagen.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSeleccionarImagen.Location = new System.Drawing.Point(596, 378);
+            this.btnSeleccionarImagen.Margin = new System.Windows.Forms.Padding(4);
+            this.btnSeleccionarImagen.Name = "btnSeleccionarImagen";
+            this.btnSeleccionarImagen.Size = new System.Drawing.Size(124, 64);
+            this.btnSeleccionarImagen.TabIndex = 35;
+            this.btnSeleccionarImagen.Text = "Seleccionar Imágen";
+            this.btnSeleccionarImagen.UseVisualStyleBackColor = true;
+            this.btnSeleccionarImagen.Click += new System.EventHandler(this.btnSeleccionarImagen_Click);
+            // 
+            // picProducto
+            // 
+            this.picProducto.BackColor = System.Drawing.Color.White;
+            this.picProducto.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.picProducto.Location = new System.Drawing.Point(726, 332);
+            this.picProducto.Margin = new System.Windows.Forms.Padding(4);
+            this.picProducto.Name = "picProducto";
+            this.picProducto.Size = new System.Drawing.Size(206, 138);
+            this.picProducto.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.picProducto.TabIndex = 36;
+            this.picProducto.TabStop = false;
+            // 
             // frmAgregarInventario
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(1094, 567);
+            this.ClientSize = new System.Drawing.Size(1094, 598);
+            this.Controls.Add(this.picProducto);
+            this.Controls.Add(this.btnSeleccionarImagen);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.lblOrigen);
             this.Controls.Add(this.txtID);
@@ -589,6 +642,7 @@
             this.groupBox1.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picProducto)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -639,5 +693,9 @@
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Label label24;
         private System.Windows.Forms.ComboBox cmbUnidad;
+        private System.Windows.Forms.CheckBox ckbReceta;
+        private System.Windows.Forms.CheckBox ckbInsumo;
+        public System.Windows.Forms.Button btnSeleccionarImagen;
+        private System.Windows.Forms.PictureBox picProducto;
     }
 }

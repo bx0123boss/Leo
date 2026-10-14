@@ -12,9 +12,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Punto de Venta</title>
     <base href="~/" />
+
+    <!-- Bootstrap (local) -->
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+
+    <!-- ⭐ Bootstrap Icons (CDN) - NECESARIO para los <i class="bi bi-*"> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <!-- ⭐ Open Iconic (CDN) - NECESARIO para los <i class="oi oi-*"> del NavMenu -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/open-iconic.min.css" />
+
+    <!-- Estilos propios -->
     <link href="css/site.css" rel="stylesheet" />
     <link href="PuntoVentaWeb.styles.css" rel="stylesheet" />
+
+    <!-- Favicon (opcional) -->
+    <link rel="icon" type="image/png" href="favicon.png" />
 
     <component type="typeof(HeadOutlet)" render-mode="Server" />
 </head>
@@ -38,6 +51,7 @@
     <script src="_content/BlazorBarcodeScanner.ZXing.JS/BlazorBarcodeScanner.js"></script>
 
     <script src="js/ticket.js?v=2"></script>
+
     <script>
         window.downloadFileFromStream = async (fileName, contentStreamReference) => {
             const arrayBuffer = await contentStreamReference.arrayBuffer();
@@ -50,6 +64,13 @@
             anchorElement.remove();
             URL.revokeObjectURL(url);
         }
+
+        window.scrollElementBy = (element, px) => {
+            if (element) {
+                element.scrollBy({ left: px, behavior: 'smooth' });
+            }
+        }
+
         window.printPdfFromStream = async (contentStreamReference) => {
             const arrayBuffer = await contentStreamReference.arrayBuffer();
             const blob = new Blob([arrayBuffer], { type: "application/pdf" });
@@ -71,6 +92,40 @@
                 }, 1000);
             };
         };
+
+        // ⭐ Toast no bloqueante (reemplaza a alert())
+        window.mostrarToast = (mensaje, tipo = "success") => {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${tipo} position-fixed shadow-lg`;
+            toast.style.cssText = 'top: 1rem; right: 1rem; z-index: 3000; min-width: 260px; max-width: 400px; animation: fadeIn 0.25s ease-out;';
+            toast.innerHTML = `<i class="bi bi-info-circle me-2"></i>${mensaje}`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.3s ease';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        };
+
+        // ⭐ Re-enfocar el input de búsqueda del POS
+        window.focusBuscadorPOS = () => {
+            const input = document.querySelector('.pos-header-bar input[type="text"]');
+            if (input) input.focus();
+        };
     </script>
+
+    <style>
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </body>
 </html>

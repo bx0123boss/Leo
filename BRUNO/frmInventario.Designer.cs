@@ -3,7 +3,6 @@ namespace JaegerSoft
     partial class frmInventario
     {
         private System.ComponentModel.IContainer components = null;
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -17,7 +16,7 @@ namespace JaegerSoft
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmInventario));
 
-            // ── Declaraciones ──────────────────────────────────────────────
+            // ── Declaraciones e Instanciaciones de Objetos ──────────────────
             this.dataGridView2 = new System.Windows.Forms.DataGridView();
             this.BtnApartados = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
@@ -45,6 +44,7 @@ namespace JaegerSoft
             this.button6 = new System.Windows.Forms.Button();
             this.button18 = new System.Windows.Forms.Button();
             this.button16 = new System.Windows.Forms.Button(); // Botón Carga Inicial
+            this.btnRecetas = new System.Windows.Forms.Button(); 
             this.button17 = new System.Windows.Forms.Button();
             this.button15 = new System.Windows.Forms.Button();
             this.button19 = new System.Windows.Forms.Button();
@@ -57,6 +57,10 @@ namespace JaegerSoft
             // Header
             this.panelHeader = new System.Windows.Forms.Panel();
             this.panelFiltros = new System.Windows.Forms.TableLayoutPanel();
+
+            // Nuevos Controles de Filtros FASE 2
+            this.cmbTipoFiltro = new System.Windows.Forms.ComboBox();
+            this.labelTipoFiltro = new System.Windows.Forms.Label();
 
             // KPI container
             this.panelKpiContainer = new System.Windows.Forms.FlowLayoutPanel();
@@ -90,6 +94,14 @@ namespace JaegerSoft
             this.lblKpiCapitalInmovilizadoTitulo = new System.Windows.Forms.Label();
             this.lblKpiCapitalInmovilizado = new System.Windows.Forms.Label();
 
+            // Tarjetas KPI FASE 2
+            this.cardInsumos = new System.Windows.Forms.Panel();
+            this.lblKpiInsumosTitulo = new System.Windows.Forms.Label();
+            this.lblKpiInsumos = new System.Windows.Forms.Label();
+            this.cardRecetas = new System.Windows.Forms.Panel();
+            this.lblKpiRecetasTitulo = new System.Windows.Forms.Label();
+            this.lblKpiRecetas = new System.Windows.Forms.Label();
+
             // Panel analítico
             this.panelAnaliticoWrapper = new System.Windows.Forms.Panel();
             this.panelAnalitico = new System.Windows.Forms.Panel();
@@ -122,6 +134,8 @@ namespace JaegerSoft
             this.cardMargen.SuspendLayout();
             this.cardStockCritico.SuspendLayout();
             this.cardCapitalInmovilizado.SuspendLayout();
+            this.cardInsumos.SuspendLayout();
+            this.cardRecetas.SuspendLayout();
             this.panelPaginador.SuspendLayout();
             this.panelAnaliticoWrapper.SuspendLayout();
             this.panelAnalitico.SuspendLayout();
@@ -184,16 +198,37 @@ namespace JaegerSoft
             this.panelFiltros.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 165F));
             this.panelFiltros.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 235F));
             this.panelFiltros.RowCount = 4;
-            this.panelFiltros.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
-            this.panelFiltros.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
-            this.panelFiltros.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
-            this.panelFiltros.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.panelFiltros.RowStyles.Clear();
+            this.panelFiltros.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 45F));
+            this.panelFiltros.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 45F));
+            this.panelFiltros.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 45F));
+            this.panelFiltros.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 45F));
             this.panelFiltros.Location = new System.Drawing.Point(0, 0);
             this.panelFiltros.Name = "panelFiltros";
             this.panelFiltros.Padding = new System.Windows.Forms.Padding(12, 8, 8, 4);
             this.panelFiltros.Size = new System.Drawing.Size(400, 200);
             this.panelFiltros.TabIndex = 0;
 
+            // Label y ComboBox para Filtro de Tipo de Producto (Fila 1)
+            this.labelTipoFiltro.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.labelTipoFiltro.AutoSize = true;
+            this.labelTipoFiltro.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
+            this.labelTipoFiltro.ForeColor = System.Drawing.Color.FromArgb(180, 180, 180);
+            this.labelTipoFiltro.Text = "Tipo Producto:";
+            this.panelFiltros.Controls.Add(this.labelTipoFiltro, 0, 1);
+
+            this.cmbTipoFiltro.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            this.cmbTipoFiltro.BackColor = System.Drawing.Color.FromArgb(50, 50, 50);
+            this.cmbTipoFiltro.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbTipoFiltro.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cmbTipoFiltro.ForeColor = System.Drawing.Color.White;
+            this.cmbTipoFiltro.FormattingEnabled = true;
+            this.cmbTipoFiltro.Items.AddRange(new object[] { "TODOS", "VENTA GENERAL", "INSUMOS / RECETAS" });
+            this.cmbTipoFiltro.SelectedIndex = 0;
+            this.cmbTipoFiltro.SelectedIndexChanged += new System.EventHandler(this.cmbTipoFiltro_SelectedIndexChanged);
+            this.panelFiltros.Controls.Add(this.cmbTipoFiltro, 1, 1);
+
+            // Buscar por Nombre (Fila 0)
             this.label3.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
@@ -213,25 +248,7 @@ namespace JaegerSoft
             this.textBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox1_KeyPress);
             this.panelFiltros.Controls.Add(this.textBox1, 1, 0);
 
-            this.label14.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            this.label14.AutoSize = true;
-            this.label14.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
-            this.label14.ForeColor = System.Drawing.Color.FromArgb(180, 180, 180);
-            this.label14.Name = "label14";
-            this.label14.Text = "Buscar por ID:";
-            this.panelFiltros.Controls.Add(this.label14, 0, 1);
-
-            this.textBox2.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right | System.Windows.Forms.AnchorStyles.Top;
-            this.textBox2.BackColor = System.Drawing.Color.FromArgb(50, 50, 50);
-            this.textBox2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBox2.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            this.textBox2.ForeColor = System.Drawing.Color.White;
-            this.textBox2.Margin = new System.Windows.Forms.Padding(0, 12, 0, 0);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.TabIndex = 2;
-            this.textBox2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox2_KeyPress);
-            this.panelFiltros.Controls.Add(this.textBox2, 1, 1);
-
+            // Categorías (Fila 2)
             this.label5.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
@@ -254,6 +271,7 @@ namespace JaegerSoft
             this.comboBox2.SelectedIndexChanged += new System.EventHandler(this.comboBox2_SelectedIndexChanged);
             this.panelFiltros.Controls.Add(this.comboBox2, 1, 2);
 
+            // Ver Categoría CheckBox (Fila 3)
             this.checkBox1.AutoSize = true;
             this.checkBox1.BackColor = System.Drawing.Color.Transparent;
             this.checkBox1.ForeColor = System.Drawing.Color.FromArgb(180, 180, 180);
@@ -327,11 +345,13 @@ namespace JaegerSoft
             ConfigCard(cardUtilidad, lblKpiUtilidadTitulo, lblKpiUtilidad, "UTILIDAD ESPERADA", "$0.00", true);
             ConfigCard(cardStockCritico, lblKpiStockCriticoTitulo, lblKpiStockCritico, "STOCK CRÍTICO", "0 PROD.", true);
             ConfigCard(cardCapitalInmovilizado, lblKpiCapitalInmovilizadoTitulo, lblKpiCapitalInmovilizado, "CAPITAL INMOVILIZADO", "$0.00", true);
+            ConfigCard(cardInsumos, lblKpiInsumosTitulo, lblKpiInsumos, "TOTAL INSUMOS", "0");
+            ConfigCard(cardRecetas, lblKpiRecetasTitulo, lblKpiRecetas, "CON RECETA", "0");
 
             this.panelKpiContainer.Controls.AddRange(new System.Windows.Forms.Control[] {
-                cardCategorias, cardArticulos, cardStock, cardMargen,
-                cardInversion, cardVentaPotencial, cardUtilidad, cardStockCritico, cardCapitalInmovilizado
-            });
+            cardCategorias, cardArticulos, cardInsumos, cardRecetas, cardStock, cardMargen,
+            cardInversion, cardVentaPotencial, cardUtilidad, cardStockCritico, cardCapitalInmovilizado
+        });
 
             // panelAnaliticoWrapper
             this.panelAnaliticoWrapper.Anchor = System.Windows.Forms.AnchorStyles.Top
@@ -463,13 +483,17 @@ namespace JaegerSoft
                     System.Drawing.Color.FromArgb(231, 76, 60));
             button1.Click += new System.EventHandler(this.button1_Click);
 
-            // NUEVO: Botón Carga Inicial Integrado manteniendo la armonía de color del panel
+            // NUEVO: Botón Carga Inicial
             SideBtn(button16, "button16", "📥  CARGA INICIAL", cDark, cHovD, true);
             button16.Visible = true;
             button16.Click += new System.EventHandler(this.button16_Click);
 
+            SideBtn(btnRecetas, "btnRecetas", "RECETAS ", cDark, cHovD, true);
+            btnRecetas.Visible = true;
+            btnRecetas.Click += new System.EventHandler(this.btnRecetas_Click);
+
             btnY += 6; // Separador visual
-            // — PARÁMETROS / CATÁLOGOS —
+                       // — PARÁMETROS / CATÁLOGOS —
             lblCatalogos.AutoSize = true;
             lblCatalogos.Font = new System.Drawing.Font("Segoe UI Semibold", 7F, System.Drawing.FontStyle.Bold);
             lblCatalogos.ForeColor = System.Drawing.Color.FromArgb(100, 100, 100);
@@ -533,7 +557,8 @@ namespace JaegerSoft
             this.panel6.Controls.Add(BtnApartados);
             this.panel6.Controls.Add(button2);
             this.panel6.Controls.Add(button1);
-            this.panel6.Controls.Add(button16); // Se incluye button16
+            this.panel6.Controls.Add(button16);
+            this.panel6.Controls.Add(btnRecetas);
             this.panel6.Controls.Add(lblCatalogos);
             this.panel6.Controls.Add(button11);
             this.panel6.Controls.Add(button10);
@@ -668,6 +693,7 @@ namespace JaegerSoft
         private System.Windows.Forms.Button button13;
         private System.Windows.Forms.Button button14;
         private System.Windows.Forms.Button button16;
+        private System.Windows.Forms.Button btnRecetas;
         private System.Windows.Forms.Button button17;
         private System.Windows.Forms.Button button18;
         private System.Windows.Forms.Button button19;
@@ -724,5 +750,13 @@ namespace JaegerSoft
         private System.Windows.Forms.Label lblRiesgoSobrestock;
         private System.Windows.Forms.Label lblRiesgoRotacion;
         private System.Windows.Forms.Label lblRiesgoReposicion;
+        public System.Windows.Forms.ComboBox cmbTipoFiltro;
+        private System.Windows.Forms.Label labelTipoFiltro;
+        private System.Windows.Forms.Panel cardInsumos;
+        private System.Windows.Forms.Panel cardRecetas;
+        private System.Windows.Forms.Label lblKpiInsumosTitulo;
+        private System.Windows.Forms.Label lblKpiInsumos;
+        private System.Windows.Forms.Label lblKpiRecetasTitulo;
+        private System.Windows.Forms.Label lblKpiRecetas;
     }
 }

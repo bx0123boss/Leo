@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace JaegerSoft
 {
-    public partial class frmAgregarClientes : Form
+    public partial class frmAgregarClientes : frmBase
     {
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
@@ -96,7 +96,18 @@ namespace JaegerSoft
                 label8.Hide();
                 dateTimePicker1.Hide();
 
-            }                      
+            }
+            EstilizarTextBox(textBox1);
+            EstilizarTextBox(txtNombre);
+            EstilizarTextBox(txtTelefono);
+            EstilizarTextBox(txtDireccion);
+            EstilizarTextBox(txtCP);
+            EstilizarTextBox(txtReferencia);
+            EstilizarTextBox(txtRFC);
+            EstilizarTextBox(txtCorreo);
+            EstilizarTextBox(txtRegimen);
+            EstilizarTextBox(txtAdeudo);
+            EstilizarBotonPrimario(button1);
         }
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)

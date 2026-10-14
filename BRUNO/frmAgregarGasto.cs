@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace JaegerSoft
 {
-    public partial class frmAgregarGasto : Form
+    public partial class frmAgregarGasto : frmBase
     {
         OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
@@ -70,6 +70,13 @@ namespace JaegerSoft
                 e.Handled = false;
             else
                 e.Handled = true;
+        }
+
+        private void frmAgregarGasto_Load(object sender, EventArgs e)
+        {
+            EstilizarTextBox(txtNombre);
+            EstilizarTextBox(txtTotal);
+            EstilizarBotonPrimario(button1);
         }
     }
 }

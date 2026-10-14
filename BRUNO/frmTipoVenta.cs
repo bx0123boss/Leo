@@ -15,6 +15,7 @@ namespace JaegerSoft
         public string usuario = "";
         public string idUsuario = "";
         public string NombreUsuario = "";
+        public bool IsServidorActivo = false;
         public frmTipoVenta()
         {
             InitializeComponent();
@@ -78,6 +79,31 @@ namespace JaegerSoft
         {
             EstilizarBotonPrimario(this.button1);
             EstilizarBotonAdvertencia(this.button2);
+            EstilizarBotonAdvertencia(this.button3);
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            string url = "http://localhost:5000/ventas";
+            if (IsServidorActivo)
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = url,
+                        UseShellExecute = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("No se pudo abrir el navegador: " + ex.Message);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Servidor inactivo.\n\nContacte a soporte técnico para actualizar su sistema o verificar la instalación.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
     }
 }

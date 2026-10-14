@@ -36,9 +36,10 @@
             // button1
             // 
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold);
-            this.button1.Location = new System.Drawing.Point(123, 55);
+            this.button1.Location = new System.Drawing.Point(144, 72);
+            this.button1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(116, 43);
+            this.button1.Size = new System.Drawing.Size(135, 56);
             this.button1.TabIndex = 43;
             this.button1.Text = "Agregar";
             this.button1.UseVisualStyleBackColor = true;
@@ -47,9 +48,10 @@
             // txtNombre
             // 
             this.txtNombre.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtNombre.Location = new System.Drawing.Point(123, 9);
+            this.txtNombre.Location = new System.Drawing.Point(144, 12);
+            this.txtNombre.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.txtNombre.Name = "txtNombre";
-            this.txtNombre.Size = new System.Drawing.Size(241, 26);
+            this.txtNombre.Size = new System.Drawing.Size(280, 26);
             this.txtNombre.TabIndex = 42;
             // 
             // label2
@@ -57,7 +59,8 @@
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.ForeColor = System.Drawing.Color.White;
-            this.label2.Location = new System.Drawing.Point(12, 9);
+            this.label2.Location = new System.Drawing.Point(14, 12);
+            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(105, 24);
             this.label2.TabIndex = 41;
@@ -65,16 +68,17 @@
             // 
             // frmAgregarCategoria
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.ClientSize = new System.Drawing.Size(379, 100);
+            this.ClientSize = new System.Drawing.Size(442, 131);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.txtNombre);
             this.Controls.Add(this.label2);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "frmAgregarCategoria";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Agregar Categoria";
+            this.Load += new System.EventHandler(this.frmAgregarCategoria_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

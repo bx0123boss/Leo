@@ -140,28 +140,28 @@ namespace JaegerSoft
 
             // 1. EFECTIVO
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Corte where Pago='01=EFECTIVO' AND Concepto NOT LIKE 'Abono%';", conectar);
+            da = new OleDbDataAdapter("select * from Corte where (Pago='01=EFECTIVO' OR Pago ='Efectivo') AND Concepto NOT LIKE 'Abono%';", conectar);
             da.Fill(ds, "Id");
             dgvCorte.DataSource = ds.Tables["Id"];
             dgvCorte.Columns[0].Visible = false;
 
             // 2. TARJETAS
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Corte where (Pago='04=TARJETA DE CREDITO' or Pago='28=TARJETA DE DEBITO') AND Concepto NOT LIKE 'Abono%';", conectar);
+            da = new OleDbDataAdapter("select * from Corte where (Pago='04=TARJETA DE CREDITO' or Pago='28=TARJETA DE DEBITO' or Pago='Tarjeta') AND Concepto NOT LIKE 'Abono%';", conectar);
             da.Fill(ds, "Id");
             dataGridView3.DataSource = ds.Tables["Id"];
             dataGridView3.Columns[0].Visible = false;
 
             // 3. TRANSFERENCIAS
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Corte where Pago='03=TRANFERENCIA ELECTRONICA DE FONDOS' AND Concepto NOT LIKE 'Abono%';", conectar);
+            da = new OleDbDataAdapter("select * from Corte where (Pago='03=TRANFERENCIA ELECTRONICA DE FONDOS' OR Pago = 'Transferencia') AND Concepto NOT LIKE 'Abono%';", conectar);
             da.Fill(ds, "Id");
             dataGridView4.DataSource = ds.Tables["Id"];
             dataGridView4.Columns[0].Visible = false;
 
             // 4. OTROS PAGOS (La Magia de la nueva pestaña)
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Corte where Pago NOT IN ('01=EFECTIVO', '04=TARJETA DE CREDITO', '28=TARJETA DE DEBITO', '03=TRANFERENCIA ELECTRONICA DE FONDOS') AND Concepto NOT LIKE 'Abono%';", conectar);
+            da = new OleDbDataAdapter("select * from Corte where Pago NOT IN ('01=EFECTIVO','Transferencia', 'Tarjeta','Efectivo','04=TARJETA DE CREDITO', '28=TARJETA DE DEBITO', '03=TRANFERENCIA ELECTRONICA DE FONDOS') AND Concepto NOT LIKE 'Abono%';", conectar);
             da.Fill(ds, "Id");
             dgvOtrosPagos.DataSource = ds.Tables["Id"];
             dgvOtrosPagos.Columns[0].Visible = false;

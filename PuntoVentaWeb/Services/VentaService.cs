@@ -72,7 +72,7 @@ public class VentaService
             using var con = new OdbcConnection(_accessConn);
             await con.OpenAsync();
 
-            string query = "SELECT Id, Nombre, PrecioVenta, PrecioVentaMayoreo, Especial, Categoria, IVA FROM Inventario";
+            string query = "SELECT Id, Nombre, PrecioVenta, PrecioVentaMayoreo, Especial, Categoria, IVA, ImagenUrl FROM Inventario";
             if (!string.IsNullOrWhiteSpace(categoria) && categoria != "0" && categoria != "TODOS")
             {
                 query += " WHERE Categoria = ?";
@@ -109,7 +109,8 @@ public class VentaService
                     Precio = precio,
                     CostoTotal = costo,
                     Categoria = reader["Categoria"]?.ToString() ?? "",
-                    Iva = iva
+                    Iva = iva,
+                    ImagenUrl = reader["ImagenUrl"].ToString() ?? "",
                 });
             }
         }
@@ -262,6 +263,9 @@ public class VentaService
 
     private async Task ProcesarVentaContado(OdbcConnection con, OdbcTransaction trans, VentaGuardarRequest req, string fechaStr)
     {
+        // -------------------------------------------------------------------------
+        // 1. FOLIO DE CONTADO
+        // -------------------------------------------------------------------------
         string queryFolio = "SELECT Numero FROM Folios WHERE Folio='FolioContado'";
         using (var cmdF = new OdbcCommand(queryFolio, con, trans))
         {
@@ -274,6 +278,9 @@ public class VentaService
             await cmdUpdF.ExecuteNonQueryAsync();
         }
 
+        // -------------------------------------------------------------------------
+        // 2. CÁLCULO DE UTILIDAD BRUTA
+        // -------------------------------------------------------------------------
         double totalUtilidadBruta = 0;
         foreach (var it in req.Items)
         {
@@ -282,6 +289,9 @@ public class VentaService
             totalUtilidadBruta += (venta - compra);
         }
 
+        // -------------------------------------------------------------------------
+        // 3. PRODUCTOS, INVENTARIO Y KARDEX
+        // -------------------------------------------------------------------------
         foreach (var it in req.Items)
         {
             string categoria = it.Categoria ?? "";
@@ -314,17 +324,17 @@ public class VentaService
             double nuevaUtilidad = utilidadBruta - descuentoProporcional;
 
             string insertDetalle = @"INSERT INTO VentasContado (FolioVenta, IdProducto, Cantidad, Producto, MontoTotal, idCliente, Fecha, Utilidad, Categoria) 
-                                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             using (var cmdDet = new OdbcCommand(insertDetalle, con, trans))
             {
                 cmdDet.Parameters.AddWithValue("?", req.Folio);
                 cmdDet.Parameters.AddWithValue("?", it.ProductoId);
-                cmdDet.Parameters.AddWithValue("?", it.Cantidad.ToString());
+                cmdDet.Parameters.AddWithValue("?", it.Cantidad); // Usar tipo directo
                 cmdDet.Parameters.AddWithValue("?", it.Nombre);
-                cmdDet.Parameters.AddWithValue("?", it.Subtotal.ToString());
+                cmdDet.Parameters.AddWithValue("?", it.Subtotal); // Usar tipo directo
                 cmdDet.Parameters.AddWithValue("?", string.IsNullOrEmpty(req.IdCliente) ? "0" : req.IdCliente);
                 cmdDet.Parameters.AddWithValue("?", fechaStr);
-                cmdDet.Parameters.AddWithValue("?", nuevaUtilidad.ToString());
+                cmdDet.Parameters.AddWithValue("?", nuevaUtilidad); // Usar tipo directo
                 cmdDet.Parameters.AddWithValue("?", categoria);
                 await cmdDet.ExecuteNonQueryAsync();
             }
@@ -340,7 +350,7 @@ public class VentaService
                 }
 
                 string kardexQ = @"INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) 
-                                   VALUES (?, 'SALIDA', ?, ?, ?, ?)";
+                               VALUES (?, 'SALIDA', ?, ?, ?, ?)";
                 using (var cmdK = new OdbcCommand(kardexQ, con, trans))
                 {
                     cmdK.Parameters.AddWithValue("?", it.ProductoId);
@@ -353,79 +363,91 @@ public class VentaService
             }
         }
 
-        string insertVenta = "INSERT INTO Ventas (Monto, Fecha, Folio, Estatus, Descuento, Pago) VALUES (?, ?, ?, 'COBRADO', ?, ?)";
-        using (var cmdV = new OdbcCommand(insertVenta, con, trans))
-        {
-            cmdV.Parameters.AddWithValue("?", req.Total.ToString());
-            cmdV.Parameters.AddWithValue("?", fechaStr);
-            cmdV.Parameters.AddWithValue("?", req.Folio);
-            cmdV.Parameters.AddWithValue("?", req.Descuento.ToString());
-            cmdV.Parameters.AddWithValue("?", req.MetodoPago);
-            await cmdV.ExecuteNonQueryAsync();
-        }
+        // -------------------------------------------------------------------------
+        // 4. PREPARAR DICCIONARIO Y DETERMINAR TIPO DE PAGO CABECERA
+        // -------------------------------------------------------------------------
+        var pagosAProcesar = new Dictionary<string, double>();
 
         if (req.PagosDetalle != null && req.PagosDetalle.Count > 0)
         {
-            foreach (var p in req.PagosDetalle)
-            {
-                if (p.Value > 0)
-                {
-                    string qPago = "INSERT INTO VentasPagos (FolioVenta, MetodoPago, Monto) VALUES (?, ?, ?)";
-                    using (var cmdP = new OdbcCommand(qPago, con, trans))
-                    {
-                        cmdP.Parameters.AddWithValue("?", req.Folio);
-                        cmdP.Parameters.AddWithValue("?", p.Key);
-                        cmdP.Parameters.AddWithValue("?", p.Value);
-                        await cmdP.ExecuteNonQueryAsync();
-                    }
-
-                    string qCorte = "INSERT INTO Corte (Concepto, Monto, FechaHora, Pago) VALUES (?, ?, ?, ?)";
-                    using (var cmdC = new OdbcCommand(qCorte, con, trans))
-                    {
-                        cmdC.Parameters.AddWithValue("?", $"Venta a contado folio {req.Folio}");
-                        cmdC.Parameters.AddWithValue("?", p.Value.ToString());
-                        cmdC.Parameters.AddWithValue("?", fechaStr);
-                        cmdC.Parameters.AddWithValue("?", p.Key);
-                        await cmdC.ExecuteNonQueryAsync();
-                    }
-                }
-            }
+            pagosAProcesar = new Dictionary<string, double>(req.PagosDetalle);
         }
         else
         {
-            string qPago = "INSERT INTO VentasPagos (FolioVenta, MetodoPago, Monto) VALUES (?, ?, ?)";
-            using (var cmdP = new OdbcCommand(qPago, con, trans))
-            {
-                cmdP.Parameters.AddWithValue("?", req.Folio);
-                cmdP.Parameters.AddWithValue("?", req.MetodoPago);
-                cmdP.Parameters.AddWithValue("?", req.Total);
-                await cmdP.ExecuteNonQueryAsync();
-            }
+            string metodoUnico = string.IsNullOrEmpty(req.MetodoPago) ? "01=EFECTIVO" : req.MetodoPago;
+            pagosAProcesar.Add(metodoUnico, req.Total);
+        }
 
-            string qCorte = "INSERT INTO Corte (Concepto, Monto, FechaHora, Pago) VALUES (?, ?, ?, ?)";
-            using (var cmdC = new OdbcCommand(qCorte, con, trans))
+        // Si hay más de un pago es "MIXTO", de lo contrario se guarda el nombre del método
+        string tipoPagoCabecera = pagosAProcesar.Count > 1 ? "MIXTO" : pagosAProcesar.First().Key;
+
+        // Ajustar el efectivo en caso de que haya cambio a devolver
+        if (req.Cambio > 0)
+        {
+            string? keyEfectivo = pagosAProcesar.Keys.FirstOrDefault(k => k.Contains("EFECTIVO", StringComparison.OrdinalIgnoreCase));
+            if (keyEfectivo != null)
             {
-                cmdC.Parameters.AddWithValue("?", $"Venta a contado folio {req.Folio}");
-                cmdC.Parameters.AddWithValue("?", req.Total.ToString());
-                cmdC.Parameters.AddWithValue("?", fechaStr);
-                cmdC.Parameters.AddWithValue("?", req.MetodoPago);
-                await cmdC.ExecuteNonQueryAsync();
+                pagosAProcesar[keyEfectivo] = Math.Max(0, pagosAProcesar[keyEfectivo] - req.Cambio);
             }
         }
 
+        // -------------------------------------------------------------------------
+        // 5. INSERTAR CABECERA EN VENTAS
+        // -------------------------------------------------------------------------
+        string insertVenta = "INSERT INTO Ventas (Monto, Fecha, Folio, Estatus, Descuento, Pago) VALUES (?, ?, ?, 'COBRADO', ?, ?)";
+        using (var cmdV = new OdbcCommand(insertVenta, con, trans))
+        {
+            cmdV.Parameters.AddWithValue("?", req.Total);
+            cmdV.Parameters.AddWithValue("?", fechaStr);
+            cmdV.Parameters.AddWithValue("?", req.Folio);
+            cmdV.Parameters.AddWithValue("?", req.Descuento);
+            cmdV.Parameters.AddWithValue("?", tipoPagoCabecera); // ⭐ "MIXTO" o método único
+            await cmdV.ExecuteNonQueryAsync();
+        }
+
+        // -------------------------------------------------------------------------
+        // 6. DETALLE DE PAGOS Y CORTE
+        // -------------------------------------------------------------------------
+        foreach (var p in pagosAProcesar)
+        {
+            if (p.Value > 0)
+            {
+                string qPago = "INSERT INTO VentasPagos (FolioVenta, MetodoPago, Monto) VALUES (?, ?, ?)";
+                using (var cmdP = new OdbcCommand(qPago, con, trans))
+                {
+                    cmdP.Parameters.AddWithValue("?", req.Folio);
+                    cmdP.Parameters.AddWithValue("?", p.Key);
+                    cmdP.Parameters.AddWithValue("?", p.Value);
+                    await cmdP.ExecuteNonQueryAsync();
+                }
+
+                string qCorte = "INSERT INTO Corte (Concepto, Monto, FechaHora, Pago) VALUES (?, ?, ?, ?)";
+                using (var cmdC = new OdbcCommand(qCorte, con, trans))
+                {
+                    cmdC.Parameters.AddWithValue("?", $"Venta a contado folio {req.Folio}");
+                    cmdC.Parameters.AddWithValue("?", p.Value);
+                    cmdC.Parameters.AddWithValue("?", fechaStr);
+                    cmdC.Parameters.AddWithValue("?", p.Key);
+                    await cmdC.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        // -------------------------------------------------------------------------
+        // 7. REGISTRO EN VENTASCAJERO
+        // -------------------------------------------------------------------------
         string qCajero = "INSERT INTO VentasCajero (IdUsuario, Usuario, FolioVenta, Total, Fecha, Cajero) VALUES (?, ?, ?, ?, ?, ?)";
         using (var cmdCaj = new OdbcCommand(qCajero, con, trans))
         {
-            cmdCaj.Parameters.AddWithValue("?", req.IdUsuario);
-            cmdCaj.Parameters.AddWithValue("?", req.Usuario);
+            cmdCaj.Parameters.AddWithValue("?", string.IsNullOrEmpty(req.IdUsuario) ? "1" : req.IdUsuario);
+            cmdCaj.Parameters.AddWithValue("?", string.IsNullOrEmpty(req.Usuario) ? "Admin" : req.Usuario);
             cmdCaj.Parameters.AddWithValue("?", req.Folio);
-            cmdCaj.Parameters.AddWithValue("?", req.Total.ToString());
+            cmdCaj.Parameters.AddWithValue("?", req.Total);
             cmdCaj.Parameters.AddWithValue("?", fechaStr);
-            cmdCaj.Parameters.AddWithValue("?", "CAJA 1");
+            cmdCaj.Parameters.AddWithValue("?", string.IsNullOrEmpty(req.Usuario) ? "Admin" : req.Usuario);
             await cmdCaj.ExecuteNonQueryAsync();
         }
     }
-
     private async Task ProcesarVentaCredito(OdbcConnection con, OdbcTransaction trans, VentaGuardarRequest req, string fechaStr)
     {
         // 1. Validar Cliente y Límite de Crédito

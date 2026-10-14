@@ -53,6 +53,8 @@ namespace JaegerSoft
             public double VentasAnio { get; set; }
             public double StockMaximo { get; set; }
             public int DiasReposicion { get; set; }
+            public bool EsInsumo { get; set; }   
+            public bool EsReceta { get; set; }   
 
             // Calculated fields - Ahora basados en ExistenciaTotal
             public string EstadoInventario
@@ -124,12 +126,14 @@ namespace JaegerSoft
             comboBox2.DataSource = dt;
             DataSet ds = new DataSet();
 
-            // NUEVA CONSULTA: Añade la sumatoria del inventario en todas las sucursales
-            string queryInventario = "SELECT I.*, (I.Existencia + IIF(IsNull(Totales.TotalIA), 0, Totales.TotalIA)) AS ExistenciaTotal " +
-                                     "FROM Inventario I " +
-                                     "LEFT JOIN (SELECT IdProducto, SUM(Existencia) AS TotalIA FROM InventarioAlmacenes GROUP BY IdProducto) Totales " +
-                                     "ON I.Id = Totales.IdProducto " +
-                                     "ORDER BY I.Nombre;";
+            string queryInventario = "SELECT I.*, " +
+                           "IIF(IsNull(I.EsInsumo), False, I.EsInsumo) AS EsInsumoClean, " +
+                           "IIF(IsNull(I.EsReceta), False, I.EsReceta) AS EsRecetaClean, " +
+                           "(I.Existencia + IIF(IsNull(Totales.TotalIA), 0, Totales.TotalIA)) AS ExistenciaTotal " +
+                           "FROM Inventario I " +
+                           "LEFT JOIN (SELECT IdProducto, SUM(Existencia) AS TotalIA FROM InventarioAlmacenes GROUP BY IdProducto) Totales " +
+                           "ON I.Id = Totales.IdProducto " +
+                           "ORDER BY I.Nombre;";
 
             da = new OleDbDataAdapter(queryInventario, conectar);
             da.Fill(ds, "Inventario");
@@ -170,6 +174,8 @@ namespace JaegerSoft
                     prod.FechaUltimaVenta = row.Table.Columns.Contains("FechaUltimaVenta") && row["FechaUltimaVenta"] != DBNull.Value ? Convert.ToDateTime(row["FechaUltimaVenta"]) : (DateTime?)null;
                     prod.StockMaximo = row.Table.Columns.Contains("StockMaximo") && row["StockMaximo"] != DBNull.Value ? Convert.ToDouble(row["StockMaximo"]) : 0.0;
                     prod.DiasReposicion = row.Table.Columns.Contains("DiasReposicion") && row["DiasReposicion"] != DBNull.Value ? Convert.ToInt32(row["DiasReposicion"]) : 0;
+                    prod.EsInsumo = row.Table.Columns.Contains("EsInsumoClean") ? Convert.ToBoolean(row["EsInsumoClean"]) : false;
+                    prod.EsReceta = row.Table.Columns.Contains("EsRecetaClean") ? Convert.ToBoolean(row["EsRecetaClean"]) : false;
 
                     listaCompletaInventario.Add(prod);
                 }
@@ -370,6 +376,8 @@ namespace JaegerSoft
                     editar.cmbUnidad.DataSource = dt;
                     editar.cmbUnidad.SelectedValue = prod.Unidad;
                     editar.cmbUnidad.Text = prod.Uni;
+                    editar.chkEsInsumo.Checked = prod.EsInsumo;
+                    editar.chkEsReceta.Checked = prod.EsReceta;
                     editar.ShowDialog();
                 }
             }
@@ -445,13 +453,24 @@ namespace JaegerSoft
                 MessageBox.Show("Error al eliminar el producto: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
+        private void cmbTipoFiltro_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            AplicarFiltros();
+        }
         private void AplicarFiltros()
         {
             if (listaCompletaInventario == null) return;
 
             var filtro = listaCompletaInventario.AsEnumerable();
 
+            if (cmbTipoFiltro.SelectedIndex == 1) // VENTA GENERAL (Oculta insumos)
+            {
+                filtro = filtro.Where(p => !p.EsInsumo);
+            }
+            else if (cmbTipoFiltro.SelectedIndex == 2) // INSUMOS / RECETAS
+            {
+                filtro = filtro.Where(p => p.EsInsumo || p.EsReceta);
+            }
             if (checkBox1.Checked)
             {
                 filtro = filtro.Where(p => p.Categoria != null &&
@@ -1057,11 +1076,15 @@ namespace JaegerSoft
             if (listaCompletaInventario == null || !Sesion.TienePermiso("VER_ANALITICO_INVENTARIO")) return;
 
             int totalArticulos = listaCompletaInventario.Count;
+            int totalInsumos = listaCompletaInventario.Count(p => p.EsInsumo);
+            int totalRecetas = listaCompletaInventario.Count(p => p.EsReceta);
             // Usando ExistenciaTotal
             decimal totalStock = listaCompletaInventario.Sum(p => p.ExistenciaTotal);
             int totalCategorias = listaCompletaInventario.Select(p => p.Categoria).Distinct().Count();
 
             if (lblKpiArticulos != null) lblKpiArticulos.Text = totalArticulos.ToString();
+            if (lblKpiInsumos != null) lblKpiInsumos.Text = totalInsumos.ToString();
+            if (lblKpiRecetas != null) lblKpiRecetas.Text = totalRecetas.ToString();
             if (lblKpiStock != null) lblKpiStock.Text = totalStock.ToString("N0");
             if (lblKpiCategorias != null) lblKpiCategorias.Text = totalCategorias.ToString();
 
@@ -1253,6 +1276,24 @@ namespace JaegerSoft
             });
 
             ActualizarKpiValues();
+        }
+        private void btnRecetas_Click(object sender, EventArgs e)
+        {
+            if (dataGridView2.CurrentRow != null)
+            {
+                ProductoInventario prod = (ProductoInventario)dataGridView2.CurrentRow.DataBoundItem;
+
+                // Abrir el gestor de recetas pasando el ID y Nombre del pan seleccionado
+                frmRecetas frm = new frmRecetas(prod.Id, prod.Nombre);
+                frm.ShowDialog();
+
+                // Opcional: Recargar pantalla al cerrar por si cambió algún costo teórico
+                CargarPagina();
+            }
+            else
+            {
+                MessageBox.Show("Por favor, seleccione un producto final para gestionar su receta.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
         private void button16_Click(object sender, EventArgs e)
         {

@@ -46,6 +46,9 @@
             this.label6 = new System.Windows.Forms.Label();
             this.cmbUnidad = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
+            this.picProducto = new System.Windows.Forms.PictureBox();
+            this.btnSeleccionarImagen = new System.Windows.Forms.Button();
+            ((System.ComponentModel.ISupportInitialize)(this.picProducto)).BeginInit();
             this.SuspendLayout();
             // 
             // txtLimite
@@ -54,7 +57,6 @@
             this.txtLimite.Name = "txtLimite";
             this.txtLimite.Size = new System.Drawing.Size(233, 20);
             this.txtLimite.TabIndex = 3;
-            this.txtLimite.TextChanged += new System.EventHandler(this.txtLimite_TextChanged);
             this.txtLimite.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtLimite_KeyPress);
             // 
             // label4
@@ -67,7 +69,6 @@
             this.label4.Size = new System.Drawing.Size(127, 18);
             this.label4.TabIndex = 56;
             this.label4.Text = "Precio Compra:";
-            this.label4.Click += new System.EventHandler(this.label4_Click);
             // 
             // button1
             // 
@@ -86,7 +87,6 @@
             this.txtCompra.Name = "txtCompra";
             this.txtCompra.Size = new System.Drawing.Size(235, 20);
             this.txtCompra.TabIndex = 2;
-            this.txtCompra.TextChanged += new System.EventHandler(this.txtCompra_TextChanged);
             this.txtCompra.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtCompra_KeyPress);
             // 
             // label3
@@ -99,7 +99,6 @@
             this.label3.Size = new System.Drawing.Size(155, 19);
             this.label3.TabIndex = 51;
             this.label3.Text = "Precio de Mayoreo:";
-            this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // txtID
             // 
@@ -108,7 +107,6 @@
             this.txtID.Name = "txtID";
             this.txtID.Size = new System.Drawing.Size(354, 20);
             this.txtID.TabIndex = 42;
-            this.txtID.TextChanged += new System.EventHandler(this.txtID_TextChanged);
             // 
             // label2
             // 
@@ -120,7 +118,6 @@
             this.label2.Size = new System.Drawing.Size(30, 19);
             this.label2.TabIndex = 50;
             this.label2.Text = "ID:";
-            this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // txtProducto
             // 
@@ -128,7 +125,6 @@
             this.txtProducto.Name = "txtProducto";
             this.txtProducto.Size = new System.Drawing.Size(234, 20);
             this.txtProducto.TabIndex = 0;
-            this.txtProducto.TextChanged += new System.EventHandler(this.txtProducto_TextChanged);
             // 
             // label1
             // 
@@ -140,7 +136,6 @@
             this.label1.Size = new System.Drawing.Size(150, 19);
             this.label1.TabIndex = 49;
             this.label1.Text = "Nombre Producto:";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // label5
             // 
@@ -152,7 +147,6 @@
             this.label5.Size = new System.Drawing.Size(82, 18);
             this.label5.TabIndex = 57;
             this.label5.Text = "Impuesto:";
-            this.label5.Click += new System.EventHandler(this.label5_Click);
             // 
             // cmbCategoria
             // 
@@ -165,7 +159,6 @@
             this.cmbCategoria.Name = "cmbCategoria";
             this.cmbCategoria.Size = new System.Drawing.Size(234, 21);
             this.cmbCategoria.TabIndex = 4;
-            this.cmbCategoria.SelectedIndexChanged += new System.EventHandler(this.cmbCategoria_SelectedIndexChanged);
             // 
             // txtVenta
             // 
@@ -173,7 +166,6 @@
             this.txtVenta.Name = "txtVenta";
             this.txtVenta.Size = new System.Drawing.Size(235, 20);
             this.txtVenta.TabIndex = 1;
-            this.txtVenta.TextChanged += new System.EventHandler(this.txtVenta_TextChanged);
             this.txtVenta.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtVenta_KeyPress);
             // 
             // label7
@@ -186,7 +178,6 @@
             this.label7.Size = new System.Drawing.Size(160, 19);
             this.label7.TabIndex = 62;
             this.label7.Text = "Precio de Menudeo:";
-            this.label7.Click += new System.EventHandler(this.label7_Click);
             // 
             // comboBox1
             // 
@@ -237,12 +228,38 @@
             this.label8.TabIndex = 66;
             this.label8.Text = "Unidad:";
             // 
+            // picProducto
+            // 
+            this.picProducto.BackColor = System.Drawing.Color.White;
+            this.picProducto.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.picProducto.Location = new System.Drawing.Point(541, 8);
+            this.picProducto.Margin = new System.Windows.Forms.Padding(4);
+            this.picProducto.Name = "picProducto";
+            this.picProducto.Size = new System.Drawing.Size(206, 138);
+            this.picProducto.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.picProducto.TabIndex = 68;
+            this.picProducto.TabStop = false;
+            // 
+            // btnSeleccionarImagen
+            // 
+            this.btnSeleccionarImagen.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSeleccionarImagen.Location = new System.Drawing.Point(411, 54);
+            this.btnSeleccionarImagen.Margin = new System.Windows.Forms.Padding(4);
+            this.btnSeleccionarImagen.Name = "btnSeleccionarImagen";
+            this.btnSeleccionarImagen.Size = new System.Drawing.Size(124, 64);
+            this.btnSeleccionarImagen.TabIndex = 67;
+            this.btnSeleccionarImagen.Text = "Seleccionar Imágen";
+            this.btnSeleccionarImagen.UseVisualStyleBackColor = true;
+            this.btnSeleccionarImagen.Click += new System.EventHandler(this.btnSeleccionarImagen_Click);
+            // 
             // frmEditarProducto
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(410, 276);
+            this.ClientSize = new System.Drawing.Size(757, 477);
+            this.Controls.Add(this.picProducto);
+            this.Controls.Add(this.btnSeleccionarImagen);
             this.Controls.Add(this.cmbUnidad);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.comboBox1);
@@ -266,6 +283,7 @@
             this.Text = "Editar Producto";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmEditarProducto_FormClosing);
             this.Load += new System.EventHandler(this.frmEditarProducto_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.picProducto)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -290,5 +308,9 @@
         private System.Windows.Forms.Label label6;
         public System.Windows.Forms.ComboBox cmbUnidad;
         private System.Windows.Forms.Label label8;
+        public System.Windows.Forms.CheckBox chkEsInsumo;
+        public System.Windows.Forms.CheckBox chkEsReceta;
+        private System.Windows.Forms.PictureBox picProducto;
+        public System.Windows.Forms.Button btnSeleccionarImagen;
     }
 }

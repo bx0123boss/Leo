@@ -159,6 +159,7 @@
             this.Name = "frmAgregarGasto";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Agregar Gasto";
+            this.Load += new System.EventHandler(this.frmAgregarGasto_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

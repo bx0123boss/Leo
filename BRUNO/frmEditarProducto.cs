@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.OleDb;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +21,7 @@ namespace JaegerSoft
         public string usuario = "";
         public string inventario = "";
         double precio;
+        private string rutaImagenSeleccionada = "";
 
         // New custom controls for expanded fields
         public System.Windows.Forms.Label lblLimiteReal;
@@ -49,9 +51,8 @@ namespace JaegerSoft
             this.lblProveedor = new System.Windows.Forms.Label();
             this.cmbProveedor = new System.Windows.Forms.ComboBox();
             this.chkManejaInventario = new System.Windows.Forms.CheckBox();
-
-            // Form client size adjustment
-            this.ClientSize = new System.Drawing.Size(410, 400);
+            this.chkEsInsumo = new System.Windows.Forms.CheckBox();
+            this.chkEsReceta = new System.Windows.Forms.CheckBox();
 
             // lblLimiteReal
             this.lblLimiteReal.AutoSize = true;
@@ -127,6 +128,25 @@ namespace JaegerSoft
             this.chkManejaInventario.Text = "Maneja Inventario";
             this.chkManejaInventario.Checked = true;
             this.chkManejaInventario.UseVisualStyleBackColor = true;
+            // chkEsInsumo
+            this.chkEsInsumo.AutoSize = true;
+            this.chkEsInsumo.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+            this.chkEsInsumo.ForeColor = System.Drawing.Color.White;
+            this.chkEsInsumo.Location = new System.Drawing.Point(45, 365);
+            this.chkEsInsumo.Name = "chkEsInsumo";
+            this.chkEsInsumo.Size = new System.Drawing.Size(120, 21);
+            this.chkEsInsumo.Text = "Es Insumo";
+            this.chkEsInsumo.UseVisualStyleBackColor = true;
+
+            // chkEsReceta
+            this.chkEsReceta.AutoSize = true;
+            this.chkEsReceta.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+            this.chkEsReceta.ForeColor = System.Drawing.Color.White;
+            this.chkEsReceta.Location = new System.Drawing.Point(180, 365);
+            this.chkEsReceta.Name = "chkEsReceta";
+            this.chkEsReceta.Size = new System.Drawing.Size(125, 21);
+            this.chkEsReceta.Text = "Es Receta";
+            this.chkEsReceta.UseVisualStyleBackColor = true;
 
             // Add to controls list
             this.Controls.Add(this.lblLimiteReal);
@@ -138,10 +158,12 @@ namespace JaegerSoft
             this.Controls.Add(this.lblProveedor);
             this.Controls.Add(this.cmbProveedor);
             this.Controls.Add(this.chkManejaInventario);
+            this.Controls.Add(this.chkEsInsumo);
+            this.Controls.Add(this.chkEsReceta);
 
             // Move button1 (Editar) down
-            this.button1.Location = new System.Drawing.Point(166, 365);
-            this.ClientSize = new System.Drawing.Size(410, 420);
+            this.button1.Location = new System.Drawing.Point(166, 400);
+            //this.ClientSize = new System.Drawing.Size(953, 323);
         }
 
         private void txtLimiteReal_KeyPress(object sender, KeyPressEventArgs e)
@@ -228,7 +250,10 @@ namespace JaegerSoft
                              "StockMaximo = ?, " +
                              "DiasReposicion = ?, " +
                              "Limite = ?, " +
-                             "ManejaInventario = ? " +
+                             "ManejaInventario = ?, " +
+                             "EsInsumo = ?, " +
+                             "EsReceta = ? ," +
+                             "ImagenUrl = ? " +
                              "WHERE Id = ?;";
 
                 using (OleDbCommand cmdUpdate = new OleDbCommand(sql, conectar))
@@ -246,6 +271,10 @@ namespace JaegerSoft
                     cmdUpdate.Parameters.AddWithValue("?", ParseInt(txtDiasReposicion.Text));    // DiasReposicion
                     cmdUpdate.Parameters.AddWithValue("?", ParseInt(txtLimiteReal.Text));        // Limite (Stock Minimo)
                     cmdUpdate.Parameters.AddWithValue("?", chkManejaInventario.Checked);         // ManejaInventario
+                    cmdUpdate.Parameters.AddWithValue("?", chkEsInsumo.Checked);                 // EsInsumo
+                    cmdUpdate.Parameters.AddWithValue("?", chkEsReceta.Checked);
+                    string imagenUrl = GuardarImagenProducto(txtID.Text);
+                    cmdUpdate.Parameters.AddWithValue("?", (object)imagenUrl ?? DBNull.Value);
                     cmdUpdate.Parameters.AddWithValue("?", txtID.Text);                          // WHERE Id
 
                     cmdUpdate.ExecuteNonQuery();
@@ -273,7 +302,76 @@ namespace JaegerSoft
                 MessageBox.Show("Error al actualizar el producto: " + ex.Message, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        private string GuardarImagenProducto(string idProducto)
+        {
+            if (string.IsNullOrWhiteSpace(rutaImagenSeleccionada))
+                return null;
 
+            string carpetaDestino = @"C:\Jaeger Soft\ModuloWeb\wwwroot\images\productos";
+            if (!Directory.Exists(carpetaDestino))
+                Directory.CreateDirectory(carpetaDestino);
+
+            string extension = Path.GetExtension(rutaImagenSeleccionada);
+            string nombreArchivo = idProducto + extension;
+            string destino = Path.Combine(carpetaDestino, nombreArchivo);
+
+            // Si el origen y el destino son el mismo archivo, no hagas nada
+            if (string.Equals(
+                    Path.GetFullPath(rutaImagenSeleccionada),
+                    Path.GetFullPath(destino),
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return $"images/productos/{nombreArchivo}";
+            }
+
+            // Liberar imagen antes de sobrescribir
+            if (picProducto.Image != null)
+            {
+                picProducto.Image.Dispose();
+                picProducto.Image = null;
+            }
+
+            File.Copy(rutaImagenSeleccionada, destino, true);
+
+            return $"images/productos/{nombreArchivo}";
+        }
+        /// <summary>
+        /// Carga en el PictureBox la imagen guardada, si el archivo existe físicamente.
+        /// </summary>
+        private void CargarImagenProducto(string imagenUrl)
+        {
+            if (string.IsNullOrWhiteSpace(imagenUrl))
+                return;
+            string raizWeb = @"C:\Jaeger Soft\ModuloWeb\wwwroot";
+            string rutaFisica = Path.Combine(raizWeb, imagenUrl.Replace('/', '\\'));
+
+            if (!File.Exists(rutaFisica))
+                return; // No existe el archivo, dejamos el PictureBox vacío
+
+            try
+            {
+                // Liberar imagen previa para no bloquear el archivo
+                if (picProducto.Image != null)
+                {
+                    picProducto.Image.Dispose();
+                    picProducto.Image = null;
+                }
+
+                // Cargamos desde un MemoryStream para NO dejar el archivo bloqueado
+                byte[] bytes = File.ReadAllBytes(rutaFisica);
+                using (MemoryStream ms = new MemoryStream(bytes))
+                {
+                    picProducto.Image = Image.FromStream(ms);
+                }
+
+                // Guardamos la ruta por si el usuario no cambia la imagen al editar
+                rutaImagenSeleccionada = rutaFisica;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al cargar la imagen: " + ex.Message);
+            }
+        }
         private void frmEditarProducto_Load(object sender, EventArgs e)
         {
             string categoria = comboBox1.Text;
@@ -308,22 +406,44 @@ namespace JaegerSoft
             cmbProveedor.DataSource = dtProv;
             cmbProveedor.Text = proveedor;
 
-            precio = Convert.ToDouble(txtVenta.Text);
+         
 
-            // Fetch ManejaInventario
             try
             {
-                using (OleDbCommand cmdManeja = new OleDbCommand("SELECT ManejaInventario FROM Inventario WHERE Id = ?", conectar))
+                precio = Convert.ToDouble(txtVenta.Text);
+                using (OleDbCommand cmdFlags = new OleDbCommand(
+                    "SELECT ManejaInventario, EsInsumo, EsReceta, ImagenUrl FROM Inventario WHERE Id = ?", conectar))
                 {
-                    cmdManeja.Parameters.AddWithValue("?", txtID.Text);
-                    object res = cmdManeja.ExecuteScalar();
-                    if (res != null && res != DBNull.Value)
+                    cmdFlags.Parameters.AddWithValue("?", txtID.Text);
+
+                    using (OleDbDataReader dr = cmdFlags.ExecuteReader())
                     {
-                        chkManejaInventario.Checked = Convert.ToBoolean(res);
+                        if (dr.Read())
+                        {
+                            if (dr["ManejaInventario"] != DBNull.Value)
+                                chkManejaInventario.Checked = Convert.ToBoolean(dr["ManejaInventario"]);
+
+                            if (dr["EsInsumo"] != DBNull.Value)
+                                chkEsInsumo.Checked = Convert.ToBoolean(dr["EsInsumo"]);
+
+                            if (dr["EsReceta"] != DBNull.Value)
+                                chkEsReceta.Checked = Convert.ToBoolean(dr["EsReceta"]);
+
+                            // ✅ Cargar la imagen si existe
+                            if (dr["ImagenUrl"] != DBNull.Value)
+                            {
+                                string imagenUrl = dr["ImagenUrl"].ToString();
+                                CargarImagenProducto(imagenUrl);
+                            }
+                        }
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                // No reventar el formulario si algo falla al cargar la imagen
+                Console.WriteLine("Error al cargar flags/imagen: " + ex.Message);
+            }
         }
 
         private void frmEditarProducto_FormClosing(object sender, FormClosingEventArgs e)
@@ -365,76 +485,6 @@ namespace JaegerSoft
                 e.Handled = true;
         }
 
-        private void label7_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void cmbSub_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label6_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void cmbCategoria_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label5_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void txtLimite_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label4_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void txtVenta_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void txtCompra_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void txtID_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void txtProducto_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void txtLimite_KeyPress(object sender, KeyPressEventArgs e)
         {
             CultureInfo cc = System.Threading.Thread.CurrentThread.CurrentCulture;
@@ -442,6 +492,34 @@ namespace JaegerSoft
                 e.Handled = false;
             else
                 e.Handled = true;
+        }
+
+        private void btnSeleccionarImagen_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Title = "Seleccionar imagen";
+                ofd.Filter = "Archivos de imagen|*.jpg;*.jpeg;*.png;*.bmp";
+
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    rutaImagenSeleccionada = ofd.FileName;
+                    try
+                    {
+                        // Liberamos la imagen anterior para no bloquear el archivo
+                        if (picProducto.Image != null)
+                        {
+                            picProducto.Image.Dispose();
+                            picProducto.Image = null;
+                        }
+                        picProducto.Image = Image.FromFile(rutaImagenSeleccionada);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.ToString());
+                    }
+                }
+            }
         }
     }
 }

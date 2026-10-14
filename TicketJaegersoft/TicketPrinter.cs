@@ -63,7 +63,7 @@ public class TicketPrinter
             pd.PrinterSettings.PrinterName = printerName;
         }
         pd.PrintPage += new PrintPageEventHandler(ImprimirPagina);
-        pd.Print();
+         pd.Print();
     }
     private void ImprimirPaginaComanda(object sender, PrintPageEventArgs e)
     {

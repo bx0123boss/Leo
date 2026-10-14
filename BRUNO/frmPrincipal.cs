@@ -135,6 +135,7 @@ namespace JaegerSoft
                     vent.usuario = usuario;
                     vent.NombreUsuario = NombreUsuario;
                     vent.idUsuario = idUsuario;
+                    vent.IsServidorActivo = IsServidorActivo;
                     vent.Show();
                 }
                 else
