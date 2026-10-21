@@ -78,6 +78,7 @@ namespace JaegerSoft
             EstilizarBotonAdvertencia(button4);
             EstilizarBotonAdvertencia(button6);
             EstilizarBotonAdvertencia(button7);
+            EstilizarBotonAdvertencia(button8);
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -146,6 +147,13 @@ namespace JaegerSoft
         {
             frmCortePorFechas fch = new frmCortePorFechas();
             fch.Show();
+            this.Close();
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            frmConsultaVentasCategoria cat = new frmConsultaVentasCategoria();
+            cat.Show();
             this.Close();
         }
     }

@@ -1,5 +1,6 @@
 ﻿namespace PuntoVentaWeb.Services;
 
+using JaegerSoft;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PuntoVentaWeb.Models;
@@ -7,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Odbc;
+using System.Data.OleDb;
 using System.Threading.Tasks;
 
 public class ProduccionService
@@ -128,6 +130,30 @@ public class ProduccionService
             throw new Exception($"Error al consultar receta de Access: {ex.Message}");
         }
         return desglose;
+    }
+    public async Task<List<string>> ObtenerUsuariosAsync()
+    {
+        var usuarios = new List<string>();
+
+        using (var conexion = new OleDbConnection(Conexion.CadCon))
+        {
+            await conexion.OpenAsync();
+            string query = "SELECT Usuario FROM Usuarios ORDER BY Usuario ASC";
+
+            using (var cmd = new OleDbCommand(query, conexion))
+            using (var reader = await cmd.ExecuteReaderAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    if (!reader.IsDBNull(0))
+                    {
+                        usuarios.Add(reader.GetString(0));
+                    }
+                }
+            }
+        }
+
+        return usuarios;
     }
 
     /// <summary>

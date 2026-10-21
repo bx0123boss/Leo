@@ -188,6 +188,7 @@ namespace JaegerSoft
             if (!FormularioEstaAbierto(typeof(frmEntradas)))
             {
                 frmEntradas entrada = new frmEntradas();
+                entrada.usuario = usuario;
                 entrada.Show();
             }
         }
@@ -197,6 +198,7 @@ namespace JaegerSoft
             if (!FormularioEstaAbierto(typeof(frmSalidas)))
             {
                 frmSalidas salida = new frmSalidas();
+                salida.usuario = usuario;
                 salida.Show();
             }
         }

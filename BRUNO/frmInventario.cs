@@ -366,7 +366,7 @@ namespace JaegerSoft
                     editar.txtStockMaximo.Text = prod.StockMaximo.ToString();
                     editar.txtDiasReposicion.Text = prod.DiasReposicion.ToString();
                     editar.cmbProveedor.Text = prod.ProveedorPrincipal;
-
+                    editar.categoriaSeleccionada = prod.Categoria;
                     System.Data.DataTable dt = new System.Data.DataTable();
                     cmd = new OleDbCommand("Select Id,Nombre from Unidades;", conectar);
                     OleDbDataAdapter da = new OleDbDataAdapter(cmd);

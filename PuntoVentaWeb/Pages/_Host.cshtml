@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components.Web
+@using BootstrapBlazor.Components
 @namespace PuntoVentaWeb.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
@@ -22,10 +23,11 @@
     <!-- ⭐ Open Iconic (CDN) - NECESARIO para los <i class="oi oi-*"> del NavMenu -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/open-iconic.min.css" />
 
-    <!-- Estilos propios -->
-    <link href="css/site.css" rel="stylesheet" />
-    <link href="PuntoVentaWeb.styles.css" rel="stylesheet" />
-
+    @{
+        var v = DateTime.Now.Ticks.ToString();
+    }
+    <link href="css/site.css?v=@v" rel="stylesheet" />
+    <link href="PuntoVentaWeb.styles.css?v=@v" rel="stylesheet" />
     <!-- Favicon (opcional) -->
     <link rel="icon" type="image/png" href="favicon.png" />
 
@@ -64,6 +66,10 @@
             anchorElement.remove();
             URL.revokeObjectURL(url);
         }
+                window.obtenerValorBuscadorPOS = () => {
+            const input = document.querySelector('.pos-search-input');
+            return input ? input.value : '';
+        };
 
         window.scrollElementBy = (element, px) => {
             if (element) {

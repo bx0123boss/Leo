@@ -547,6 +547,9 @@ public class CotizacionService
                                 reader["WhatsAppApiVersion"] != DBNull.Value
                                     ? reader["WhatsAppApiVersion"].ToString()
                                     : "";
+
+                            if (reader["AbrirTeclado"] != DBNull.Value)
+                                config.AbrirTeclado = Convert.ToBoolean(reader["AbrirTeclado"]);
                         }
                     }
                 }

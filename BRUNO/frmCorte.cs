@@ -96,6 +96,7 @@ namespace JaegerSoft
 
         private void dataGridView6_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
+            // Formato de moneda para el Total
             if (dataGridView6.Columns[e.ColumnIndex].Name == "Total")
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
@@ -103,6 +104,22 @@ namespace JaegerSoft
                     e.Value = value.ToString("C2");
                     e.FormattingApplied = true;
                 }
+            }
+            // Formato numérico para Piezas
+            else if (dataGridView6.Columns[e.ColumnIndex].Name == "Piezas")
+            {
+                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
+                {
+                    e.Value = value.ToString("N0"); // Muestra sin decimales (ej. 1,250)
+                    e.FormattingApplied = true;
+                }
+            }
+
+            // Estilo especial para la fila de TOTAL GENERAL
+            if (e.RowIndex >= 0 && dataGridView6.Rows[e.RowIndex].Cells["Categoria"].Value?.ToString() == "TOTAL GENERAL")
+            {
+                dataGridView6.Rows[e.RowIndex].DefaultCellStyle.Font = new Font(dataGridView6.Font, FontStyle.Bold);
+                dataGridView6.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.LightGray;
             }
         }
 
@@ -119,7 +136,10 @@ namespace JaegerSoft
                 label11.Hide();
                 lblBruta.Hide();
             }
-
+            if (Sesion.TienePermiso("UTILIDAD_CORTE"))
+            {
+                UtilidadPanel.Show();
+            }
             conectar.Open();
 
             cmd = new OleDbCommand("select Porcentaje from Tarjeta where Id=1;", conectar);
@@ -183,11 +203,19 @@ namespace JaegerSoft
 
             ds = new DataSet();
             string query = "SELECT IIf(Categoria Is Null OR Categoria = '', 'SIN CATEGORIA', Categoria) as Categoria, " +
-                           "SUM(MontoTotal) as Total " +
-                           "FROM VentasContado " +
-                           "Where Fecha >= #" + fechaInicioSQL + "# and Fecha <= #" + fechaFinSQL + "# " +
-                           "AND FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus = 'COBRADO') " +
-                           "GROUP BY IIf(Categoria Is Null OR Categoria = '', 'SIN CATEGORIA', Categoria)";
+                  "SUM(Cantidad) as Piezas, " +
+                  "SUM(MontoTotal) as Total " +
+                  "FROM VentasContado " +
+                  "WHERE Fecha >= #" + fechaInicioSQL + "# and Fecha <= #" + fechaFinSQL + "# " +
+                  "AND FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus = 'COBRADO') " +
+                  "GROUP BY IIf(Categoria Is Null OR Categoria = '', 'SIN CATEGORIA', Categoria) " +
+                  "UNION ALL " +
+                  "SELECT 'TOTAL GENERAL' as Categoria, " +
+                  "SUM(Cantidad) as Piezas, " +
+                  "SUM(MontoTotal) as Total " +
+                  "FROM VentasContado " +
+                  "WHERE Fecha >= #" + fechaInicioSQL + "# and Fecha <= #" + fechaFinSQL + "# " +
+                  "AND FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus = 'COBRADO')";
 
             da = new OleDbDataAdapter(query, conectar);
             da.Fill(ds, "Id");
@@ -376,7 +404,7 @@ namespace JaegerSoft
             lblNoIva.Text = $"{montoSinIVA:C2}";
             lblIVA.Text = $"{iva:C2}";
             lblTotal.Text = $"{monto:C2}";
-
+           
             // ESTILIZACIÓN DE GRIDS
             EstilizarDataGridView(this.dgvFolios);
             EstilizarDataGridView(this.dgvCorte);

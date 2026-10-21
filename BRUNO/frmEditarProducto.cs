@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.OleDb;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -22,6 +23,7 @@ namespace JaegerSoft
         public string inventario = "";
         double precio;
         private string rutaImagenSeleccionada = "";
+        public string categoriaSeleccionada = ""; // Variable para almacenar la categoría seleccionada
 
         // New custom controls for expanded fields
         public System.Windows.Forms.Label lblLimiteReal;
@@ -390,8 +392,10 @@ namespace JaegerSoft
             comboBox1.DisplayMember = "Nombre";
             comboBox1.ValueMember = "Id";
             comboBox1.DataSource = dtCat;
-            comboBox1.Text = categoria;
-
+            if(categoriaSeleccionada == "")
+                comboBox1.Text = categoria;
+            else
+                comboBox1.Text = categoriaSeleccionada;
             // Populate Proveedores
             DataTable dtProv = new DataTable();
             using (cmd = new OleDbCommand("Select Id,Nombre from Proveedores ORDER BY Nombre;", conectar))
@@ -443,6 +447,26 @@ namespace JaegerSoft
             {
                 // No reventar el formulario si algo falla al cargar la imagen
                 Console.WriteLine("Error al cargar flags/imagen: " + ex.Message);
+            }
+            AbrirTeclado();
+        }
+        private void AbrirTeclado()
+        {
+            string RutaTeclado = @"C:\Jaeger Soft\FreeVK.exe";
+            try
+            {
+                if (File.Exists(RutaTeclado))
+                {
+                    // Verifica si el proceso YA está corriendo para evitar abrir múltiples instancias
+                    if (Process.GetProcessesByName("FreeVK").Length == 0)
+                    {
+                        Process.Start(RutaTeclado);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al abrir el teclado: " + ex.Message);
             }
         }
 

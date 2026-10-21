@@ -377,7 +377,7 @@ Quedamos atentos a cualquier duda.
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.ToString());
+            System.Console.WriteLine(ex.ToString());
             await JS.InvokeVoidAsync("alert", "Error al generar PDF: " + ex.Message);
         }
     }

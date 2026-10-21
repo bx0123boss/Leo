@@ -711,7 +711,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.ToString());
+            System.Console.WriteLine(ex.ToString());
             await JS.InvokeVoidAsync("alert", "Error técnico enviando correo.");
         }
     }

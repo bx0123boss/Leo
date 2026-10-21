@@ -100,6 +100,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Salidas";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmSalidas_FormClosing);
+            this.Load += new System.EventHandler(this.frmSalidas_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

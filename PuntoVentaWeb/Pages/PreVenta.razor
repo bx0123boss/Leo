@@ -382,7 +382,7 @@
         catch (Exception ex)
         {
             await JSRuntime.InvokeVoidAsync("alert", "No se pudo conectar al Agente de la Báscula. Verifica que el programa negro (consola) esté abierto.");
-            Console.WriteLine("Error de báscula: " + ex.Message);
+            System.Console.WriteLine("Error de báscula: " + ex.Message);
         }
     }
     // ================================
@@ -416,7 +416,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error al guardar preventa: " + ex.Message);
+            System.Console.WriteLine("Error al guardar preventa: " + ex.Message);
         }
         finally
         {
@@ -451,7 +451,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error al generar QR: " + ex.Message);
+            System.Console.WriteLine("Error al generar QR: " + ex.Message);
         }
         finally
         {

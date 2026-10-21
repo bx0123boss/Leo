@@ -21,6 +21,15 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmCorte));
             this.panel2 = new System.Windows.Forms.Panel();
+            this.UtilidadPanel = new System.Windows.Forms.Panel();
+            this.label9 = new System.Windows.Forms.Label();
+            this.lblUtilidad = new System.Windows.Forms.Label();
+            this.label11 = new System.Windows.Forms.Label();
+            this.lblGastos = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
+            this.lblBruta = new System.Windows.Forms.Label();
+            this.label14 = new System.Windows.Forms.Label();
+            this.lblInversion = new System.Windows.Forms.Label();
             this.label17 = new System.Windows.Forms.Label();
             this.lblECaja = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -46,14 +55,6 @@
             this.label8 = new System.Windows.Forms.Label();
             this.lblTotal = new System.Windows.Forms.Label();
             this.line3 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.lblInversion = new System.Windows.Forms.Label();
-            this.label14 = new System.Windows.Forms.Label();
-            this.lblBruta = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
-            this.lblGastos = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.lblUtilidad = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPageEfectivo = new System.Windows.Forms.TabPage();
@@ -82,6 +83,7 @@
             this.label16 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2.SuspendLayout();
+            this.UtilidadPanel.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPageEfectivo.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvCorte)).BeginInit();
@@ -106,6 +108,7 @@
             // 
             this.panel2.AutoScroll = true;
             this.panel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(20)))), ((int)(((byte)(20)))), ((int)(((byte)(20)))));
+            this.panel2.Controls.Add(this.UtilidadPanel);
             this.panel2.Controls.Add(this.label17);
             this.panel2.Controls.Add(this.lblECaja);
             this.panel2.Controls.Add(this.label3);
@@ -131,14 +134,6 @@
             this.panel2.Controls.Add(this.label8);
             this.panel2.Controls.Add(this.lblTotal);
             this.panel2.Controls.Add(this.line3);
-            this.panel2.Controls.Add(this.label9);
-            this.panel2.Controls.Add(this.lblInversion);
-            this.panel2.Controls.Add(this.label14);
-            this.panel2.Controls.Add(this.lblBruta);
-            this.panel2.Controls.Add(this.label10);
-            this.panel2.Controls.Add(this.lblGastos);
-            this.panel2.Controls.Add(this.label11);
-            this.panel2.Controls.Add(this.lblUtilidad);
             this.panel2.Controls.Add(this.button1);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Left;
             this.panel2.Location = new System.Drawing.Point(0, 0);
@@ -146,6 +141,110 @@
             this.panel2.Padding = new System.Windows.Forms.Padding(15, 17, 15, 17);
             this.panel2.Size = new System.Drawing.Size(380, 850);
             this.panel2.TabIndex = 1;
+            // 
+            // UtilidadPanel
+            // 
+            this.UtilidadPanel.Controls.Add(this.label9);
+            this.UtilidadPanel.Controls.Add(this.lblUtilidad);
+            this.UtilidadPanel.Controls.Add(this.label11);
+            this.UtilidadPanel.Controls.Add(this.lblGastos);
+            this.UtilidadPanel.Controls.Add(this.label10);
+            this.UtilidadPanel.Controls.Add(this.lblBruta);
+            this.UtilidadPanel.Controls.Add(this.label14);
+            this.UtilidadPanel.Controls.Add(this.lblInversion);
+            this.UtilidadPanel.Location = new System.Drawing.Point(12, 532);
+            this.UtilidadPanel.Name = "UtilidadPanel";
+            this.UtilidadPanel.Size = new System.Drawing.Size(327, 216);
+            this.UtilidadPanel.TabIndex = 102;
+            this.UtilidadPanel.Visible = false;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.label9.ForeColor = System.Drawing.Color.Gray;
+            this.label9.Location = new System.Drawing.Point(4, 16);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(77, 21);
+            this.label9.TabIndex = 23;
+            this.label9.Text = "Inversión:";
+            // 
+            // lblUtilidad
+            // 
+            this.lblUtilidad.AutoSize = true;
+            this.lblUtilidad.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold);
+            this.lblUtilidad.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(46)))), ((int)(((byte)(204)))), ((int)(((byte)(113)))));
+            this.lblUtilidad.Location = new System.Drawing.Point(189, 141);
+            this.lblUtilidad.Name = "lblUtilidad";
+            this.lblUtilidad.Size = new System.Drawing.Size(77, 32);
+            this.lblUtilidad.TabIndex = 30;
+            this.lblUtilidad.Text = "$0.00";
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.label11.ForeColor = System.Drawing.Color.White;
+            this.label11.Location = new System.Drawing.Point(4, 147);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(158, 25);
+            this.label11.TabIndex = 29;
+            this.label11.Text = "UTILIDAD NETA:";
+            // 
+            // lblGastos
+            // 
+            this.lblGastos.AutoSize = true;
+            this.lblGastos.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblGastos.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(76)))), ((int)(((byte)(60)))));
+            this.lblGastos.Location = new System.Drawing.Point(189, 96);
+            this.lblGastos.Name = "lblGastos";
+            this.lblGastos.Size = new System.Drawing.Size(61, 25);
+            this.lblGastos.TabIndex = 28;
+            this.lblGastos.Text = "$0.00";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.label10.ForeColor = System.Drawing.Color.Gray;
+            this.label10.Location = new System.Drawing.Point(4, 96);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(60, 21);
+            this.label10.TabIndex = 27;
+            this.label10.Text = "Gastos:";
+            // 
+            // lblBruta
+            // 
+            this.lblBruta.AutoSize = true;
+            this.lblBruta.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblBruta.ForeColor = System.Drawing.Color.White;
+            this.lblBruta.Location = new System.Drawing.Point(189, 56);
+            this.lblBruta.Name = "lblBruta";
+            this.lblBruta.Size = new System.Drawing.Size(61, 25);
+            this.lblBruta.TabIndex = 26;
+            this.lblBruta.Text = "$0.00";
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.label14.ForeColor = System.Drawing.Color.Gray;
+            this.label14.Location = new System.Drawing.Point(4, 56);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(108, 21);
+            this.label14.TabIndex = 25;
+            this.label14.Text = "Utilidad Bruta:";
+            // 
+            // lblInversion
+            // 
+            this.lblInversion.AutoSize = true;
+            this.lblInversion.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblInversion.ForeColor = System.Drawing.Color.White;
+            this.lblInversion.Location = new System.Drawing.Point(189, 16);
+            this.lblInversion.Name = "lblInversion";
+            this.lblInversion.Size = new System.Drawing.Size(61, 25);
+            this.lblInversion.TabIndex = 24;
+            this.lblInversion.Text = "$0.00";
             // 
             // label17
             // 
@@ -316,7 +415,7 @@
             this.labelOtros.ForeColor = System.Drawing.Color.Gray;
             this.labelOtros.Location = new System.Drawing.Point(15, 323);
             this.labelOtros.Name = "labelOtros";
-            this.labelOtros.Size = new System.Drawing.Size(98, 21);
+            this.labelOtros.Size = new System.Drawing.Size(97, 21);
             this.labelOtros.TabIndex = 100;
             this.labelOtros.Text = "Otros Pagos:";
             // 
@@ -412,94 +511,6 @@
             this.line3.Name = "line3";
             this.line3.Size = new System.Drawing.Size(350, 2);
             this.line3.TabIndex = 22;
-            // 
-            // label9
-            // 
-            this.label9.AutoSize = true;
-            this.label9.Font = new System.Drawing.Font("Segoe UI", 12F);
-            this.label9.ForeColor = System.Drawing.Color.Gray;
-            this.label9.Location = new System.Drawing.Point(15, 544);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(77, 21);
-            this.label9.TabIndex = 23;
-            this.label9.Text = "Inversión:";
-            // 
-            // lblInversion
-            // 
-            this.lblInversion.AutoSize = true;
-            this.lblInversion.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
-            this.lblInversion.ForeColor = System.Drawing.Color.White;
-            this.lblInversion.Location = new System.Drawing.Point(200, 544);
-            this.lblInversion.Name = "lblInversion";
-            this.lblInversion.Size = new System.Drawing.Size(61, 25);
-            this.lblInversion.TabIndex = 24;
-            this.lblInversion.Text = "$0.00";
-            // 
-            // label14
-            // 
-            this.label14.AutoSize = true;
-            this.label14.Font = new System.Drawing.Font("Segoe UI", 12F);
-            this.label14.ForeColor = System.Drawing.Color.Gray;
-            this.label14.Location = new System.Drawing.Point(15, 584);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(108, 21);
-            this.label14.TabIndex = 25;
-            this.label14.Text = "Utilidad Bruta:";
-            // 
-            // lblBruta
-            // 
-            this.lblBruta.AutoSize = true;
-            this.lblBruta.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
-            this.lblBruta.ForeColor = System.Drawing.Color.White;
-            this.lblBruta.Location = new System.Drawing.Point(200, 584);
-            this.lblBruta.Name = "lblBruta";
-            this.lblBruta.Size = new System.Drawing.Size(61, 25);
-            this.lblBruta.TabIndex = 26;
-            this.lblBruta.Text = "$0.00";
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Font = new System.Drawing.Font("Segoe UI", 12F);
-            this.label10.ForeColor = System.Drawing.Color.Gray;
-            this.label10.Location = new System.Drawing.Point(15, 624);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(60, 21);
-            this.label10.TabIndex = 27;
-            this.label10.Text = "Gastos:";
-            // 
-            // lblGastos
-            // 
-            this.lblGastos.AutoSize = true;
-            this.lblGastos.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
-            this.lblGastos.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(76)))), ((int)(((byte)(60)))));
-            this.lblGastos.Location = new System.Drawing.Point(200, 624);
-            this.lblGastos.Name = "lblGastos";
-            this.lblGastos.Size = new System.Drawing.Size(61, 25);
-            this.lblGastos.TabIndex = 28;
-            this.lblGastos.Text = "$0.00";
-            // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
-            this.label11.ForeColor = System.Drawing.Color.White;
-            this.label11.Location = new System.Drawing.Point(15, 675);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(158, 25);
-            this.label11.TabIndex = 29;
-            this.label11.Text = "UTILIDAD NETA:";
-            // 
-            // lblUtilidad
-            // 
-            this.lblUtilidad.AutoSize = true;
-            this.lblUtilidad.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold);
-            this.lblUtilidad.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(46)))), ((int)(((byte)(204)))), ((int)(((byte)(113)))));
-            this.lblUtilidad.Location = new System.Drawing.Point(200, 669);
-            this.lblUtilidad.Name = "lblUtilidad";
-            this.lblUtilidad.Size = new System.Drawing.Size(77, 32);
-            this.lblUtilidad.TabIndex = 30;
-            this.lblUtilidad.Text = "$0.00";
             // 
             // button1
             // 
@@ -813,6 +824,8 @@
             this.Load += new System.EventHandler(this.frmCorte_Load);
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
+            this.UtilidadPanel.ResumeLayout(false);
+            this.UtilidadPanel.PerformLayout();
             this.tabControl1.ResumeLayout(false);
             this.tabPageEfectivo.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvCorte)).EndInit();
@@ -901,5 +914,6 @@
         private System.Windows.Forms.Label line1;
         private System.Windows.Forms.Label line2;
         private System.Windows.Forms.Label line3;
+        private System.Windows.Forms.Panel UtilidadPanel;
     }
 }

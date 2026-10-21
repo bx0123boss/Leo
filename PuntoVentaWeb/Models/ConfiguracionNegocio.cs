@@ -14,4 +14,5 @@ public class ConfiguracionNegocio
     public string WhatsAppBusinessId { get; set; }
     public string WhatsAppAccessToken { get; set; }
     public string WhatsAppApiVersion { get; set; }
+    public bool AbrirTeclado { get; set; } = false;
 }

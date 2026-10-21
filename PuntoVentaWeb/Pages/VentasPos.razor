@@ -29,11 +29,30 @@
 
             <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end" style="max-width: 420px;">
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control bg-light border-start-0 fw-bold"
-                           placeholder="Escanear o buscar..."
-                           @bind="textoBusqueda" @bind:event="oninput" @bind:after="OnBusquedaChanged"
-                           @onkeydown="ProcesarBusquedaOEscaneo" autofocus />
+                    <button type="button" class="input-group-text bg-light border-end-0"
+                            @onclick="FiltrarDesdeLupa"
+                            title="Buscar / Filtrar"
+                            style="cursor: pointer;">
+                        <i class="bi bi-search"></i>
+                    </button>
+
+                    @if (AbrirTeclado)
+                    {
+                        <input type="text" class="form-control bg-light border-start-0 fw-bold pos-search-input"
+                               placeholder="Escanear o buscar..."
+                               data-kioskboard-type="all"
+                               data-kioskboard-specialcharacters="true"
+                               @bind="textoBusqueda" @bind:event="oninput" @bind:after="OnBusquedaChanged"
+                               @onkeydown="ProcesarBusquedaOEscaneo" autofocus />
+                    }
+                    else
+                    {
+                        <input type="text" class="form-control bg-light border-start-0 fw-bold pos-search-input"
+                               placeholder="Escanear o buscar..."
+                               @bind="textoBusqueda" @bind:event="oninput" @bind:after="OnBusquedaChanged"
+                               @onkeydown="ProcesarBusquedaOEscaneo" autofocus />
+                    }
+
                     @if (!string.IsNullOrEmpty(textoBusqueda))
                     {
                         <button class="btn btn-outline-secondary border" @onclick="LimpiarBusqueda" title="Limpiar">
@@ -41,6 +60,7 @@
                         </button>
                     }
                 </div>
+
 
                 @* BOTÓN SOLO VISIBLE EN MÓVIL/TABLET PARA ABRIR CARRITO *@
                 <button class="btn btn-primary btn-sm position-relative shadow-sm rounded-pill px-3 d-lg-none flex-shrink-0"
@@ -74,7 +94,7 @@
         </div>
 
         @* Categorías *@
-        <div class="pos-categories-bar bg-white border-bottom px-2 py-2 position-relative d-flex align-items-center">
+        <div class="pos-categories-bar bg-white border-bottom px-2 py-2 position-relative d-flex align-items-center @(categoriasCompactas ? "compact" : "")">
             <button type="button" class="btn btn-scroll-arrow me-2 flex-shrink-0" @onclick='() => ScrollCategorias(-300)' title="Desplazar izquierda">
                 <i class="bi bi-chevron-left"></i>
             </button>
@@ -104,6 +124,13 @@
 
             <button type="button" class="btn btn-scroll-arrow ms-2 flex-shrink-0" @onclick='() => ScrollCategorias(300)' title="Desplazar derecha">
                 <i class="bi bi-chevron-right"></i>
+            </button>
+
+            <button type="button"
+                    class="btn btn-sm btn-outline-secondary ms-2 flex-shrink-0"
+                    @onclick="ToggleCategoriasCompactas"
+                    title="@(categoriasCompactas ? "Expandir categorías" : "Reducir categorías")">
+                <i class="bi @(categoriasCompactas ? "bi-arrows-fullscreen" : "bi-arrows-angle-contract")"></i>
             </button>
         </div>
 
@@ -168,6 +195,10 @@
                 </div>
             }
         </div>
+        @if (AbrirTeclado)
+        {
+            <OnScreenKeyboard ClassName="pos-search-input" />
+        }
     </div>
 
     @* ================= SECCIÓN DERECHA: CHECKOUT / CARRITO VISIBLE ================= *@
@@ -541,7 +572,7 @@
     private string metodoPagoSeleccionado = "Efectivo";
     private double montoRecibido = 0;
     private double abonoInicial = 0;
-    bool Bascula = false;
+    bool Bascula = false, AbrirTeclado = false;
 
     // Control de doble clic
     private bool _procesandoProducto = false;
@@ -568,7 +599,8 @@
 
     private double MontoRecibidoNumpad => double.TryParse(textoCapturaNumpad, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double val) ? val : 0;
     private double CambioCalculadoNumpad => Math.Max(0, MontoRecibidoNumpad - TotalCalculado);
-  
+    private bool categoriasCompactas = false;
+    private void ToggleCategoriasCompactas() => categoriasCompactas = !categoriasCompactas;
 
     private void BorrarUltimoNumpad()
     {
@@ -685,6 +717,7 @@
         }
         var configNegocio = await _cotizacionService.ObtenerConfiguracion();
         Bascula = configNegocio.Bascula;
+        AbrirTeclado = configNegocio.AbrirTeclado;
         await CargarDatosIniciales();
     }
 
@@ -1145,7 +1178,7 @@
                 }
                 catch (Exception exPrint)
                 {
-                    Console.WriteLine($"Error al imprimir ticket: {exPrint.Message}");
+                    System.Console.WriteLine($"Error al imprimir ticket: {exPrint.Message}");
                     await MostrarToast("Venta guardada, pero falló la impresión.", "warning");
                 }
 
@@ -1190,6 +1223,15 @@
         {
             await JS.InvokeVoidAsync("alert", mensaje);
         }
+    }
+    private async Task FiltrarDesdeLupa()
+    {
+        // ⭐ Leer directamente el valor real del DOM, sin depender del @bind de Blazor
+        textoBusqueda = await JS.InvokeAsync<string>("obtenerValorBuscadorPOS");
+
+        FiltrarProductos();
+        StateHasChanged();
+        await JS.InvokeVoidAsync("focusBuscadorPOS");
     }
     // 1. Al presionar 'Agregar' en Pago Mixto
     private void AgregarPagoMixto()

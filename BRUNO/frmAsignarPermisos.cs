@@ -20,6 +20,7 @@ namespace JaegerSoft
 
             { "VER_ANALITICO_INVENTARIO", "Analiticos de Inventario" },
             { "MOD_CORTES", "Cortes de Caja" },
+            {"UTILIDAD_CORTE", "Ver utilidad en corte de caja" },
             { "MOD_CONFIGURACION", "Configuración General y Ticket" },
             { "MOD_ENTRADAS", "Entradas / Depósitos" },
             { "EXISTENCIAS", "Ver existencias actuales" },

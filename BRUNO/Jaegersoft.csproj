@@ -25,7 +25,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>70</ApplicationRevision>
+    <ApplicationRevision>73</ApplicationRevision>
     <ApplicationVersion>2.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -356,6 +356,12 @@
     </Compile>
     <Compile Include="frmConsignaEntregar.Designer.cs">
       <DependentUpon>frmConsignaEntregar.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmConsultaVentasCategoria.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmConsultaVentasCategoria.Designer.cs">
+      <DependentUpon>frmConsultaVentasCategoria.cs</DependentUpon>
     </Compile>
     <Compile Include="frmCortePorFechas.cs">
       <SubType>Form</SubType>
@@ -717,6 +723,7 @@
     <Compile Include="frmVerCompra.Designer.cs">
       <DependentUpon>frmVerCompra.cs</DependentUpon>
     </Compile>
+    <Compile Include="GenericTicketPrinter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReciboAbonoCarta.cs" />

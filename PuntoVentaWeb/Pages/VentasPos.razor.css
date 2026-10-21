@@ -5,8 +5,8 @@
 	display: flex;
 	flex-direction: row;
 	width: 100%;
-	height: 100%; /* ⭐ Antes tenías calc(100vh - 3.5rem) */
-	min-height: 0; /* ⭐ CLAVE para flexbox */
+	height: 100%;
+	min-height: 0;
 	overflow: hidden;
 	background-color: #f4f6f8;
 	position: relative;
@@ -50,12 +50,13 @@
 .extra-small {
 	font-size: 0.78rem;
 }
+
 /* ============================================================
    BOTONES DE CATEGORÍA (base)
    ============================================================ */
 .btn-category {
 	border: none;
-	border-radius: 20px !important; /* ⭐ FORZADO */
+	border-radius: 20px !important;
 	padding: 5px 14px;
 	font-weight: 600;
 	font-size: 0.82rem;
@@ -63,8 +64,8 @@
 	transition: all 0.15s ease-in-out;
 	flex-shrink: 0;
 	white-space: nowrap;
-	-webkit-appearance: none; /* ⭐ Quita estilos nativos */
-	appearance: none; /* ⭐ Quita estilos nativos */
+	-webkit-appearance: none;
+	appearance: none;
 	outline: none;
 }
 
@@ -73,10 +74,6 @@
 		box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 	}
 
-.cat-selected {
-	outline: 3px solid #000000;
-	transform: scale(1.02);
-}
 /* ============================================================
    GRID DE PRODUCTOS
    ============================================================ */
@@ -125,49 +122,191 @@
 }
 
 /* ============================================================
-   POS EN ESCRITORIO (Ancho >= 992px) - Carrito visible + categorías grandes
+   CATEGORÍA SELECCIONADA - COLOR INVERTIDO + CHECK
+   ============================================================ */
+@keyframes popCheck {
+	0% {
+		transform: translateY(-50%) scale(0);
+	}
+
+	70% {
+		transform: translateY(-50%) scale(1.3);
+	}
+
+	100% {
+		transform: translateY(-50%) scale(1);
+	}
+}
+
+.cat-selected {
+	background-color: #212529 !important;
+	color: #ffffff !important;
+	transform: scale(1.03);
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+	font-weight: 800 !important;
+	border: 2px solid #0d6efd !important;
+	position: relative;
+	z-index: 2;
+	padding-right: 28px !important;
+}
+
+	.cat-selected::after {
+		content: "✓";
+		position: absolute;
+		right: 8px;
+		top: 50%;
+		transform: translateY(-50%);
+		font-weight: 900;
+		font-size: 0.85em;
+		color: #0d6efd;
+		background: #ffffff;
+		border-radius: 50%;
+		width: 16px;
+		height: 16px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		line-height: 1;
+		animation: popCheck 0.25s ease-out;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+	}
+
+/* ============================================================
+   ESCRITORIO (>= 992px) - Categorías + Carrito
    ============================================================ */
 @media (min-width: 992px) {
-	/* CATEGORÍAS GRANDES EN ESCRITORIO */
+
+	/* --- BARRA DE CATEGORÍAS (contenedor flex principal) --- */
 	.pos-categories-bar {
 		padding: 14px 20px;
 		background-color: #ffffff;
 		border-bottom: 1px solid #e9ecef;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		transition: padding 0.2s ease-in-out, min-height 0.2s ease-in-out, height 0.2s ease-in-out;
+		overflow: hidden; /* ⭐ evita desborde del contenedor */
 	}
 
-		.categories-two-rows,
-		.pos-categories-bar > div {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 14px 16px;
-			align-items: center;
+		/* --- EXPANDIDO: chips justificados --- */
+		.pos-categories-bar:not(.compact) .categories-two-rows {
+			display: flex !important;
+			flex-wrap: wrap !important;
+			justify-content: center !important;
+			gap: 14px 16px !important;
+			align-items: center !important;
+			flex: 1 1 0 !important; /* ⭐ ocupa el espacio disponible */
+			min-width: 0 !important; /* ⭐ permite shrink */
+			width: auto !important;
 		}
 
-	.btn-category {
-		padding: 10px 22px;
-		font-size: 0.95rem;
-		font-weight: 700;
-		border-radius: 24px;
-		height: auto;
-		min-height: 42px;
-		letter-spacing: 0.2px;
-		transition: all 0.18s ease-in-out;
-	}
-
-		.btn-category:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 5px 12px rgba(0, 0, 0, 0.18);
-			filter: brightness(1.05);
+		.pos-categories-bar:not(.compact) .btn-category {
+			padding: 10px 22px !important;
+			font-size: 0.95rem !important;
+			font-weight: 700 !important;
+			border-radius: 24px !important;
+			min-height: 42px !important;
+			letter-spacing: 0.2px;
+			transition: all 0.18s ease-in-out;
 		}
 
-	.cat-selected {
-		outline: 3px solid #000000;
-		outline-offset: 2px;
-		transform: scale(1.04);
-		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-	}
+			.pos-categories-bar:not(.compact) .btn-category:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 5px 12px rgba(0, 0, 0, 0.18);
+				filter: brightness(1.05);
+			}
 
-	/* CARRITO GRANDE EN ESCRITORIO */
+		.pos-categories-bar:not(.compact) .cat-selected {
+			transform: scale(1.05);
+			box-shadow: 0 5px 14px rgba(0, 0, 0, 0.4);
+			outline: none;
+			padding-right: 32px !important;
+		}
+
+			.pos-categories-bar:not(.compact) .cat-selected::after {
+				width: 18px;
+				height: 18px;
+				font-size: 0.9em;
+				right: 9px;
+			}
+
+		/* --- COMPACTO: scroll interno sin desbordar --- */
+		.pos-categories-bar.compact {
+			padding: 3px 8px !important;
+			min-height: 30px !important;
+			height: 30px !important;
+			overflow: hidden !important;
+		}
+
+			.pos-categories-bar.compact .categories-two-rows {
+				display: flex !important;
+				flex-wrap: nowrap !important;
+				justify-content: flex-start !important;
+				gap: 5px !important;
+				flex: 1 1 0 !important; /* ⭐ ocupa el espacio entre flechas y toggle */
+				min-width: 0 !important; /* ⭐ CLAVE: permite scroll interno */
+				width: auto !important; /* ❌ ya NO max-content */
+				height: 24px !important;
+				min-height: 24px !important;
+				overflow-x: auto !important;
+				overflow-y: hidden !important;
+				padding: 0 2px !important;
+			}
+
+			.pos-categories-bar.compact .btn-category {
+				flex: 0 0 auto !important;
+				min-width: max-content !important; /* ⭐ el CHIP no se encoge */
+				padding: 0 9px !important;
+				font-size: 0.68rem !important;
+				height: 22px !important;
+				min-height: 22px !important;
+				max-height: 22px !important;
+				border-radius: 11px !important;
+				font-weight: 700 !important;
+				line-height: 1 !important;
+				letter-spacing: 0 !important;
+			}
+
+				.pos-categories-bar.compact .btn-category i {
+					display: none !important;
+				}
+
+			/* Flechas y toggle: NUNCA se encogen */
+			.pos-categories-bar.compact .btn-scroll-arrow {
+				flex-shrink: 0 !important; /* ⭐ siempre visibles */
+				padding: 0 6px !important;
+				height: 22px !important;
+				min-height: 22px !important;
+				font-size: 0.7rem !important;
+				min-width: 22px !important;
+				border-radius: 5px !important;
+			}
+
+			.pos-categories-bar.compact > button.btn-sm {
+				flex-shrink: 0 !important; /* ⭐ siempre visible */
+				padding: 0 6px !important;
+				height: 22px !important;
+				min-height: 22px !important;
+				font-size: 0.7rem !important;
+				min-width: 22px !important;
+			}
+
+			.pos-categories-bar.compact .cat-selected {
+				padding-right: 18px !important;
+				border-width: 1px !important;
+				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+				transform: scale(1) !important;
+			}
+
+				.pos-categories-bar.compact .cat-selected::after {
+					width: 11px !important;
+					height: 11px !important;
+					font-size: 0.55em !important;
+					right: 4px !important;
+					box-shadow: none !important;
+				}
+
+	/* --- CARRITO GRANDE EN ESCRITORIO --- */
 	.pos-checkout {
 		width: 460px !important;
 		min-width: 460px !important;
@@ -204,24 +343,20 @@
 			font-size: 0.88rem;
 		}
 
-	/* Ocultar botón móvil del carrito */
 	.btn-toggle-cart-mobile,
 	.pos-header-bar .d-md-none,
 	.pos-header-bar .d-lg-none {
 		display: none !important;
 	}
 
-	/* Ocultar backdrop en escritorio */
 	.cart-backdrop {
 		display: none !important;
 	}
 
-	/* Mostrar botón "Vaciar carrito" solo en escritorio */
 	.checkout-header .btn-outline-danger {
 		display: inline-flex !important;
 	}
 
-	/* Ocultar botón cerrar del checkout en escritorio */
 	.checkout-header .btn-close {
 		display: none !important;
 	}
@@ -231,7 +366,8 @@
    POS EN TABLET Y MÓVIL (Ancho < 992px) - Carrito flotante
    ============================================================ */
 @media (max-width: 991.98px) {
-	/* CARRITO OCULTO POR DEFECTO (panel deslizante) */
+
+	/* --- CARRITO OCULTO POR DEFECTO (panel deslizante) --- */
 	.pos-checkout {
 		display: none !important;
 		position: fixed !important;
@@ -306,17 +442,14 @@
 				padding: 0.3rem 0.5rem;
 			}
 
-	/* Ocultar botón "Vaciar carrito" en móvil (se accede vía atajos) */
 	.checkout-header .btn-outline-danger {
 		display: none !important;
 	}
 
-	/* Mostrar botón cerrar del checkout en móvil */
 	.checkout-header .btn-close {
 		display: inline-block !important;
 	}
 
-	/* Backdrop visible en móvil */
 	.cart-backdrop {
 		position: fixed;
 		inset: 0;
@@ -336,46 +469,143 @@
 		}
 	}
 
-	/* CATEGORÍAS EN MÓVIL: grid 2 filas con scroll horizontal */
+	/* --- BARRA DE CATEGORÍAS (contenedor flex principal) --- */
 	.pos-categories-bar {
 		min-height: 90px;
 		background-color: #ffffff;
 		padding: 8px 0;
-	}
-
-	.categories-two-rows {
-		display: grid !important;
-		grid-template-rows: repeat(2, 36px) !important;
-		grid-auto-flow: column !important;
-		gap: 8px 10px !important;
+		display: flex;
 		align-items: center;
-		scroll-behavior: smooth;
-		overflow-x: auto;
-		overflow-y: hidden;
-		padding: 4px 8px;
+		gap: 6px;
+		overflow: hidden; /* ⭐ evita desborde */
+		transition: padding 0.2s ease-in-out, min-height 0.2s ease-in-out, height 0.2s ease-in-out;
 	}
 
-	.btn-category {
-		border: none;
-		border-radius: 20px;
-		padding: 0 16px;
-		font-weight: 600;
-		font-size: 0.83rem;
-		cursor: pointer;
-		transition: all 0.15s ease-in-out;
-		white-space: nowrap;
-		text-align: center;
-		height: 36px;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		line-height: 1;
-	}
+		/* --- EXPANDIDO MÓVIL: grid 2 filas --- */
+		.pos-categories-bar:not(.compact) .categories-two-rows {
+			display: grid !important;
+			grid-template-rows: repeat(2, 36px) !important;
+			grid-auto-flow: column !important;
+			gap: 8px 10px !important;
+			align-items: center;
+			scroll-behavior: smooth;
+			overflow-x: auto;
+			overflow-y: hidden;
+			padding: 4px 8px;
+			flex: 1 1 0 !important; /* ⭐ ocupa espacio disponible */
+			min-width: 0 !important; /* ⭐ permite shrink */
+		}
 
-	.cat-selected {
-		outline: 2px solid #000000;
-		transform: scale(1.02);
-	}
+		.pos-categories-bar:not(.compact) .btn-category {
+			border: none;
+			border-radius: 20px;
+			padding: 0 16px;
+			font-weight: 600;
+			font-size: 0.83rem;
+			cursor: pointer;
+			transition: all 0.15s ease-in-out;
+			white-space: nowrap;
+			text-align: center;
+			height: 36px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			line-height: 1;
+		}
+
+		.pos-categories-bar:not(.compact) .cat-selected {
+			transform: scale(1.03);
+			box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+			outline: none;
+			padding-right: 26px !important;
+		}
+
+			.pos-categories-bar:not(.compact) .cat-selected::after {
+				width: 15px;
+				height: 15px;
+				font-size: 0.8em;
+				right: 6px;
+			}
+
+		/* --- COMPACTO MÓVIL: scroll interno sin desbordar --- */
+		.pos-categories-bar.compact {
+			padding: 2px 4px !important;
+			min-height: 26px !important;
+			height: 26px !important;
+			overflow: hidden !important;
+			gap: 2px !important;
+		}
+
+			.pos-categories-bar.compact .categories-two-rows {
+				display: flex !important;
+				flex-wrap: nowrap !important;
+				justify-content: flex-start !important;
+				grid-template-rows: none !important;
+				grid-auto-flow: unset !important;
+				gap: 4px !important;
+				flex: 1 1 0 !important; /* ⭐ ocupa el espacio entre flechas y toggle */
+				min-width: 0 !important; /* ⭐ CLAVE: permite scroll interno */
+				width: auto !important;
+				padding: 0 2px !important;
+				height: 22px !important;
+				min-height: 22px !important;
+				align-items: center !important;
+				overflow-x: auto !important;
+				overflow-y: hidden !important;
+			}
+
+			.pos-categories-bar.compact .btn-category {
+				flex: 0 0 auto !important;
+				min-width: max-content !important;
+				padding: 0 7px !important;
+				font-size: 0.62rem !important;
+				height: 20px !important;
+				min-height: 20px !important;
+				max-height: 20px !important;
+				border-radius: 10px !important;
+				font-weight: 700 !important;
+				line-height: 1 !important;
+				letter-spacing: 0 !important;
+			}
+
+				.pos-categories-bar.compact .btn-category i {
+					display: none !important;
+				}
+
+			/* Flechas y toggle: NUNCA se encogen */
+			.pos-categories-bar.compact .btn-scroll-arrow {
+				flex-shrink: 0 !important;
+				padding: 0 4px !important;
+				height: 20px !important;
+				min-height: 20px !important;
+				font-size: 0.6rem !important;
+				min-width: 18px !important;
+				border-radius: 5px !important;
+			}
+
+			.pos-categories-bar.compact > button.btn-sm {
+				flex-shrink: 0 !important;
+				padding: 0 4px !important;
+				height: 20px !important;
+				min-height: 20px !important;
+				font-size: 0.6rem !important;
+				min-width: 18px !important;
+			}
+
+			.pos-categories-bar.compact .cat-selected {
+				padding-right: 16px !important;
+				border-width: 1px !important;
+				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+				transform: scale(1) !important;
+			}
+
+				.pos-categories-bar.compact .cat-selected::after {
+					width: 9px !important;
+					height: 9px !important;
+					font-size: 0.5em !important;
+					right: 3px !important;
+					box-shadow: none !important;
+				}
 
 	/* Evitar zoom automático en iOS */
 	.pos-header-bar input,
@@ -395,17 +625,17 @@
 		max-width: 100vw !important;
 	}
 
-	.categories-two-rows {
+	.pos-categories-bar:not(.compact) .categories-two-rows {
 		gap: 6px 8px !important;
 	}
 
-	.btn-category {
+	.pos-categories-bar:not(.compact) .btn-category {
 		font-size: 0.78rem;
 		padding: 0 12px;
 		height: 34px;
 	}
 
-	.pos-categories-bar {
+	.pos-categories-bar:not(.compact) {
 		min-height: 84px;
 	}
 }
@@ -414,16 +644,28 @@
    ORIENTACIÓN HORIZONTAL EN MÓVILES PEQUEÑOS
    ============================================================ */
 @media (max-width: 991.98px) and (max-height: 500px) {
-	.pos-categories-bar {
+	.pos-categories-bar:not(.compact) {
 		min-height: 60px;
 	}
 
-	.categories-two-rows {
-		grid-template-rows: repeat(1, 34px) !important;
-	}
+		.pos-categories-bar:not(.compact) .categories-two-rows {
+			grid-template-rows: repeat(1, 34px) !important;
+		}
 
-	.btn-category {
-		height: 34px;
-		font-size: 0.78rem;
-	}
+		.pos-categories-bar:not(.compact) .btn-category {
+			height: 34px;
+			font-size: 0.78rem;
+		}
+}
+
+/* Ajusta según el tamaño real; prueba primero con .8em o .9em */
+.kioskboard .kioskboard-key {
+	font-size: 16px !important; /* El valor predeterminado es 22px, redúcelo según necesidad */
+	min-width: 40px !important; /* Reduce el ancho de las teclas */
+	height: 40px !important; /* Reduce la altura de las teclas */
+}
+
+/* Si también quieres reducir el espaciado del teclado completo */
+.kioskboard {
+	padding: 5px !important;
 }
