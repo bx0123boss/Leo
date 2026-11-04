@@ -26,8 +26,8 @@ Si eres un nuevo agente tomando esta tarea:
 ## 🚦 ESTADO ACTUAL DEL PROYECTO
 
 * **Fase Activa:** `Fase 5: Pruebas Integrales y Certificación`
-* **Progreso Global Estimado:** `85%`
-* **Bloqueos actuales:** Ninguno. Fase 4 completa, compilando y commiteada.
+* **Progreso Global Estimado:** `88%`
+* **Bloqueos actuales:** Ninguno. Fase 4 completa y validada contra la base real; Fase 5 en pruebas manuales.
 
 ---
 
@@ -93,11 +93,16 @@ Si eres un nuevo agente tomando esta tarea:
 > * `dotnet build` compila los 4 proyectos, pero si le toca regenerar los `.resx` de WinForms falla con `MSB3822`/`MSB3823` (recursos no-string). El MSBuild de VS 2022 sí los procesa.
 > * Se usa `dotnet build` solo para chequeos rápidos de `PuntoVentaWeb`.
 >
-> **Observación (no corregida, es lógica heredada):** en `frmEditarProducto.cs` el `UPDATE Inventario` asigna `@Categoria` ← `comboBox1.Text`, `@IVA` ← `cmbCategoria.Text` y `@Especial` ← `txtLimite.Text`; el mapeo ya venía así desde Access y se respetó al pie de la letra. Conviene revisarlo con el usuario en Fase 5.
+> **Aclaración (revisado):** el mapeo de `frmEditarProducto.cs` que parecía cruzado **es correcto**: los nombres de los controles están mal puestos pero las etiquetas confirman la asignación. `cmbCategoria` (ítems "NO INCLUYE IVA" / "IVA(16)") es el combo rotulado **"Impuesto:"** → columna `IVA`; `comboBox1` (Ferretería/Materiales y luego las categorías de la BD) es el rotulado **"Categoria:"** → columna `Categoria`; `txtLimite` es el precio de compra → columna `Especial`. No requiere cambios.
 
 ---
 
 ### [ ] Fase 5: Pruebas Integrales y Certificación
+- [x] Validación estática contra la base real: las consultas migradas compilan en SQL Server (`docs/migracion-sqlserver/validacion_consultas_fase4.sql` con `SET NOEXEC ON`, 0 errores).
+- [x] Verificado el estado de la base: servicio `MSSQL$SQLEXPRESS` activo, 65 tablas, datos presentes (`Inventario` 83, `Ventas` 34, `Clientes` 1, `Kardex` 79).
+- [x] Corregidos 3 `?` residuales en `frmPrincipal.cs` (recálculo de adeudos de clientes: `SELECT Sum(Saldo)… WHERE IdCliente = ?` y `UPDATE Clientes SET Adeudo = ? WHERE Id = ?`).
+- [x] Corregidas funciones de Access que SQL Server no tiene en `frmInventario.cs` (rotación de ventas): `Date()` → `GETDATE()`, `CInt()`/`Val()` → `CAST`/`TRY_CAST`, y conversión de `VentasApartados.Cantidad` (nvarchar) a número.
+- [x] Corregida aritmética sobre columnas de dinero que en Access eran texto (nvarchar): `SUM(Monto)` en `frmReporteVentas.cs` y la división de IVA en `frmCorte.cs` (además `16 / 100` daba 0 por división entera → `16.0 / 100`).
 - [ ] Probar inicio de sesión y validación de usuarios/permisos (`frmLogin.cs`).
 - [ ] Probar apertura de caja (`frmAbrirCaja.cs`).
 - [ ] Probar venta de contado, cálculo de cambio e impresión de ticket.
@@ -106,6 +111,9 @@ Si eres un nuevo agente tomando esta tarea:
 - [ ] Probar generación de corte de caja X y Z (`frmCorte.cs`).
 - [ ] Probar altas y modificaciones en catálogo de inventario (`frmInventario.cs`).
 - [ ] Probar consultas de kardex y movimientos de almacén.
+- [ ] Revisar el resto de reportes con `SUM`/aritmética sobre columnas nvarchar (ver nota de tipos, abajo).
+
+> **Nota de tipos (heredado de Access, no es un defecto del ETL):** columnas como `Ventas.Monto`, `VentasPagos.Monto`, `histocortes.Monto/Utilidad`, `Cortes.Monto`, `Kardex.Precio`, `Abonos.Abono`, `VentasCajero.Total`, `Proveedores.Adeudo`, `Servicios.Abono`, `Apartados.MontoTotal` y `VentasApartados.MontoTotal` son `nvarchar` porque en Access eran texto (incluso con valores como `"$917.00"`). Jet convertía solo; SQL Server **no**. Regla para lo que resta de la Fase 5: toda aritmética/`SUM` sobre esas columnas necesita `CAST(REPLACE(col,'$','') AS DECIMAL(18,2))` o `TRY_CAST`, o bien normalizar los tipos (decisión pendiente con el usuario).
 
 ---
 
@@ -125,4 +133,5 @@ Si eres un nuevo agente tomando esta tarea:
 | **2026-11-04** | Antigravity AI | Fase 3 | Migración 100% de PuntoVentaWeb a SQL Server: eliminados todos los usos de ODBC y OleDb en `VentaService`, `ClienteService`, `CotizacionService`, `ProduccionService` e `ImpresionPosService`. Parámetros nombrados, `GETDATE()`, `BIT=1`. Compilación exitosa con 0 errores. |
 | **2026-11-04** | Agente activo | Fase 4 (parcial) | Verificado el estado real: la migración masiva OleDb→SqlClient ya está aplicada en el árbol de trabajo (232 archivos sin commitear) y `Conexion.cs` ya apunta a `CadSQL`. Detectado y reparado un daño de encoding: la migración convirtió 286 caracteres acentuados en `U+FFFD` en 46 archivos, lo que rompía la compilación (20 errores en `frmLogin.cs`). Se repararon todos con `herramientas/reparar_encoding.py` (referencia: `git HEAD`) + 7 correcciones manuales. `BRUNO` y `PuntoVentaWeb` compilan ahora con 0 errores. Pendientes de Fase 4: 120 parámetros `?` en 8 archivos y 26 consultas con fechas `#fecha#` en 15 archivos. |
 | **2026-11-04** | Agente activo | Fase 4 (cierre) | Conversión completa de parámetros posicionales `?` a nombrados: 120 en 8 archivos (`frmConsigna`, `frmConsignaEntregar`, `frmEditarProducto`, `frmConsignaDevolver`, `frmConsignaCobrar`, `frmVentaDetallada`, `frmVentasCredito`, `frmAgregarInventario`), respetando el orden original de cada `AddWithValue`. Conversión de 26 consultas con fechas `#...#` a comillas simples con formato ISO en 15 archivos (incluye `frmHistorialCortes` y `frmReporteVentas`, que usaban interpolación). Extras: reparado el mojibake de 4 archivos (62 líneas) y el comodín `LIKE '*TARJETA*'`. Auditoría final: 0 `?` posicionales, 0 fechas `#...#`, 0 parámetros SQL sin declarar. `dotnet build "Jaegersoft Breackpoint.sln"` → 4 proyectos, **0 errores**. Commit del avance en la rama. |
-| *Siguiente* | *Agente Activo* | Fase 5 | Pruebas integrales contra `.\SQLEXPRESS`: login, apertura de caja, venta de contado/crédito/apartado, corte X/Z, inventario y kardex. |
+| **2026-11-04** | Agente activo | Fase 5 (pre-flight) | Validación estática contra la base real con `validacion_consultas_fase4.sql` (`SET NOEXEC ON`): 0 errores de compilación en las consultas migradas. La validación destapó 4 defectos que el build no ve: (1) 3 `?` residuales en `frmPrincipal.cs` (recálculo de adeudos), (2) `Date()`/`CInt()`/`Val()` de Access en la rotación de ventas de `frmInventario.cs`, (3) `SUM(Monto)` sobre `VentasPagos.Monto` que es nvarchar (`frmReporteVentas.cs`), (4) división de IVA sobre `Ventas.Monto` nvarchar y `16/100` con división entera en `frmCorte.cs`. Los 4 corregidos y recompilados (0 errores). Se aclaró que el mapeo de `frmEditarProducto` era correcto (los nombres de los controles engañan, las etiquetas confirman). Nota para el resto de la Fase 5: las columnas de dinero son nvarchar (heredadas de Access como texto) y requieren CAST/TRY_CAST en cualquier aritmética SQL. |
+| *Siguiente* | *Agente Activo* | Fase 5 | Pruebas manuales con el POS abierto contra `.\SQLEXPRESS`: login, apertura de caja, venta de contado/crédito/apartado, corte X/Z, inventario y kardex. |

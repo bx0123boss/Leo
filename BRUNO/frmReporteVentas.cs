@@ -73,9 +73,9 @@ namespace JaegerSoft
                 V.Estatus, 
                 V.Descuento, 
                 V.Pago AS [Tipo Pago],
-                (SELECT IIF(SUM(Monto) IS NULL, 0, SUM(Monto)) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago = '01=EFECTIVO') AS Efectivo,
-                (SELECT IIF(SUM(Monto) IS NULL, 0, SUM(Monto)) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago LIKE '%TARJETA%') AS Tarjeta,
-                (SELECT IIF(SUM(Monto) IS NULL, 0, SUM(Monto)) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago = '03=TRANFERENCIA ELECTRONICA DE FONDOS') AS Transferencia
+                (SELECT IIF(SUM(TRY_CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2))) IS NULL, 0, SUM(TRY_CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2)))) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago = '01=EFECTIVO') AS Efectivo,
+                (SELECT IIF(SUM(TRY_CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2))) IS NULL, 0, SUM(TRY_CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2)))) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago LIKE '%TARJETA%') AS Tarjeta,
+                (SELECT IIF(SUM(TRY_CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2))) IS NULL, 0, SUM(TRY_CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2)))) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago = '03=TRANFERENCIA ELECTRONICA DE FONDOS') AS Transferencia
             FROM Ventas V 
             WHERE Fecha >= '{fechaInicio}' AND Fecha <= '{fechaFin}'";
 

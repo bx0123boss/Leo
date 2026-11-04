@@ -397,7 +397,7 @@ namespace JaegerSoft
                         string sqlSaldo =
                             "SELECT Sum(Saldo) " +
                             "FROM Ventas2 " +
-                            "WHERE IdCliente = ?";
+                            "WHERE IdCliente = @IdCliente";
 
                         double totalSaldo = 0;
 
@@ -414,8 +414,8 @@ namespace JaegerSoft
                         // Actualizar Clientes.Adeudo
                         string sqlUpdate =
                             "UPDATE Clientes " +
-                            "SET Adeudo = ? " +
-                            "WHERE Id = ?";
+                            "SET Adeudo = @Adeudo " +
+                            "WHERE Id = @Id";
 
                         using (SqlCommand cmdUpdate = new SqlCommand(sqlUpdate, conectar))
                         {

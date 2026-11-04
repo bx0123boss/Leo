@@ -348,7 +348,7 @@ namespace JaegerSoft
             }
 
             ds = new DataSet();
-            da = new SqlDataAdapter("Select Id,Folio, Monto / (1 + (16 / 100)) AS [Monto sin IVA], Monto - (Monto / (1 + (16 / 100))) AS [IVA], Monto,Descuento, Fecha, Estatus, Pago from Ventas where Estatus ='COBRADO' AND Fecha>= '" + fechaInicioSQL + "' and Fecha <= '" + fechaFinSQL + "';", conectar);
+            da = new SqlDataAdapter("Select Id,Folio, CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2)) / (1 + (16.0 / 100)) AS [Monto sin IVA], CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2)) - (CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2)) / (1 + (16.0 / 100))) AS [IVA], Monto,Descuento, Fecha, Estatus, Pago from Ventas where Estatus ='COBRADO' AND Fecha>= '" + fechaInicioSQL + "' and Fecha <= '" + fechaFinSQL + "';", conectar);
             da.Fill(ds, "Id");
             dgvFolios.DataSource = ds.Tables["Id"];
             dgvFolios.Columns[0].Visible = false;

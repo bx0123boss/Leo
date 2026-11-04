@@ -1020,14 +1020,14 @@ namespace JaegerSoft
             {
                 string query = @"
                     SELECT IdProducto, 
-                           SUM(IIF(Month(Fecha) = Month(Date()) AND Year(Fecha) = Year(Date()), CantidadDouble, 0)) AS VentasMes, 
-                           SUM(IIF(Year(Fecha) = Year(Date()), CantidadDouble, 0)) AS VentasAnio
+                           SUM(IIF(MONTH(Fecha) = MONTH(GETDATE()) AND YEAR(Fecha) = YEAR(GETDATE()), CantidadDouble, 0)) AS VentasMes, 
+                           SUM(IIF(YEAR(Fecha) = YEAR(GETDATE()), CantidadDouble, 0)) AS VentasAnio
                     FROM (
                       SELECT IdProducto, Cantidad AS CantidadDouble, Fecha FROM VentasContado WHERE FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus <> 'CANCELADO')
                       UNION ALL
-                      SELECT IdProducto, CInt(Cantidad) AS CantidadDouble, Fecha FROM VentasCredito WHERE FolioVenta IN (SELECT Folio FROM Ventas2 WHERE Estatus <> 'CANCELADO')
+                      SELECT IdProducto, Cantidad AS CantidadDouble, Fecha FROM VentasCredito WHERE FolioVenta IN (SELECT Folio FROM Ventas2 WHERE Estatus <> 'CANCELADO')
                       UNION ALL
-                      SELECT IdProducto, Val(Cantidad) AS CantidadDouble, Fecha FROM VentasApartados WHERE Estatus <> 'CANCELADO'
+                      SELECT IdProducto, ISNULL(TRY_CAST(REPLACE(ISNULL(Cantidad,''),'$','') AS FLOAT), 0) AS CantidadDouble, Fecha FROM VentasApartados WHERE Estatus <> 'CANCELADO'
                     ) AS Combined
                     GROUP BY IdProducto
                 ";
