@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,9 +14,9 @@ namespace JaegerSoft
     public partial class frmUnidades : Form
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
+        SqlCommand cmd;
         public frmUnidades()
         {
             InitializeComponent();
@@ -26,7 +26,7 @@ namespace JaegerSoft
         {
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from Unidades;", conectar);
+            da = new SqlDataAdapter("select * from Unidades;", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
@@ -55,13 +55,13 @@ namespace JaegerSoft
             DialogResult dialogResult = MessageBox.Show("¿Estas seguro de elimiar la unidad de medida?", "Alto!", MessageBoxButtons.YesNo);
             if (dialogResult == DialogResult.Yes)
             {
-                cmd = new OleDbCommand("UPDATE Inventario set Uni='NA' where Uni='" + dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString() + "';", conectar);
+                cmd = new SqlCommand("UPDATE Inventario set Uni='NA' where Uni='" + dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString() + "';", conectar);
                 cmd.ExecuteNonQuery();
-                cmd = new OleDbCommand("delete from Unidades where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
+                cmd = new SqlCommand("delete from Unidades where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
                 cmd.ExecuteNonQuery();
                 MessageBox.Show("Se ha eliminado la unidad de medida con exito", "ELIMINADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Unidades;", conectar);
+                da = new SqlDataAdapter("select * from Unidades;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 dataGridView1.Columns[0].Visible = false;

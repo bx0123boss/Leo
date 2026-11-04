@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -13,8 +13,8 @@ namespace JaegerSoft
 {
     public partial class frmCaptura : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlCommand cmd;
 
         public frmCaptura()
         {
@@ -59,7 +59,7 @@ namespace JaegerSoft
             conectar.Open();
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
-                cmd = new OleDbCommand("insert into Captura(IdProducto,Cantidad,Fecha) values('" + dataGridView1[0, i].Value.ToString() + "'," + dataGridView1[1, i].Value.ToString() + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                cmd = new SqlCommand("insert into Captura(IdProducto,Cantidad,Fecha) values('" + dataGridView1[0, i].Value.ToString() + "'," + dataGridView1[1, i].Value.ToString() + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             MessageBox.Show("Captura realizada con exito", "CAPTURA", MessageBoxButtons.OK, MessageBoxIcon.Information);

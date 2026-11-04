@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Windows.Forms;
 
 namespace JaegerSoft
@@ -8,9 +8,9 @@ namespace JaegerSoft
     public partial class frmProveedores : frmBase // Hereda de frmBase
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
+        SqlCommand cmd;
 
         public frmProveedores()
         {
@@ -41,7 +41,7 @@ namespace JaegerSoft
                 ds = new DataSet();
                 if (conectar.State == ConnectionState.Closed) conectar.Open();
 
-                da = new OleDbDataAdapter("select * from Proveedores;", conectar);
+                da = new SqlDataAdapter("select * from Proveedores;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
 
@@ -63,11 +63,11 @@ namespace JaegerSoft
                 ds = new DataSet();
                 if (textBox1.Text == "")
                 {
-                    da = new OleDbDataAdapter("select * from Proveedores ORDER BY Nombre;", conectar);
+                    da = new SqlDataAdapter("select * from Proveedores ORDER BY Nombre;", conectar);
                 }
                 else
                 {
-                    da = new OleDbDataAdapter("select * from Proveedores where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
+                    da = new SqlDataAdapter("select * from Proveedores where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
                 }
 
                 da.Fill(ds, "Id");
@@ -176,7 +176,7 @@ namespace JaegerSoft
                     DialogResult dialogResult = MessageBox.Show("¿Estas seguro de eliminar el proveedor seleccionado?", "Alto!", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                     if (dialogResult == DialogResult.Yes)
                     {
-                        cmd = new OleDbCommand("delete from proveedores where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
+                        cmd = new SqlCommand("delete from proveedores where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
                         cmd.ExecuteNonQuery();
 
                         MessageBox.Show("PROVEEDOR ELIMINADO CON EXITO", "ELIMINADO", MessageBoxButtons.OK, MessageBoxIcon.Information);

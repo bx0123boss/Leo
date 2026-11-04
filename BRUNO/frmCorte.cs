@@ -1,8 +1,8 @@
-﻿using LibPrintTicket;
+using LibPrintTicket;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -20,9 +20,9 @@ namespace JaegerSoft
         public string fechaApertura = "";
         public string usuario = "";
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
+        SqlCommand cmd;
         double total = 0, utilidad = 0, inversion = 0, gastos = 0;
         int folio;
         private decimal porcentaje;
@@ -142,15 +142,15 @@ namespace JaegerSoft
             }
             conectar.Open();
 
-            cmd = new OleDbCommand("select Porcentaje from Tarjeta where Id=1;", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
+            cmd = new SqlCommand("select Porcentaje from Tarjeta where Id=1;", conectar);
+            SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 porcentaje = Convert.ToDecimal(reader[0].ToString());
             }
             lblComision.Text = $"{porcentaje:F2}% Comisión:";
 
-            cmd = new OleDbCommand("select * from Fech where Id=1;", conectar);
+            cmd = new SqlCommand("select * from Fech where Id=1;", conectar);
             reader = cmd.ExecuteReader();
             if (reader.Read())
             {
@@ -160,35 +160,35 @@ namespace JaegerSoft
 
             // 1. EFECTIVO
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Corte where (Pago='01=EFECTIVO' OR Pago ='Efectivo') AND Concepto NOT LIKE 'Abono%';", conectar);
+            da = new SqlDataAdapter("select * from Corte where (Pago='01=EFECTIVO' OR Pago ='Efectivo') AND Concepto NOT LIKE 'Abono%';", conectar);
             da.Fill(ds, "Id");
             dgvCorte.DataSource = ds.Tables["Id"];
             dgvCorte.Columns[0].Visible = false;
 
             // 2. TARJETAS
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Corte where (Pago='04=TARJETA DE CREDITO' or Pago='28=TARJETA DE DEBITO' or Pago='Tarjeta') AND Concepto NOT LIKE 'Abono%';", conectar);
+            da = new SqlDataAdapter("select * from Corte where (Pago='04=TARJETA DE CREDITO' or Pago='28=TARJETA DE DEBITO' or Pago='Tarjeta') AND Concepto NOT LIKE 'Abono%';", conectar);
             da.Fill(ds, "Id");
             dataGridView3.DataSource = ds.Tables["Id"];
             dataGridView3.Columns[0].Visible = false;
 
             // 3. TRANSFERENCIAS
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Corte where (Pago='03=TRANFERENCIA ELECTRONICA DE FONDOS' OR Pago = 'Transferencia') AND Concepto NOT LIKE 'Abono%';", conectar);
+            da = new SqlDataAdapter("select * from Corte where (Pago='03=TRANFERENCIA ELECTRONICA DE FONDOS' OR Pago = 'Transferencia') AND Concepto NOT LIKE 'Abono%';", conectar);
             da.Fill(ds, "Id");
             dataGridView4.DataSource = ds.Tables["Id"];
             dataGridView4.Columns[0].Visible = false;
 
             // 4. OTROS PAGOS (La Magia de la nueva pestaña)
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Corte where Pago NOT IN ('01=EFECTIVO','Transferencia', 'Tarjeta','Efectivo','04=TARJETA DE CREDITO', '28=TARJETA DE DEBITO', '03=TRANFERENCIA ELECTRONICA DE FONDOS') AND Concepto NOT LIKE 'Abono%';", conectar);
+            da = new SqlDataAdapter("select * from Corte where Pago NOT IN ('01=EFECTIVO','Transferencia', 'Tarjeta','Efectivo','04=TARJETA DE CREDITO', '28=TARJETA DE DEBITO', '03=TRANFERENCIA ELECTRONICA DE FONDOS') AND Concepto NOT LIKE 'Abono%';", conectar);
             da.Fill(ds, "Id");
             dgvOtrosPagos.DataSource = ds.Tables["Id"];
             dgvOtrosPagos.Columns[0].Visible = false;
 
             // 5. ABONOS
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from Corte where Concepto LIKE 'Abono%';", conectar);
+            da = new SqlDataAdapter("select * from Corte where Concepto LIKE 'Abono%';", conectar);
             da.Fill(ds, "Id");
             dataGridView5.DataSource = ds.Tables["Id"];
             dataGridView5.Columns[0].Visible = false;
@@ -206,7 +206,7 @@ namespace JaegerSoft
                   "SUM(Cantidad) as Piezas, " +
                   "SUM(MontoTotal) as Total " +
                   "FROM VentasContado " +
-                  "WHERE Fecha >= #" + fechaInicioSQL + "# and Fecha <= #" + fechaFinSQL + "# " +
+                  "WHERE Fecha >= '" + fechaInicioSQL + "' and Fecha <= '" + fechaFinSQL + "' " +
                   "AND FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus = 'COBRADO') " +
                   "GROUP BY IIf(Categoria Is Null OR Categoria = '', 'SIN CATEGORIA', Categoria) " +
                   "UNION ALL " +
@@ -214,10 +214,10 @@ namespace JaegerSoft
                   "SUM(Cantidad) as Piezas, " +
                   "SUM(MontoTotal) as Total " +
                   "FROM VentasContado " +
-                  "WHERE Fecha >= #" + fechaInicioSQL + "# and Fecha <= #" + fechaFinSQL + "# " +
+                  "WHERE Fecha >= '" + fechaInicioSQL + "' and Fecha <= '" + fechaFinSQL + "' " +
                   "AND FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus = 'COBRADO')";
 
-            da = new OleDbDataAdapter(query, conectar);
+            da = new SqlDataAdapter(query, conectar);
             da.Fill(ds, "Id");
             dataGridView6.DataSource = ds.Tables["Id"];
 
@@ -303,14 +303,14 @@ namespace JaegerSoft
                 }
             }
 
-            using (OleDbCommand cmdMax = new OleDbCommand("SELECT MAX(Id) FROM histocortes", conectar))
+            using (SqlCommand cmdMax = new SqlCommand("SELECT MAX(Id) FROM histocortes", conectar))
             {
                 object result = cmdMax.ExecuteScalar();
                 folio = (result == DBNull.Value || result == null) ? 1 : Convert.ToInt32(result) + 1;
             }
 
             ds = new DataSet();
-            da = new OleDbDataAdapter("select MontoTotal,Utilidad,Id from VentasContado Where Fecha>=#" + fechaInicioSQL + "# and Fecha <=#" + fechaFinSQL + "#;", conectar);
+            da = new SqlDataAdapter("select MontoTotal,Utilidad,Id from VentasContado Where Fecha>= '" + fechaInicioSQL + "' and Fecha <= '" + fechaFinSQL + "';", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
 
@@ -333,7 +333,7 @@ namespace JaegerSoft
             }
 
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from GastosDetallados Where Fecha>=#" + fechaInicioSQL + "# and Fecha <=#" + fechaFinSQL + "#;", conectar);
+            da = new SqlDataAdapter("select * from GastosDetallados Where Fecha>= '" + fechaInicioSQL + "' and Fecha <= '" + fechaFinSQL + "';", conectar);
             da.Fill(ds, "Id");
             dataGridView2.DataSource = ds.Tables["Id"];
 
@@ -348,7 +348,7 @@ namespace JaegerSoft
             }
 
             ds = new DataSet();
-            da = new OleDbDataAdapter("Select Id,Folio, Monto / (1 + (16 / 100)) AS [Monto sin IVA], Monto - (Monto / (1 + (16 / 100))) AS [IVA], Monto,Descuento, Fecha, Estatus, Pago from Ventas where Estatus ='COBRADO' AND Fecha>=#" + fechaInicioSQL + "# and Fecha <=#" + fechaFinSQL + "#;", conectar);
+            da = new SqlDataAdapter("Select Id,Folio, Monto / (1 + (16 / 100)) AS [Monto sin IVA], Monto - (Monto / (1 + (16 / 100))) AS [IVA], Monto,Descuento, Fecha, Estatus, Pago from Ventas where Estatus ='COBRADO' AND Fecha>= '" + fechaInicioSQL + "' and Fecha <= '" + fechaFinSQL + "';", conectar);
             da.Fill(ds, "Id");
             dgvFolios.DataSource = ds.Tables["Id"];
             dgvFolios.Columns[0].Visible = false;
@@ -424,11 +424,30 @@ namespace JaegerSoft
 
         private void button1_Click(object sender, EventArgs e)
         {
+            bool tieneTotalGeneral = false;
+
+            foreach (DataGridViewRow row in dgvCorte.Rows)
+            {
+                if (row.IsNewRow) continue;
+                if (row.Cells["Concepto"].Value?.ToString() != "APERTURA DE CAJA")
+                {
+                    tieneTotalGeneral = true;
+                    break;
+                }
+                
+            }
+
+            if (!tieneTotalGeneral)
+            {
+                MessageBox.Show("No hay artículos vendidos en este corte. No se puede realizar el corte de caja.",
+                                "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return; 
+            }
             #region folios nuevos
             int foli = 0;
             List<Producto> productos = new List<Producto>();
-            cmd = new OleDbCommand("select Numero from Folios where Folio='FolioVenta';", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
+            cmd = new SqlCommand("select Numero from Folios where Folio='FolioVenta';", conectar);
+            SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
@@ -476,7 +495,7 @@ namespace JaegerSoft
 
                     // Buscamos la utilidad exacta de esta venta para que los reportes B cuadren perfecto
                     double utVenta = 0;
-                    using (OleDbCommand cmdUt = new OleDbCommand("SELECT SUM(Utilidad) FROM VentasContado WHERE FolioVenta='" + folioVenta + "'", conectar))
+                    using (SqlCommand cmdUt = new SqlCommand("SELECT SUM(Utilidad) FROM VentasContado WHERE FolioVenta='" + folioVenta + "'", conectar))
                     {
                         object res = cmdUt.ExecuteScalar();
                         if (res != DBNull.Value && res != null) utVenta = Convert.ToDouble(res);
@@ -484,7 +503,7 @@ namespace JaegerSoft
                     utilidadB += utVenta;
                     if (string.IsNullOrEmpty(primerFolio)) primerFolio = foli.ToString("D6");
                     ultimoFolio = foli.ToString("D6");
-                    using (OleDbCommand cmdCB = new OleDbCommand("INSERT INTO CortesB (Concepto, Monto, idCorte, Tipo) VALUES ('Venta a Contado Folio " + foli.ToString("D6") + "', '" + montoVenta + "', '" + folio + "', '" + tipoPago + "')", conectar))
+                    using (SqlCommand cmdCB = new SqlCommand("INSERT INTO CortesB (Concepto, Monto, idCorte, Tipo) VALUES ('Venta a Contado Folio " + foli.ToString("D6") + "', '" + montoVenta + "', '" + folio + "', '" + tipoPago + "')", conectar))
                     {
                         cmdCB.ExecuteNonQuery();
                     }
@@ -492,14 +511,14 @@ namespace JaegerSoft
                         "'" + row.Cells["Monto"].Value.ToString() + "', '" + row.Cells["Fecha"].Value.ToString() + "', '" + row.Cells["Folio"].Value.ToString() + "', " +
                         "'" + row.Cells["Estatus"].Value.ToString() + "', " +
                         "'" + row.Cells["Descuento"].Value.ToString() + "', '" + row.Cells["Pago"].Value.ToString() + "', '"+foli+"');";
-                    using (OleDbCommand cmdFactura = new OleDbCommand(queryFacturacion, conectar))
+                    using (SqlCommand cmdFactura = new SqlCommand(queryFacturacion, conectar))
                     {
                         cmdFactura.ExecuteNonQuery();
                     }
                     foli++;
                 }
             }
-            cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioVenta';", conectar);
+            cmd = new SqlCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioVenta';", conectar);
             cmd.ExecuteNonQuery();
             if (totalB > 0)
             {
@@ -508,7 +527,7 @@ namespace JaegerSoft
                 string rangoFolios = primerFolio + "-" + ultimoFolio;
                 // Insertamos el resumen (la sumatoria total) en histocortesB
                 string queryHistoB = "INSERT INTO histocortesB (Id, Monto, Fecha, Mas, Menos, Tarjeta, utilidad, inversion, CubreFolio) VALUES ('" + folio + "', '" + totalB + "', '" + fechaCorteB + "', '" + masB + "', '0', '" + tarjetaB + "', '" + utilidadB + "', '" + inversionB + "','"+ rangoFolios+"');";
-                using (OleDbCommand cmdHistoB = new OleDbCommand(queryHistoB, conectar))
+                using (SqlCommand cmdHistoB = new SqlCommand(queryHistoB, conectar))
                 {
                     cmdHistoB.ExecuteNonQuery();
                 }
@@ -516,44 +535,60 @@ namespace JaegerSoft
             #endregion 
 
             button1.Visible = false;
-            
-            string[] encabezados = new string[] { "********** CORTE DE CAJA  ********", "             Apertura de caja:", fechaApertura, "               Corte de caja:", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() };
+            int totalArticulos = 0;
+            foreach (DataGridViewRow row in dataGridView6.Rows)
+            {
+                if (row.IsNewRow) continue;
+
+                // Identificamos la fila del gran total
+                if (row.Cells["Categoria"].Value?.ToString() == "TOTAL GENERAL")
+                {
+                    // Limpiamos el formato (por si el CellFormatting le puso comas)
+                    string piezasStr = row.Cells["Piezas"].Value?.ToString().Replace(",", "") ?? "0";
+                    int.TryParse(piezasStr, out totalArticulos);
+                    break; // Ya lo encontramos, dejamos de buscar
+                }
+            }
+            string[] encabezados = new string[] { "********** CORTE DE CAJA  ********", 
+                                                "Apertura de caja:", fechaApertura, 
+                                                "Corte de caja:", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString(),
+                                                 "TOTAL DE ARTICULOS: "+totalArticulos.ToString()};
 
             for (int i = 0; i < dgvCorte.RowCount; i++)
             {
-                cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvCorte[1, i].Value.ToString() + "','" + dgvCorte[2, i].Value.ToString() + "','" + folio + "','" + dgvCorte[4, i].Value.ToString() + "');", conectar);
+                cmd = new SqlCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvCorte[1, i].Value.ToString() + "','" + dgvCorte[2, i].Value.ToString() + "','" + folio + "','" + dgvCorte[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             for (int i = 0; i < dataGridView3.RowCount; i++)
             {
-                cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dataGridView3[1, i].Value.ToString() + "','" + dataGridView3[2, i].Value.ToString() + "','" + folio + "','" + dataGridView3[4, i].Value.ToString() + "');", conectar);
+                cmd = new SqlCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dataGridView3[1, i].Value.ToString() + "','" + dataGridView3[2, i].Value.ToString() + "','" + folio + "','" + dataGridView3[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             for (int i = 0; i < dataGridView4.RowCount; i++)
             {
-                cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dataGridView4[1, i].Value.ToString() + "','" + dataGridView4[2, i].Value.ToString() + "','" + folio + "','" + dataGridView4[4, i].Value.ToString() + "');", conectar);
+                cmd = new SqlCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dataGridView4[1, i].Value.ToString() + "','" + dataGridView4[2, i].Value.ToString() + "','" + folio + "','" + dataGridView4[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
 
             // Insertamos la nueva pestaña de OTROS al historial de cortes detallados
             for (int i = 0; i < dgvOtrosPagos.RowCount; i++)
             {
-                cmd = new OleDbCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvOtrosPagos[1, i].Value.ToString() + "','" + dgvOtrosPagos[2, i].Value.ToString() + "','" + folio + "','" + dgvOtrosPagos[4, i].Value.ToString() + "');", conectar);
+                cmd = new SqlCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvOtrosPagos[1, i].Value.ToString() + "','" + dgvOtrosPagos[2, i].Value.ToString() + "','" + folio + "','" + dgvOtrosPagos[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
 
-            cmd = new OleDbCommand("INSERT INTO histocortes(Id,Monto,Fecha,Mas,Menos,Tarjeta,utilidad,inversion) VALUES ('" + folio + "','" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + mas + "','" + menos + "','" + tarjeta + "','" + utilidad + "','" + inversion + "');", conectar);
+            cmd = new SqlCommand("INSERT INTO histocortes(Id,Monto,Fecha,Mas,Menos,Tarjeta,utilidad,inversion) VALUES ('" + folio + "','" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + mas + "','" + menos + "','" + tarjeta + "','" + utilidad + "','" + inversion + "');", conectar);
             cmd.ExecuteNonQuery();
             folio++;
-            cmd = new OleDbCommand("UPDATE Folios set Numero=" + folio + " where Folio='Corte';", conectar);
+            cmd = new SqlCommand("UPDATE Folios set Numero=" + folio + " where Folio='Corte';", conectar);
             cmd.ExecuteNonQuery();
-            cmd = new OleDbCommand("UPDATE Folios set Numero=0 where Folio='Inicio';", conectar);
+            cmd = new SqlCommand("UPDATE Folios set Numero=0 where Folio='Inicio';", conectar);
             cmd.ExecuteNonQuery();
-            cmd = new OleDbCommand("delete from Corte where 1;", conectar);
+            cmd = new SqlCommand("delete from Corte where 1;", conectar);
             cmd.ExecuteNonQuery();
-            cmd = new OleDbCommand("UPDATE Fech set Caja='0' where Id=1;", conectar);
+            cmd = new SqlCommand("UPDATE Fech set Caja='0' where Id=1;", conectar);
             cmd.ExecuteNonQuery();
-            cmd = new OleDbCommand("delete from Credito where 1;", conectar);
+            cmd = new SqlCommand("delete from Credito where 1;", conectar);
             cmd.ExecuteNonQuery();
 
             string GetNumericValue(string input)
@@ -621,5 +656,6 @@ namespace JaegerSoft
             MessageBox.Show("CORTE REALIZADO CON EXITO", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();
         }
+
     }
 }

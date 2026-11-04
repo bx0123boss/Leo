@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -10,7 +10,7 @@ namespace JaegerSoft
     {
         private string idProductoFinal;
         private string nombreProductoFinal;
-        private OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
+        private SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
 
         public frmRecetas(string idProd, string nombreProd)
         {
@@ -31,9 +31,9 @@ namespace JaegerSoft
             try
             {
                 DataTable dt = new DataTable();
-                // Solo cargamos los productos marcados como Insumo (EsInsumo = True)
-                string query = "SELECT Id, Nombre, Especial, Uni FROM Inventario WHERE EsInsumo = True ORDER BY Nombre";
-                OleDbDataAdapter da = new OleDbDataAdapter(query, conectar);
+                // Solo cargamos los productos marcados como Insumo (EsInsumo = 1)
+                string query = "SELECT Id, Nombre, Especial, Uni FROM Inventario WHERE EsInsumo = 1 ORDER BY Nombre";
+                SqlDataAdapter da = new SqlDataAdapter(query, conectar);
                 da.Fill(dt);
 
                 cmbInsumos.DataSource = dt;
@@ -58,10 +58,10 @@ namespace JaegerSoft
                                  INNER JOIN Inventario I ON R.IdInsumo = I.Id
                                  WHERE R.IdProductoFinal = @IdPan";
 
-                using (OleDbCommand cmd = new OleDbCommand(query, conectar))
+                using (SqlCommand cmd = new SqlCommand(query, conectar))
                 {
                     cmd.Parameters.AddWithValue("@IdPan", idProductoFinal);
-                    OleDbDataAdapter da = new OleDbDataAdapter(cmd);
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
                     da.Fill(dt);
                 }
 
@@ -127,7 +127,7 @@ namespace JaegerSoft
                 if (conectar.State == ConnectionState.Closed) conectar.Open();
 
                 string sqlInsert = "INSERT INTO ProductoReceta (IdProductoFinal, IdInsumo, CantidadRequerida) VALUES (@IdPan, @IdInsumo, @Cant)";
-                using (OleDbCommand cmd = new OleDbCommand(sqlInsert, conectar))
+                using (SqlCommand cmd = new SqlCommand(sqlInsert, conectar))
                 {
                     cmd.Parameters.AddWithValue("@IdPan", idProductoFinal);
                     cmd.Parameters.AddWithValue("@IdInsumo", idInsumo);
@@ -156,7 +156,7 @@ namespace JaegerSoft
                 if (conectar.State == ConnectionState.Closed) conectar.Open();
 
                 string sqlDelete = "DELETE FROM ProductoReceta WHERE Id = @Id";
-                using (OleDbCommand cmd = new OleDbCommand(sqlDelete, conectar))
+                using (SqlCommand cmd = new SqlCommand(sqlDelete, conectar))
                 {
                     cmd.Parameters.AddWithValue("@Id", idRegistro);
                     cmd.ExecuteNonQuery();

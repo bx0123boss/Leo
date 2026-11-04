@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,16 +7,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 
 namespace JaegerSoft
 {
     public partial class frmPerfumeria : Form
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbCommand cmd;
-        OleDbDataAdapter da;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlCommand cmd;
+        SqlDataAdapter da;
         int piezasPerfume = 0;
         double compraPerfume = 0;
         double ventaPerfume = 0;
@@ -32,7 +32,7 @@ namespace JaegerSoft
         {
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from Inventario where Categoria='PERFUMERIA' and Existencia > 0 order by Nombre;", conectar);
+            da = new SqlDataAdapter("select * from Inventario where Categoria='PERFUMERIA' and Existencia > 0 order by Nombre;", conectar);
             da.Fill(ds, "Id");
             dataGridView2.DataSource = ds.Tables["Id"];
             dataGridView2.Columns[9].Visible = false;
@@ -77,7 +77,7 @@ namespace JaegerSoft
             if (textBox1.Text == "")
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Inventario where Categoria='PERFUMERIA' order by Nombre;", conectar);
+                da = new SqlDataAdapter("select * from Inventario where Categoria='PERFUMERIA' order by Nombre;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
                 dataGridView2.Columns[9].Visible = false;
@@ -92,7 +92,7 @@ namespace JaegerSoft
             else
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Inventario where Categoria='PERFUMERIA' and Nombre LIKE '%" + textBox1.Text + "%';", conectar);
+                da = new SqlDataAdapter("select * from Inventario where Categoria='PERFUMERIA' and Nombre LIKE '%" + textBox1.Text + "%';", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
                 dataGridView2.Columns[9].Visible = false;
@@ -111,7 +111,7 @@ namespace JaegerSoft
             if (checkBox1.Checked == true)
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Inventario where Categoria='PERFUMERIA' And SubCategoria='" + comboBox2.Text + "' order by Nombre;", conectar);
+                da = new SqlDataAdapter("select * from Inventario where Categoria='PERFUMERIA' And SubCategoria='" + comboBox2.Text + "' order by Nombre;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
                 dataGridView2.Columns[9].Visible = false;
@@ -125,7 +125,7 @@ namespace JaegerSoft
             else
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Inventario where Categoria='PERFUMERIA' order by Nombre", conectar);
+                da = new SqlDataAdapter("select * from Inventario where Categoria='PERFUMERIA' order by Nombre", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
                 dataGridView2.Columns[9].Visible = false;
@@ -143,7 +143,7 @@ namespace JaegerSoft
             if (checkBox1.Checked == true)
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Inventario where Categoria='PERFUMERIA' And SubCategoria='" + comboBox2.Text + "' order by Nombre;", conectar);
+                da = new SqlDataAdapter("select * from Inventario where Categoria='PERFUMERIA' And SubCategoria='" + comboBox2.Text + "' order by Nombre;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"]; 
                 dataGridView2.Columns[9].Visible = false;
@@ -157,7 +157,7 @@ namespace JaegerSoft
             else
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Inventario where Categoria='PERFUMERIA' order by Nombre", conectar);
+                da = new SqlDataAdapter("select * from Inventario where Categoria='PERFUMERIA' order by Nombre", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
                 dataGridView2.Columns[9].Visible = false;
@@ -175,7 +175,7 @@ namespace JaegerSoft
             if (textBox2.Text == "")
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Inventario where Categoria='PERFUMERIA' order by Nombre;", conectar);
+                da = new SqlDataAdapter("select * from Inventario where Categoria='PERFUMERIA' order by Nombre;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
                 dataGridView2.Columns[9].Visible = false;
@@ -189,7 +189,7 @@ namespace JaegerSoft
             else
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Inventario where Categoria='PERFUMERIA' and Id LIKE '%" + textBox2.Text + "%';", conectar);
+                da = new SqlDataAdapter("select * from Inventario where Categoria='PERFUMERIA' and Id LIKE '%" + textBox2.Text + "%';", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
                 dataGridView2.Columns[9].Visible = false;
@@ -207,11 +207,11 @@ namespace JaegerSoft
             DialogResult dialogResult = MessageBox.Show("¿Estas seguro de eliminar el producto?", "Alto!", MessageBoxButtons.YesNo);
             if (dialogResult == DialogResult.Yes)
             {
-                cmd = new OleDbCommand("delete from Inventario where Id='" + dataGridView2[0, dataGridView2.CurrentRow.Index].Value.ToString() + "';", conectar);
+                cmd = new SqlCommand("delete from Inventario where Id='" + dataGridView2[0, dataGridView2.CurrentRow.Index].Value.ToString() + "';", conectar);
                 cmd.ExecuteNonQuery();
                 MessageBox.Show("PRODUCTO ELIMINADO CON EXITO", "ELIMINADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Inventario where not Categoria='ACCESORIOS' order by Nombre;", conectar);
+                da = new SqlDataAdapter("select * from Inventario where not Categoria='ACCESORIOS' order by Nombre;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
             }

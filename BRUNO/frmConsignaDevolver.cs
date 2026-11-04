@@ -1,5 +1,5 @@
 using System;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Data.SqlClient;
 using System.Windows.Forms;
 
@@ -49,52 +49,52 @@ namespace JaegerSoft
                                                "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (confirmacion == DialogResult.No) return;
 
-            using (OleDbConnection con = new OleDbConnection(Conexion.CadCon)) // Tu cadena de Access
+            using (SqlConnection con = new SqlConnection(Conexion.CadSQL)) // Tu cadena de Access
             {
                 con.Open();
 
                 // Iniciamos la transacción en OleDb
-                using (OleDbTransaction transaccion = con.BeginTransaction())
+                using (SqlTransaction transaccion = con.BeginTransaction())
                 {
                     try
                     {
                         // 1. BALANCE: Restar a EnConsigna y sumar a Devueltos
                         string queryBalance = @"
                     UPDATE ConsignaCliente 
-                    SET EnConsigna = EnConsigna - ?, 
-                        Devueltos = Devueltos + ? 
-                    WHERE ClienteId = ? AND ProductoId = ? AND PrecioCongelado = ?";
+                    SET EnConsigna = EnConsigna - @Cantidad, 
+                        Devueltos = Devueltos + @CantidadDevuelta 
+                    WHERE ClienteId = @IdCliente AND ProductoId = @IdProducto AND PrecioCongelado = @PrecioCongelado";
 
-                        using (OleDbCommand cmd = new OleDbCommand(queryBalance, con, transaccion))
+                        using (SqlCommand cmd = new SqlCommand(queryBalance, con, transaccion))
                         {
-                            // EL ORDEN ES VITAL AQUÍ (Coincidiendo con los '?')
-                            cmd.Parameters.AddWithValue("?", cantidadDevolver); // 1er ? (EnConsigna)
-                            cmd.Parameters.AddWithValue("?", cantidadDevolver); // 2do ? (Devueltos)
-                            cmd.Parameters.AddWithValue("?", _idCliente);       // 3er ?
-                            cmd.Parameters.AddWithValue("?", _idProducto);      // 4to ?
-                            cmd.Parameters.AddWithValue("?", _precioCongelado); // 5to ?
+                            // EL ORDEN ES VITAL AQUÍ (Coincidiendo con los parámetros)
+                            cmd.Parameters.AddWithValue("@Cantidad", cantidadDevolver); // 1er param (EnConsigna)
+                            cmd.Parameters.AddWithValue("@CantidadDevuelta", cantidadDevolver); // 2do param (Devueltos)
+                            cmd.Parameters.AddWithValue("@IdCliente", _idCliente);       // 3er param
+                            cmd.Parameters.AddWithValue("@IdProducto", _idProducto);      // 4to param
+                            cmd.Parameters.AddWithValue("@PrecioCongelado", _precioCongelado); // 5to param
                             cmd.ExecuteNonQuery();
                         }
 
-                        // 2. KÁRDEX: Usamos NOW() en lugar de GETDATE()
+                        // 2. KÁRDEX: Usamos GETDATE() en lugar de GETDATE()
                         string queryKardex = @"
                     INSERT INTO ConsignaMovimientos (ClienteId, ProductoId, TipoMovimiento, Cantidad, PrecioVigente, Fecha) 
-                    VALUES (?, ?, 'DEVOLUCION', ?, ?, NOW())";
+                    VALUES (@IdCliente, @IdProducto, 'DEVOLUCION', @Cantidad, @PrecioCongelado, GETDATE())";
 
-                        using (OleDbCommand cmd = new OleDbCommand(queryKardex, con, transaccion))
+                        using (SqlCommand cmd = new SqlCommand(queryKardex, con, transaccion))
                         {
-                            cmd.Parameters.AddWithValue("?", _idCliente);
-                            cmd.Parameters.AddWithValue("?", _idProducto);
-                            cmd.Parameters.AddWithValue("?", cantidadDevolver);
-                            cmd.Parameters.AddWithValue("?", _precioCongelado);
+                            cmd.Parameters.AddWithValue("@IdCliente", _idCliente);
+                            cmd.Parameters.AddWithValue("@IdProducto", _idProducto);
+                            cmd.Parameters.AddWithValue("@Cantidad", cantidadDevolver);
+                            cmd.Parameters.AddWithValue("@PrecioCongelado", _precioCongelado);
                             cmd.ExecuteNonQuery();
                         }
 
                         bool manejaInventario = true;
-                        string queryManejo = "SELECT ManejaInventario FROM Inventario WHERE Id = ?";
-                        using (OleDbCommand cmdM = new OleDbCommand(queryManejo, con, transaccion))
+                        string queryManejo = "SELECT ManejaInventario FROM Inventario WHERE Id = @IdProducto";
+                        using (SqlCommand cmdM = new SqlCommand(queryManejo, con, transaccion))
                         {
-                            cmdM.Parameters.AddWithValue("?", _idProducto);
+                            cmdM.Parameters.AddWithValue("@IdProducto", _idProducto);
                             object resM = cmdM.ExecuteScalar();
                             if (resM != null && resM != DBNull.Value) manejaInventario = Convert.ToBoolean(resM);
                         }
@@ -105,23 +105,23 @@ namespace JaegerSoft
                         {
                             string queryInventario = @"
                         UPDATE Inventario 
-                        SET Existencia = Existencia + ? 
-                        WHERE Id = ? AND ManejaInventario = True";
+                        SET Existencia = Existencia + @Cantidad 
+                        WHERE Id = @IdProducto AND ManejaInventario = 1";
 
-                            using (OleDbCommand cmd = new OleDbCommand(queryInventario, con, transaccion))
+                            using (SqlCommand cmd = new SqlCommand(queryInventario, con, transaccion))
                             {
-                                cmd.Parameters.AddWithValue("?", cantidadDevolver);
-                                cmd.Parameters.AddWithValue("?", _idProducto);
+                                cmd.Parameters.AddWithValue("@Cantidad", cantidadDevolver);
+                                cmd.Parameters.AddWithValue("@IdProducto", _idProducto);
                                 cmd.ExecuteNonQuery();
                             }
                         }
                         if (manejaInventario)
                         {
                             int existenciaAntes = 0;
-                            string queryExistencia = "SELECT Existencia FROM Inventario WHERE Id = ?";
-                            using (OleDbCommand cmdEx = new OleDbCommand(queryExistencia, con, transaccion))
+                            string queryExistencia = "SELECT Existencia FROM Inventario WHERE Id = @IdProducto";
+                            using (SqlCommand cmdEx = new SqlCommand(queryExistencia, con, transaccion))
                             {
-                                cmdEx.Parameters.AddWithValue("?", _idProducto);
+                                cmdEx.Parameters.AddWithValue("@IdProducto", _idProducto);
                                 object res = cmdEx.ExecuteScalar();
                                 if (res != null && res != DBNull.Value) existenciaAntes = Convert.ToInt32(res);
                             }
@@ -129,14 +129,14 @@ namespace JaegerSoft
                             int existenciaDespues = existenciaAntes + cantidadDevolver; // Aquí sumamos porque regresó
                             string fechaKardex = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
                             string descripcionKardex = "DEVOLUCIÓN DE CONSIGNA. CLIENTE ID: " + _idCliente.ToString();
-                            string queryKardexGen = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) VALUES (?, 'ENTRADA', ?, ?, ?, ?)";
-                            using (OleDbCommand cmdK = new OleDbCommand(queryKardexGen, con, transaccion))
+                            string queryKardexGen = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) VALUES (@IdProducto, 'ENTRADA', @Descripcion, @ExistenciaAntes, @ExistenciaDespues, @Fecha)";
+                            using (SqlCommand cmdK = new SqlCommand(queryKardexGen, con, transaccion))
                             {
-                                cmdK.Parameters.AddWithValue("?", _idProducto);
-                                cmdK.Parameters.AddWithValue("?", descripcionKardex);
-                                cmdK.Parameters.AddWithValue("?", existenciaAntes);
-                                cmdK.Parameters.AddWithValue("?", existenciaDespues);
-                                cmdK.Parameters.AddWithValue("?", fechaKardex);
+                                cmdK.Parameters.AddWithValue("@IdProducto", _idProducto);
+                                cmdK.Parameters.AddWithValue("@Descripcion", descripcionKardex);
+                                cmdK.Parameters.AddWithValue("@ExistenciaAntes", existenciaAntes);
+                                cmdK.Parameters.AddWithValue("@ExistenciaDespues", existenciaDespues);
+                                cmdK.Parameters.AddWithValue("@Fecha", fechaKardex);
                                 cmdK.ExecuteNonQuery();
                             }
                         }

@@ -1,4 +1,4 @@
-﻿namespace JaegerSoft
+namespace JaegerSoft
 {
     partial class frmCaptura
     {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -13,9 +13,9 @@ namespace JaegerSoft
 {
     public partial class frmAgregarCompras2 : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
         public string usuario = "";
-        OleDbCommand cmd;
+        SqlCommand cmd;
 
         public frmAgregarCompras2()
         {
@@ -26,14 +26,14 @@ namespace JaegerSoft
         {
             conectar.Open();
             DataTable dt = new DataTable();
-            cmd = new OleDbCommand("Select Id from Compras2;", conectar);
-            OleDbDataAdapter da = new OleDbDataAdapter(cmd);
+            cmd = new SqlCommand("Select Id from Compras2;", conectar);
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             comboBox1.DisplayMember = "Id";
             comboBox1.ValueMember = "Id";
             comboBox1.DataSource = dt;
-            cmd = new OleDbCommand("select Id,Nombre,Existencia from Inventario;", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
+            cmd = new SqlCommand("select Id,Nombre,Existencia from Inventario;", conectar);
+            SqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
                 dataGridView1.Rows.Add(reader[0].ToString(), reader[1].ToString(), reader[2].ToString(), "0", reader[2].ToString());
@@ -132,11 +132,11 @@ namespace JaegerSoft
             {
                 relacion = comboBox1.Text;
             }
-            cmd = new OleDbCommand("INSERT INTO Compras2(Movimiento,Fecha,Capturo,Relacion) VALUES ('" + movimiento + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + usuario + "','" + relacion + "');", conectar);
+            cmd = new SqlCommand("INSERT INTO Compras2(Movimiento,Fecha,Capturo,Relacion) VALUES ('" + movimiento + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + usuario + "','" + relacion + "');", conectar);
             cmd.ExecuteNonQuery();
             string idInsertado = "";
-            cmd = new OleDbCommand("select @@IDENTITY;", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
+            cmd = new SqlCommand("select @@IDENTITY;", conectar);
+            SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 idInsertado = reader[0].ToString();
@@ -150,19 +150,19 @@ namespace JaegerSoft
                 double suma = Convert.ToDouble(dataGridView1[4, i].Value.ToString());
 
                 bool manejaInventario = true;
-                cmd = new OleDbCommand("SELECT ManejaInventario FROM Inventario WHERE Id='" + id + "';", conectar);
+                cmd = new SqlCommand("SELECT ManejaInventario FROM Inventario WHERE Id='" + id + "';", conectar);
                 object resM = cmd.ExecuteScalar();
                 if (resM != null && resM != DBNull.Value) manejaInventario = Convert.ToBoolean(resM);
 
                 if (manejaInventario)
                 {
-                    cmd = new OleDbCommand("UPDATE Inventario SET Existencia='" + suma + "' where Id='" + id + "' AND ManejaInventario = True;", conectar);
+                    cmd = new SqlCommand("UPDATE Inventario SET Existencia='" + suma + "' where Id='" + id + "' AND ManejaInventario = 1;", conectar);
                     cmd.ExecuteNonQuery();
-                    cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha,Precio) values('" + id + "','ENTRADA','EXISTENCIA POR: "+movimiento+", FOLIO: " + idInsertado + "'," + existencias + ",'" + suma + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','NA');", conectar);
+                    cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha,Precio) values('" + id + "','ENTRADA','EXISTENCIA POR: "+movimiento+", FOLIO: " + idInsertado + "'," + existencias + ",'" + suma + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','NA');", conectar);
                     cmd.ExecuteNonQuery();
                 }
 
-                cmd = new OleDbCommand("INSERT INTO ComprasMovimientos(Folio,IdProducto,Nombre,ExistenciasAntiguas,Movimiento,ExistenciasActuales,Tipo,Fecha) VALUES ('" + idInsertado + "','" + id + "','" + nombre + "','" + existencias + "','" + mov + "','" + suma + "','" + movimiento + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                cmd = new SqlCommand("INSERT INTO ComprasMovimientos(Folio,IdProducto,Nombre,ExistenciasAntiguas,Movimiento,ExistenciasActuales,Tipo,Fecha) VALUES ('" + idInsertado + "','" + id + "','" + nombre + "','" + existencias + "','" + mov + "','" + suma + "','" + movimiento + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             MessageBox.Show("SE HA AGREGADO AL INVENTARIO CON EXITO", "CERRAR ORDEN", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -174,8 +174,8 @@ namespace JaegerSoft
 
         public void formato(string id, double cant)
         {
-            cmd = new OleDbCommand("select * from invent where idArticulo=" + id + ";", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
+            cmd = new SqlCommand("select * from invent where idArticulo=" + id + ";", conectar);
+            SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 string salida = "";
@@ -195,7 +195,7 @@ namespace JaegerSoft
                         set = "entrada";
                         break;
                 }
-                cmd = new OleDbCommand("UPDATE invent set " + set + "='" + salida + "' Where idArticulo=" + id + ";", conectar);
+                cmd = new SqlCommand("UPDATE invent set " + set + "='" + salida + "' Where idArticulo=" + id + ";", conectar);
                 cmd.ExecuteNonQuery();
             }
         }

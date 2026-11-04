@@ -1,6 +1,6 @@
 using System;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Globalization;
 using System.Windows.Forms;
@@ -20,12 +20,12 @@ namespace JaegerSoft
         private void frmAgregarPoliza_Load(object sender, EventArgs e)
         {
             // Auto-crear columna IdAlmacen en Poliza si no existe
-            using (OleDbConnection conn = new OleDbConnection(Conexion.CadCon))
+            using (SqlConnection conn = new SqlConnection(Conexion.CadSQL))
             {
                 try
                 {
                     conn.Open();
-                    using (var cmd = new OleDbCommand("SELECT IdAlmacen FROM Poliza WHERE 1=0", conn))
+                    using (var cmd = new SqlCommand("SELECT IdAlmacen FROM Poliza WHERE 1=0", conn))
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -34,7 +34,7 @@ namespace JaegerSoft
                 {
                     try
                     {
-                        using (var cmd = new OleDbCommand("ALTER TABLE Poliza ADD COLUMN IdAlmacen INT", conn))
+                        using (var cmd = new SqlCommand("ALTER TABLE Poliza ADD COLUMN IdAlmacen INT", conn))
                         {
                             cmd.ExecuteNonQuery();
                         }
@@ -72,14 +72,14 @@ namespace JaegerSoft
 
         private void CargarComboAlmacenes()
         {
-            using (OleDbConnection conn = new OleDbConnection(Conexion.CadCon))
+            using (SqlConnection conn = new SqlConnection(Conexion.CadSQL))
             {
                 try
                 {
                     conn.Open();
-                    using (var cmd = new OleDbCommand("SELECT Id, Nombre FROM Almacenes ORDER BY Nombre", conn))
+                    using (var cmd = new SqlCommand("SELECT Id, Nombre FROM Almacenes ORDER BY Nombre", conn))
                     {
-                        using (var adapter = new OleDbDataAdapter(cmd))
+                        using (var adapter = new SqlDataAdapter(cmd))
                         {
                             DataTable dt = new DataTable();
                             adapter.Fill(dt);
@@ -195,14 +195,14 @@ namespace JaegerSoft
         {
             if (string.IsNullOrWhiteSpace(txtID.Text)) return;
 
-            using (OleDbConnection conn = new OleDbConnection(Conexion.CadCon))
+            using (SqlConnection conn = new SqlConnection(Conexion.CadSQL))
             {
                 conn.Open();
                 string query = "SELECT * FROM Inventario WHERE Id = @Id";
-                using (OleDbCommand cmd = new OleDbCommand(query, conn))
+                using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@Id", txtID.Text);
-                    using (OleDbDataReader reader = cmd.ExecuteReader())
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
                         {
@@ -326,10 +326,10 @@ namespace JaegerSoft
             }
             string nombreAlmacenDestino = cmbAlmacenDestino.Text;
 
-            using (OleDbConnection conn = new OleDbConnection(Conexion.CadCon))
+            using (SqlConnection conn = new SqlConnection(Conexion.CadSQL))
             {
                 conn.Open();
-                using (OleDbTransaction transaction = conn.BeginTransaction())
+                using (SqlTransaction transaction = conn.BeginTransaction())
                 {
                     try
                     {
@@ -349,7 +349,7 @@ namespace JaegerSoft
 
                             // Insertar detalle poliza
                             string queryProdPoliza = "INSERT INTO productosPoliza VALUES (@Id, @Nom, @Cant, @Costo, @CExtra, @CReal, @Iva, @Folio)";
-                            using (OleDbCommand cmd = new OleDbCommand(queryProdPoliza, conn, transaction))
+                            using (SqlCommand cmd = new SqlCommand(queryProdPoliza, conn, transaction))
                             {
                                 cmd.Parameters.AddWithValue("@Id", idProd);
                                 cmd.Parameters.AddWithValue("@Nom", nombreProd);
@@ -369,10 +369,10 @@ namespace JaegerSoft
                             bool manejaInventario = true;
 
                             string queryCheck = "SELECT Existencia, Especial, ManejaInventario FROM Inventario WHERE Id = @Id";
-                            using (OleDbCommand cmdCheck = new OleDbCommand(queryCheck, conn, transaction))
+                            using (SqlCommand cmdCheck = new SqlCommand(queryCheck, conn, transaction))
                             {
                                 cmdCheck.Parameters.AddWithValue("@Id", idProd);
-                                using (OleDbDataReader reader = cmdCheck.ExecuteReader())
+                                using (SqlDataReader reader = cmdCheck.ExecuteReader())
                                 {
                                     if (reader.Read())
                                     {
@@ -398,8 +398,8 @@ namespace JaegerSoft
 
                                     if (manejaInventario)
                                     {
-                                        string updInv = "UPDATE Inventario SET Especial = @Esp, Existencia = @Exis, PrecioVenta = @PVenta, FechaUltimaCompra = NOW() WHERE Id = @Id AND ManejaInventario = True";
-                                        using (OleDbCommand cmdUpd = new OleDbCommand(updInv, conn, transaction))
+                                        string updInv = "UPDATE Inventario SET Especial = @Esp, Existencia = @Exis, PrecioVenta = @PVenta, FechaUltimaCompra = GETDATE() WHERE Id = @Id AND ManejaInventario = 1";
+                                        using (SqlCommand cmdUpd = new SqlCommand(updInv, conn, transaction))
                                         {
                                             cmdUpd.Parameters.AddWithValue("@Esp", nuevoEspecial);
                                             cmdUpd.Parameters.AddWithValue("@Exis", nuevas);
@@ -410,7 +410,7 @@ namespace JaegerSoft
 
                                         // Kardex de entrada (Producto existente)
                                         string insKardex1 = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) VALUES (@Id, 'ENTRADA', @Desc, @EA, @ED, @Fech, @Pre)";
-                                        using (OleDbCommand cmdKardex = new OleDbCommand(insKardex1, conn, transaction))
+                                        using (SqlCommand cmdKardex = new SqlCommand(insKardex1, conn, transaction))
                                         {
                                             cmdKardex.Parameters.AddWithValue("@Id", idProd);
                                             cmdKardex.Parameters.AddWithValue("@Desc", "COMPRA DE ARTICULO FOLIO: " + txtFolio.Text);
@@ -423,8 +423,8 @@ namespace JaegerSoft
                                     }
                                     else
                                     {
-                                        string updInv = "UPDATE Inventario SET Especial = @Esp, PrecioVenta = @PVenta, FechaUltimaCompra = NOW() WHERE Id = @Id";
-                                        using (OleDbCommand cmdUpd = new OleDbCommand(updInv, conn, transaction))
+                                        string updInv = "UPDATE Inventario SET Especial = @Esp, PrecioVenta = @PVenta, FechaUltimaCompra = GETDATE() WHERE Id = @Id";
+                                        using (SqlCommand cmdUpd = new SqlCommand(updInv, conn, transaction))
                                         {
                                             cmdUpd.Parameters.AddWithValue("@Esp", nuevoEspecial);
                                             cmdUpd.Parameters.AddWithValue("@PVenta", precioVenta);
@@ -436,8 +436,8 @@ namespace JaegerSoft
                                 else
                                 {
                                     // Insertar nuevo en inventario
-                                    string insInv = "INSERT INTO Inventario (Id, Nombre, IVA, Especial, Existencia, Unidad, Activo, FechaUltimaCompra, PrecioVenta, ManejaInventario) VALUES (@Id, @Nom, @Iva, @CReal, @Exis, '0', Yes, NOW(), @PVenta, True)";
-                                    using (OleDbCommand cmdIns = new OleDbCommand(insInv, conn, transaction))
+                                    string insInv = "INSERT INTO Inventario (Id, Nombre, IVA, Especial, Existencia, Unidad, Activo, FechaUltimaCompra, PrecioVenta, ManejaInventario) VALUES (@Id, @Nom, @Iva, @CReal, @Exis, '0', 1, GETDATE(), @PVenta, True)";
+                                    using (SqlCommand cmdIns = new SqlCommand(insInv, conn, transaction))
                                     {
                                         cmdIns.Parameters.AddWithValue("@Id", idProd);
                                         cmdIns.Parameters.AddWithValue("@Nom", nombreProd);
@@ -450,7 +450,7 @@ namespace JaegerSoft
 
                                     // Kardex de entrada (Producto nuevo)
                                     string insKardex2 = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, idProveedor, Proveedor) VALUES (@Id, 'ENTRADA', @Desc, 0, @ED, @Fech, @idProv, @NomProv)";
-                                    using (OleDbCommand cmdKardex = new OleDbCommand(insKardex2, conn, transaction))
+                                    using (SqlCommand cmdKardex = new SqlCommand(insKardex2, conn, transaction))
                                     {
                                         cmdKardex.Parameters.AddWithValue("@Id", idProd);
                                         cmdKardex.Parameters.AddWithValue("@Desc", "COMPRA DE ARTICULO FOLIO: " + txtFolio.Text);
@@ -472,8 +472,8 @@ namespace JaegerSoft
                                     // Actualizar precios en maestro de Inventario (pero no incrementar existencia principal)
                                     double nuevoEspecial = costoReal > precioDB ? costoReal : precioDB;
 
-                                    string updInv = "UPDATE Inventario SET Especial = @Esp, PrecioVenta = @PVenta, FechaUltimaCompra = NOW() WHERE Id = @Id";
-                                    using (OleDbCommand cmdUpd = new OleDbCommand(updInv, conn, transaction))
+                                    string updInv = "UPDATE Inventario SET Especial = @Esp, PrecioVenta = @PVenta, FechaUltimaCompra = GETDATE() WHERE Id = @Id";
+                                    using (SqlCommand cmdUpd = new SqlCommand(updInv, conn, transaction))
                                     {
                                         cmdUpd.Parameters.AddWithValue("@Esp", nuevoEspecial);
                                         cmdUpd.Parameters.AddWithValue("@PVenta", precioVenta);
@@ -484,8 +484,8 @@ namespace JaegerSoft
                                 else
                                 {
                                     // Registrar metadatos en Inventario principal con existencia 0
-                                    string insInv = "INSERT INTO Inventario (Id, Nombre, IVA, Especial, Existencia, Unidad, Activo, FechaUltimaCompra, PrecioVenta) VALUES (@Id, @Nom, @Iva, @CReal, 0, '0', Yes, NOW(), @PVenta)";
-                                    using (OleDbCommand cmdIns = new OleDbCommand(insInv, conn, transaction))
+                                    string insInv = "INSERT INTO Inventario (Id, Nombre, IVA, Especial, Existencia, Unidad, Activo, FechaUltimaCompra, PrecioVenta) VALUES (@Id, @Nom, @Iva, @CReal, 0, '0', 1, GETDATE(), @PVenta)";
+                                    using (SqlCommand cmdIns = new SqlCommand(insInv, conn, transaction))
                                     {
                                         cmdIns.Parameters.AddWithValue("@Id", idProd);
                                         cmdIns.Parameters.AddWithValue("@Nom", nombreProd);
@@ -499,7 +499,7 @@ namespace JaegerSoft
                                 // Obtener stock actual en el almacén de destino
                                 double invAlmacenActual = 0;
                                 bool almacenRowExists = false;
-                                using (var cmdAlm = new OleDbCommand("SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = @IdAlmacen AND IdProducto = @IdProd", conn, transaction))
+                                using (var cmdAlm = new SqlCommand("SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = @IdAlmacen AND IdProducto = @IdProd", conn, transaction))
                                 {
                                     cmdAlm.Parameters.AddWithValue("@IdAlmacen", idAlmacenDestino);
                                     cmdAlm.Parameters.AddWithValue("@IdProd", idProd);
@@ -516,7 +516,7 @@ namespace JaegerSoft
                                 // Modificar stock en InventarioAlmacenes
                                 if (almacenRowExists)
                                 {
-                                    using (var cmdAlmUpd = new OleDbCommand("UPDATE InventarioAlmacenes SET Existencia = @Exis WHERE IdAlmacen = @IdAlmacen AND IdProducto = @IdProd", conn, transaction))
+                                    using (var cmdAlmUpd = new SqlCommand("UPDATE InventarioAlmacenes SET Existencia = @Exis WHERE IdAlmacen = @IdAlmacen AND IdProducto = @IdProd", conn, transaction))
                                     {
                                         cmdAlmUpd.Parameters.AddWithValue("@Exis", nuevasAlmacen);
                                         cmdAlmUpd.Parameters.AddWithValue("@IdAlmacen", idAlmacenDestino);
@@ -526,7 +526,7 @@ namespace JaegerSoft
                                 }
                                 else
                                 {
-                                    using (var cmdAlmIns = new OleDbCommand("INSERT INTO InventarioAlmacenes (IdAlmacen, IdProducto, Existencia) VALUES (@IdAlmacen, @IdProd, @Exis)", conn, transaction))
+                                    using (var cmdAlmIns = new SqlCommand("INSERT INTO InventarioAlmacenes (IdAlmacen, IdProducto, Existencia) VALUES (@IdAlmacen, @IdProd, @Exis)", conn, transaction))
                                     {
                                         cmdAlmIns.Parameters.AddWithValue("@IdAlmacen", idAlmacenDestino);
                                         cmdAlmIns.Parameters.AddWithValue("@IdProd", idProd);
@@ -541,7 +541,7 @@ namespace JaegerSoft
                                     if (manejaInventario)
                                     {
                                         string insKardex1 = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) VALUES (@Id, 'ENTRADA', @Desc, @EA, @ED, @Fech, @Pre)";
-                                        using (OleDbCommand cmdKardex = new OleDbCommand(insKardex1, conn, transaction))
+                                        using (SqlCommand cmdKardex = new SqlCommand(insKardex1, conn, transaction))
                                         {
                                             cmdKardex.Parameters.AddWithValue("@Id", idProd);
                                             cmdKardex.Parameters.AddWithValue("@Desc", "COMPRA DE ARTICULO FOLIO: " + txtFolio.Text + " (ALMACEN: " + nombreAlmacenDestino + ")");
@@ -558,7 +558,7 @@ namespace JaegerSoft
                                     if (manejaInventario)
                                     {
                                         string insKardex2 = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, idProveedor, Proveedor) VALUES (@Id, 'ENTRADA', @Desc, 0, @ED, @Fech, @idProv, @NomProv)";
-                                        using (OleDbCommand cmdKardex = new OleDbCommand(insKardex2, conn, transaction))
+                                        using (SqlCommand cmdKardex = new SqlCommand(insKardex2, conn, transaction))
                                         {
                                             cmdKardex.Parameters.AddWithValue("@Id", idProd);
                                             cmdKardex.Parameters.AddWithValue("@Desc", "COMPRA DE ARTICULO FOLIO: " + txtFolio.Text + " (ALMACEN: " + nombreAlmacenDestino + ")");
@@ -578,7 +578,7 @@ namespace JaegerSoft
                         {
                             double adeudoActual = 0;
                             string qProv = "SELECT Adeudo FROM Proveedores WHERE Id = @IdP";
-                            using (OleDbCommand cmdProv = new OleDbCommand(qProv, conn, transaction))
+                            using (SqlCommand cmdProv = new SqlCommand(qProv, conn, transaction))
                             {
                                 cmdProv.Parameters.AddWithValue("@IdP", Convert.ToInt32(idProv));
                                 object result = cmdProv.ExecuteScalar();
@@ -591,7 +591,7 @@ namespace JaegerSoft
                             adeudoActual += totalCompra;
 
                             string uProv = "UPDATE Proveedores SET Adeudo = @Adeudo WHERE Id = @IdP";
-                            using (OleDbCommand cmdUProv = new OleDbCommand(uProv, conn, transaction))
+                            using (SqlCommand cmdUProv = new SqlCommand(uProv, conn, transaction))
                             {
                                 cmdUProv.Parameters.AddWithValue("@Adeudo", adeudoActual);
                                 cmdUProv.Parameters.AddWithValue("@IdP", Convert.ToInt32(idProv));
@@ -601,7 +601,7 @@ namespace JaegerSoft
 
                         // 3. INSERTAR PÓLIZA GENERAL (incluyendo IdAlmacen)
                         string insPoliza = "INSERT INTO Poliza(Folio, Fecha, FechaCaptura, CostoTotal, CostoExtra, IdProv, Proveedor, IVA, Total, IdAlmacen) VALUES (@Folio, @Fech1, @Fech2, @CostoT, @CostoE, @IdP, @Prov, @Iva, @Tot, @IdAlmacen)";
-                        using (OleDbCommand cmdPol = new OleDbCommand(insPoliza, conn, transaction))
+                        using (SqlCommand cmdPol = new SqlCommand(insPoliza, conn, transaction))
                         {
                             cmdPol.Parameters.AddWithValue("@Folio", txtFolio.Text);
                             cmdPol.Parameters.AddWithValue("@Fech1", dateTimePicker1.Value.Date.ToString("MM/dd/yyyy 00:00:00"));

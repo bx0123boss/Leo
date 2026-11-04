@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,8 +14,8 @@ namespace JaegerSoft
     public partial class frmBuscarProveedor : Form
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
         public string ID { get; set; }
         public string Nombre { get; set; }
         public frmBuscarProveedor()
@@ -27,7 +27,7 @@ namespace JaegerSoft
         {
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from Proveedores ORDER BY Nombre;", conectar);
+            da = new SqlDataAdapter("select * from Proveedores ORDER BY Nombre;", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
@@ -51,7 +51,7 @@ namespace JaegerSoft
                     conectar.Close();
                     conectar.Open();
                     ds = new DataSet();
-                    da = new OleDbDataAdapter("select * from Proveedores where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
+                    da = new SqlDataAdapter("select * from Proveedores where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
                     da.Fill(ds, "Id");
                     dataGridView1.DataSource = ds.Tables["Id"];
                     dataGridView1.Columns[0].Visible = false;
@@ -65,7 +65,7 @@ namespace JaegerSoft
             if (textBox1.Text == "")
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Proveedores ORDER BY Nombre;", conectar);
+                da = new SqlDataAdapter("select * from Proveedores ORDER BY Nombre;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 dataGridView1.Columns[0].Visible = false;
@@ -75,7 +75,7 @@ namespace JaegerSoft
             {
 
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Proveedores where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
+                da = new SqlDataAdapter("select * from Proveedores where Nombre LIKE '%" + textBox1.Text + "%' ORDER BY Nombre ;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 dataGridView1.Columns[0].Visible = false;

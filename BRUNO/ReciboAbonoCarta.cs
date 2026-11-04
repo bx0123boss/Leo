@@ -1,9 +1,9 @@
-﻿using QuestPDF.Fluent;
+using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using System;
 using System.Collections.Generic;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Data.SqlClient;
 using System.Drawing.Printing;
 using System.IO;
@@ -59,12 +59,12 @@ namespace JaegerSoft
             if (string.IsNullOrEmpty(_idCliente) || _idCliente == "0") return;
             try
             {
-                using (OleDbConnection con = new OleDbConnection(Conexion.CadCon))
+                using (SqlConnection con = new SqlConnection(Conexion.CadSQL))
                 {
                     con.Open();
                     string query = "SELECT Direccion, RFC, Telefono, Correo, CP FROM Clientes WHERE Id = " + _idCliente;
-                    using (OleDbCommand cmd = new OleDbCommand(query, con))
-                    using (OleDbDataReader reader = cmd.ExecuteReader())
+                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
                         {

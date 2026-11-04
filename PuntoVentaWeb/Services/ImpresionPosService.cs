@@ -1,4 +1,4 @@
-﻿namespace PuntoVentaWeb.Services;
+namespace PuntoVentaWeb.Services;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -6,7 +6,7 @@ using PuntoVentaWeb.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Odbc;
+using Microsoft.Data.SqlClient;
 using System.Threading.Tasks;
 
 using ProductoTicket = global::Producto;
@@ -15,13 +15,13 @@ public class ImpresionPosService
 {
     private readonly IConfiguration _config;
     private readonly ILogger<ImpresionPosService> _logger;
-    private readonly string _accessConn;
+    private readonly string _sqlConn;
 
     public ImpresionPosService(IConfiguration config, ILogger<ImpresionPosService> logger)
     {
         _config = config;
         _logger = logger;
-        _accessConn = _config.GetConnectionString("Access") ?? @"Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=C:\Jaeger Soft\Jaeger.accdb;Pwd=75941232;";
+        _sqlConn = _config.GetConnectionString("SQL") ?? @"Server=.\SQLEXPRESS;Database=PuntoDeVenta;Integrated Security=True;MultipleActiveResultSets=True;TrustServerCertificate=True;";
     }
 
     public Task ImprimirTicketVentaAsync(VentaGuardarRequest req)
@@ -118,11 +118,11 @@ public class ImpresionPosService
 
         try
         {
-            using (var conexion = new OdbcConnection(_accessConn))
+            using (var conexion = new SqlConnection(_sqlConn))
             {
                 conexion.Open();
                 string query = "SELECT TOP 1 * FROM Configuracion WHERE Id = 1";
-                using var cmd = new OdbcCommand(query, conexion);
+                using var cmd = new SqlCommand(query, conexion);
                 using var reader = cmd.ExecuteReader();
 
                 if (reader.Read())

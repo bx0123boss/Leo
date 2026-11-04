@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,10 +14,10 @@ namespace JaegerSoft
     public partial class frmTipoCambio : Form
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbCommand cmd;
-        OleDbDataAdapter da;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL); 
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlCommand cmd;
+        SqlDataAdapter da;
         public double PrecioCompra, PrecioMaquilaDolaresLinea, PrecioPorGramo, ValorLineaGramo, Costo, Doble, Veinte,Utilidad;
         double PrecioOro, entre24, Kilataje, Resultado, Maquila, Total, Peso, Treinta, por2, Diez;
         public double  Dolar, FactorKilataje, PrecioVenta, Gramos, Formula1, Formula2, Formula3, Formula4, Formula5, Formula6;
@@ -29,8 +29,8 @@ namespace JaegerSoft
 
         private void frmTipoCambio_Load(object sender, EventArgs e)
         {
-                 cmd = new OleDbCommand("select * from Cambio where Id=1;", conectar);
-                        OleDbDataReader reader = cmd.ExecuteReader();
+                 cmd = new SqlCommand("select * from Cambio where Id=1;", conectar);
+                        SqlDataReader reader = cmd.ExecuteReader();
                         if (reader.Read())
                         {
                             txtOro.Text = Convert.ToString(reader[1].ToString());
@@ -39,13 +39,13 @@ namespace JaegerSoft
                             PrecioOro = Convert.ToDouble(txtOro.Text);
                         }
                         ds = new DataSet();
-                        da = new OleDbDataAdapter("select * from Inventario WHERE Categoria='JOYERIA' and not Proveedor='DINASTI';", conectar);
-                        //da = new OleDbDataAdapter("select * from Inventario WHERE Id='001';", conectar);
+                        da = new SqlDataAdapter("select * from Inventario WHERE Categoria='JOYERIA' and not Proveedor='DINASTI';", conectar);
+                        //da = new SqlDataAdapter("select * from Inventario WHERE Id='001';", conectar);
                         da.Fill(ds, "Id");
                         dataGridView1.DataSource = ds.Tables["Id"];
 
                         ds = new DataSet();
-                        da = new OleDbDataAdapter("select * from Inventario WHERE Proveedor='DINASTI';", conectar);
+                        da = new SqlDataAdapter("select * from Inventario WHERE Proveedor='DINASTI';", conectar);
                         da.Fill(ds, "Id");
                         dataGridView2.DataSource = ds.Tables["Id"];
                            
@@ -82,7 +82,7 @@ namespace JaegerSoft
                                 double Utilidad = Math.Truncate(Diez) - Math.Truncate(PrecioCompra);
                                 conectar.Close();
                             conectar.Open();
-                                cmd = new OleDbCommand("UPDATE Inventario Set PrecioVenta='" + Math.Truncate(Diez) + "',Utilidad='" + Utilidad + "' where Id='" + dataGridView1[0, i].Value.ToString() + "';", conectar);
+                                cmd = new SqlCommand("UPDATE Inventario Set PrecioVenta='" + Math.Truncate(Diez) + "',Utilidad='" + Utilidad + "' where Id='" + dataGridView1[0, i].Value.ToString() + "';", conectar);
                                 cmd.ExecuteNonQuery();
                         }
                         catch (Exception ex)
@@ -108,7 +108,7 @@ namespace JaegerSoft
                             Diez = por2 * 1.1;
                             double Utilidad = Math.Truncate(Diez) - Math.Truncate(PrecioCompra);
                             conectar.Open();
-                            cmd = new OleDbCommand("UPDATE Inventario Set PrecioCompra='" + Math.Truncate(PrecioCompra) + "',PrecioVenta='" + Math.Truncate(Diez) + "',Utilidad='" + Utilidad + "' where Id='" + dataGridView1[0, i].Value.ToString() + "';", conectar);
+                            cmd = new SqlCommand("UPDATE Inventario Set PrecioCompra='" + Math.Truncate(PrecioCompra) + "',PrecioVenta='" + Math.Truncate(Diez) + "',Utilidad='" + Utilidad + "' where Id='" + dataGridView1[0, i].Value.ToString() + "';", conectar);
                             cmd.ExecuteNonQuery();
                         }
                         catch (Exception ex)
@@ -119,7 +119,7 @@ namespace JaegerSoft
 
 
                 }
-                 cmd = new OleDbCommand("UPDATE Cambio Set Oro='" + txtOro.Text + "' where Id=1;", conectar);
+                 cmd = new SqlCommand("UPDATE Cambio Set Oro='" + txtOro.Text + "' where Id=1;", conectar);
                 cmd.ExecuteNonQuery();
                 MessageBox.Show("LOS PRECIOS DE JOYERIA HAN SIDO ACTUALIZADOS", "PRECIOS ACTUALIZADOS", MessageBoxButtons.OK, MessageBoxIcon.Information);
                
@@ -135,8 +135,8 @@ namespace JaegerSoft
                     conectar.Open();
                     try
                     {
-                        cmd = new OleDbCommand("select * from Linea where Linea='" + dataGridView2[11, i].Value.ToString() + "';", conectar);
-                        OleDbDataReader reader = cmd.ExecuteReader();
+                        cmd = new SqlCommand("select * from Linea where Linea='" + dataGridView2[11, i].Value.ToString() + "';", conectar);
+                        SqlDataReader reader = cmd.ExecuteReader();
                         if (reader.Read())
                         {
                             Gramos = Convert.ToDouble(dataGridView2[9, i].Value.ToString());
@@ -176,7 +176,7 @@ namespace JaegerSoft
                                 Doble = Costo * 2;
                                 Veinte = Math.Truncate(Doble * 1.12);
                                 Utilidad = Doble - Costo;
-                                cmd = new OleDbCommand("UPDATE Inventario Set PrecioCompra='" + Math.Truncate(Costo) + "', PrecioVenta='" + Math.Truncate(Veinte) + "', Utilidad='" + Math.Truncate(Utilidad) + "' where Id='" + dataGridView2[0, i].Value.ToString() + "';", conectar);
+                                cmd = new SqlCommand("UPDATE Inventario Set PrecioCompra='" + Math.Truncate(Costo) + "', PrecioVenta='" + Math.Truncate(Veinte) + "', Utilidad='" + Math.Truncate(Utilidad) + "' where Id='" + dataGridView2[0, i].Value.ToString() + "';", conectar);
                                 cmd.ExecuteNonQuery();
                             }
                         }
@@ -188,7 +188,7 @@ namespace JaegerSoft
 
                 }
 
-                cmd = new OleDbCommand("UPDATE Cambio set Dolar='" + txtDolar.Text + "' where Id=1;", conectar);
+                cmd = new SqlCommand("UPDATE Cambio set Dolar='" + txtDolar.Text + "' where Id=1;", conectar);
                 cmd.ExecuteNonQuery();
                 MessageBox.Show("LOS PRECIOS DE DINASTI HAN SIDO ACTUALIZADOS", "PRECIOS ACTUALIZADOS", MessageBoxButtons.OK, MessageBoxIcon.Information);
                

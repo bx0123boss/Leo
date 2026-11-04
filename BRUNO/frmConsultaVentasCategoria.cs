@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -8,7 +8,7 @@ namespace JaegerSoft
 {
     public partial class frmConsultaVentasCategoria : frmBase
     {
-        private OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
+        private SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
 
         public frmConsultaVentasCategoria()
         {
@@ -50,7 +50,7 @@ namespace JaegerSoft
                                "SUM(Cantidad) as Piezas, " +
                                "SUM(MontoTotal) as Total " +
                                "FROM VentasContado " +
-                               "WHERE Fecha >= #" + fechaInicioSQL + "# and Fecha <= #" + fechaFinSQL + "# " +
+                               "WHERE Fecha >= '" + fechaInicioSQL + "' and Fecha <= '" + fechaFinSQL + "' " +
                                "AND FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus = 'COBRADO') " +
                                "GROUP BY IIf(Categoria Is Null OR Categoria = '', 'SIN CATEGORIA', Categoria) " +
                                "UNION ALL " +
@@ -58,10 +58,10 @@ namespace JaegerSoft
                                "SUM(Cantidad) as Piezas, " +
                                "SUM(MontoTotal) as Total " +
                                "FROM VentasContado " +
-                               "WHERE Fecha >= #" + fechaInicioSQL + "# and Fecha <= #" + fechaFinSQL + "# " +
+                               "WHERE Fecha >= '" + fechaInicioSQL + "' and Fecha <= '" + fechaFinSQL + "' " +
                                "AND FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus = 'COBRADO')";
 
-                OleDbDataAdapter da = new OleDbDataAdapter(query, conectar);
+                SqlDataAdapter da = new SqlDataAdapter(query, conectar);
                 DataSet ds = new DataSet();
                 da.Fill(ds, "Categorias");
 

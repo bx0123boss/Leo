@@ -1,4 +1,4 @@
-﻿namespace JaegerSoft
+namespace JaegerSoft
 {
     partial class frmAgregarInventario
     {
@@ -149,6 +149,7 @@
             this.txtCantidad.Name = "txtCantidad";
             this.txtCantidad.Size = new System.Drawing.Size(379, 26);
             this.txtCantidad.TabIndex = 2;
+            this.txtCantidad.Text = "0";
             this.txtCantidad.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtCantidad_KeyPress);
             // 
             // label5
@@ -168,6 +169,7 @@
             this.txtVenta.Name = "txtVenta";
             this.txtVenta.Size = new System.Drawing.Size(379, 26);
             this.txtVenta.TabIndex = 6;
+            this.txtVenta.Text = "0";
             this.txtVenta.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtVenta_KeyPress);
             // 
             // txtTotales
@@ -621,7 +623,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(1094, 598);
+            this.ClientSize = new System.Drawing.Size(944, 598);
             this.Controls.Add(this.picProducto);
             this.Controls.Add(this.btnSeleccionarImagen);
             this.Controls.Add(this.groupBox1);

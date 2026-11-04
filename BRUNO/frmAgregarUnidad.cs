@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -13,8 +13,8 @@ namespace JaegerSoft
 {
     public partial class frmAgregarUnidad : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlCommand cmd;
         public string id;
 
         public frmAgregarUnidad()
@@ -30,7 +30,7 @@ namespace JaegerSoft
                 if (txtNombre.Text != "" && txtAbrev.Text != "")
                 {
                     conectar.Open();
-                    cmd = new OleDbCommand("insert into Unidades(Nombre,Abreviatura) values('" + txtNombre.Text + "','" + txtAbrev.Text + "');", conectar);
+                    cmd = new SqlCommand("insert into Unidades(Nombre,Abreviatura) values('" + txtNombre.Text + "','" + txtAbrev.Text + "');", conectar);
                     cmd.ExecuteNonQuery();
                     MessageBox.Show("Se ha agregado la unidad con exito", "AGREGADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     frmUnidades a = new frmUnidades();
@@ -43,7 +43,7 @@ namespace JaegerSoft
                 if (txtNombre.Text != "" && txtAbrev.Text != "")
                 {
                     conectar.Open();
-                    cmd = new OleDbCommand("Update Unidades set Nombre ='" + txtNombre.Text + "', Abreviatura='" + txtAbrev.Text + "' where Id=" + id + ";", conectar);
+                    cmd = new SqlCommand("Update Unidades set Nombre ='" + txtNombre.Text + "', Abreviatura='" + txtAbrev.Text + "' where Id=" + id + ";", conectar);
                     cmd.ExecuteNonQuery();
                     MessageBox.Show("Se ha editado la unidad con exito", "EDITAR", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     frmUnidades a = new frmUnidades();

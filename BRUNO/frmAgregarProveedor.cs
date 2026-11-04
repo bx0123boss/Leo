@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -13,9 +13,9 @@ namespace JaegerSoft
 {
     public partial class frmAgregarProveedor : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL); 
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlCommand cmd;
         public bool buscar = false;
         public string Nombre { get; set; }
         public frmAgregarProveedor()
@@ -34,7 +34,7 @@ namespace JaegerSoft
 
             if (this.Text == "Agregar")
             {
-                cmd = new OleDbCommand("insert into Proveedores(Nombre, RFC, Direccion, Telefono, Correo, Referencia, Clave, Adeudo) values('" + txtNombre.Text + "','" + txtRFC.Text + "','" + txtDireccion.Text + "','" + txtTelefono.Text + "','" + txtCorreo.Text + "','" + txtReferencia.Text + "','" + textBox1.Text + "','0');", conectar);
+                cmd = new SqlCommand("insert into Proveedores(Nombre, RFC, Direccion, Telefono, Correo, Referencia, Clave, Adeudo) values('" + txtNombre.Text + "','" + txtRFC.Text + "','" + txtDireccion.Text + "','" + txtTelefono.Text + "','" + txtCorreo.Text + "','" + txtReferencia.Text + "','" + textBox1.Text + "','0');", conectar);
                 cmd.ExecuteNonQuery();
                 MessageBox.Show("Se ha agregado el cliente con exito", "AGREGADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 if (buscar)
@@ -51,7 +51,7 @@ namespace JaegerSoft
             }
             else
             {
-                cmd = new OleDbCommand("UPDATE Proveedores set Nombre='" + txtNombre.Text + "', Telefono='" + txtTelefono.Text + "', Direccion='" + txtDireccion.Text + "', Referencia='" + txtReferencia.Text + "', RFC='" + txtRFC.Text + "', Correo='" + txtCorreo.Text + "', Clave='" + textBox1.Text + "' where Id=" + lblID.Text + ";", conectar);
+                cmd = new SqlCommand("UPDATE Proveedores set Nombre='" + txtNombre.Text + "', Telefono='" + txtTelefono.Text + "', Direccion='" + txtDireccion.Text + "', Referencia='" + txtReferencia.Text + "', RFC='" + txtRFC.Text + "', Correo='" + txtCorreo.Text + "', Clave='" + textBox1.Text + "' where Id=" + lblID.Text + ";", conectar);
                 cmd.ExecuteNonQuery();
                 MessageBox.Show("Se ha actualizado el cliente con exito", "AGREGADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();

@@ -1,4 +1,4 @@
-﻿namespace PuntoVentaWeb.Models;
+namespace PuntoVentaWeb.Models;
 public class ConfiguracionNegocio
 {
     public string NombreLugar { get; set; } = "DEPORTES LEO";

@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Windows.Forms;
 using Microsoft.Office.Interop.Excel;
 using LibPrintTicket;
@@ -39,12 +39,12 @@ namespace JaegerSoft
             string tablaDetalle = EsCorteB ? "CortesB" : "Cortes";
 
             // 2. Uso correcto de USING para no dejar conexiones bloqueadas
-            using (OleDbConnection conectar = new OleDbConnection(Conexion.CadCon))
+            using (SqlConnection conectar = new SqlConnection(Conexion.CadSQL))
             {
                 conectar.Open();
                 // Consultamos la tabla correspondiente (Cortes o CortesB)
                 string sql = "select * from " + tablaDetalle + " where idCorte='" + ID + "';";
-                using (OleDbDataAdapter da = new OleDbDataAdapter(sql, conectar))
+                using (SqlDataAdapter da = new SqlDataAdapter(sql, conectar))
                 {
                     da.Fill(ds, "Id");
                 }

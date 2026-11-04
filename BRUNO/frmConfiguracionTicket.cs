@@ -1,5 +1,5 @@
-﻿using System;
-using System.Data.OleDb;
+using System;
+using System.Data.SqlClient;
 using System.IO;
 using System.Windows.Forms;
 
@@ -7,7 +7,7 @@ namespace JaegerSoft
 {
     public partial class frmConfiguracionTicket : Form
     {
-        private string CadCon = Conexion.CadCon;
+        private string CadCon = Conexion.CadSQL;
         private int idConfiguracion = 1;
         public frmConfiguracionTicket()
         {
@@ -29,11 +29,11 @@ namespace JaegerSoft
         {
             try
             {
-                using (var conexion = new OleDbConnection(CadCon))
+                using (var conexion = new SqlConnection(CadCon))
                 {
                     conexion.Open();
                     string query = "SELECT * FROM Configuracion WHERE Id = @id";
-                    using (var cmd = new OleDbCommand(query, conexion))
+                    using (var cmd = new SqlCommand(query, conexion))
                     {
                         cmd.Parameters.AddWithValue("@id", idConfiguracion);
                         using (var reader = cmd.ExecuteReader())
@@ -78,13 +78,13 @@ namespace JaegerSoft
         {
             try
             {
-                using (var conexion = new OleDbConnection(CadCon))
+                using (var conexion = new SqlConnection(CadCon))
                 {
                     conexion.Open();
 
                     string query = "UPDATE Configuracion SET DatosTicket = @datos, PieDeTicket = @pie, LogoPath = @logo, Whatsapp = @whats, Bascula = @bascula, MediaCarta = @mediaCarta WHERE Id = @id";
 
-                    using (var cmd = new OleDbCommand(query, conexion))
+                    using (var cmd = new SqlCommand(query, conexion))
                     {
                         // Convertir las líneas de texto de vuelta a | para la base de datos
                         string datos = txtEncabezado.Text.Replace(Environment.NewLine, "|");

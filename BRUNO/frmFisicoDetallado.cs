@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,10 +14,10 @@ namespace JaegerSoft
     public partial class frmFisicoDetallado : Form
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbDataAdapter da;
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlDataAdapter da;
+        SqlCommand cmd;
         public string fisico = "";
 
         public frmFisicoDetallado()
@@ -29,7 +29,7 @@ namespace JaegerSoft
         {
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from FisicoDetallado where IdFisico='" + fisico + "';", conectar);
+            da = new SqlDataAdapter("select * from FisicoDetallado where IdFisico='" + fisico + "';", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
@@ -46,7 +46,7 @@ namespace JaegerSoft
         {
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
-                cmd = new OleDbCommand("Update inventario set Existencia='" + dataGridView1[3, i].Value.ToString() + "' where Id='" + dataGridView1[1, i].Value.ToString() + "';", conectar);
+                cmd = new SqlCommand("Update inventario set Existencia='" + dataGridView1[3, i].Value.ToString() + "' where Id='" + dataGridView1[1, i].Value.ToString() + "';", conectar);
                 cmd.ExecuteNonQuery();
             }
             MessageBox.Show("El inventario se restauro con exito", "Exito!", MessageBoxButtons.OK, MessageBoxIcon.Information);

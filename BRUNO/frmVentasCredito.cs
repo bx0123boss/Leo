@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
@@ -10,9 +10,9 @@ namespace JaegerSoft
 {
     public partial class frmVentasCredito : frmBase
     {
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbCommand cmd;
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlCommand cmd;
         double total = 0;
         int foli;
         string origen = "";
@@ -102,7 +102,7 @@ namespace JaegerSoft
             procesando = true;
             button2.Enabled = false;
 
-            OleDbTransaction trans = null;
+            SqlTransaction trans = null;
 
             try
             {
@@ -136,12 +136,12 @@ namespace JaegerSoft
                 }
 
                 // OBTENER FOLIO
-                cmd = new OleDbCommand("SELECT Numero FROM Folios WHERE Folio='FolioCredito'", conectar);
+                cmd = new SqlCommand("SELECT Numero FROM Folios WHERE Folio='FolioCredito'", conectar);
                 int foli = Convert.ToInt32(cmd.ExecuteScalar());
                 string folioVenta = "C" + String.Format("{0:0000}", foli);
 
                 // VALIDAR QUE NO EXISTA (doble ejecución)
-                cmd = new OleDbCommand("SELECT COUNT(*) FROM VentasCredito WHERE FolioVenta = ?", conectar);
+                cmd = new SqlCommand("SELECT COUNT(*) FROM VentasCredito WHERE FolioVenta = @folio", conectar);
                 cmd.Parameters.AddWithValue("@folio", folioVenta);
                 int existe = Convert.ToInt32(cmd.ExecuteScalar());
 
@@ -169,7 +169,7 @@ namespace JaegerSoft
                     double exisDespues = existencia - cantidad;
 
                     // OBTENER DATOS EXTRA
-                    cmd = new OleDbCommand("SELECT Categoria, ManejaInventario FROM Inventario WHERE Id = ?", conectar, trans);
+                    cmd = new SqlCommand("SELECT Categoria, ManejaInventario FROM Inventario WHERE Id = @id", conectar, trans);
                     cmd.Parameters.AddWithValue("@id", idProducto);
                     string categoria = "";
                     bool manejaInventario = true;
@@ -187,41 +187,40 @@ namespace JaegerSoft
 
                     if (manejaInventario)
                     {
-                        cmd = new OleDbCommand("UPDATE Inventario SET Existencia = Existencia - ?, FechaUltimaVenta = NOW() WHERE Id = ? AND ManejaInventario = True", conectar, trans);
-                        cmd.Parameters.AddWithValue("@cantidad", cantidad);
+                        cmd = new SqlCommand("UPDATE Inventario SET Existencia = Existencia - @cant, FechaUltimaVenta = GETDATE() WHERE Id = @id AND ManejaInventario = 1", conectar, trans);
+                        cmd.Parameters.AddWithValue("@cant", cantidad);
                         cmd.Parameters.AddWithValue("@id", idProducto);
                         cmd.ExecuteNonQuery();
                     }
 
-                    cmd = new OleDbCommand(@"
+                    cmd = new SqlCommand(@"
                     INSERT INTO VentasCredito
                     (FolioVenta, IdProducto, Cantidad, Producto, MontoTotal, IdCliente, Fecha, categoria)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)", conectar, trans);
+                    VALUES (@FolioVenta, @IdProducto, @Cantidad, @Producto, @MontoTotal, @IdCliente, @Fecha, @Categoria)", conectar, trans);
 
-                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = folioVenta;
-                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = dataGridView1[5, i].Value.ToString().Trim();
-                    cmd.Parameters.Add("?", OleDbType.Double).Value = Convert.ToDouble(dataGridView1[0, i].Value);
-                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = dataGridView1[1, i].Value.ToString();
-                    cmd.Parameters.Add("?", OleDbType.Currency).Value = Convert.ToDecimal(dataGridView1[3, i].Value);
-                    cmd.Parameters.Add("?", OleDbType.Integer).Value = Convert.ToInt32(idCliente);
-                    cmd.Parameters.Add("?", OleDbType.Date).Value = DateTime.Now;
-                    cmd.Parameters.Add("?", OleDbType.VarChar).Value = categoria ?? "";
+                    cmd.Parameters.Add("@FolioVenta", SqlDbType.VarChar).Value = folioVenta;
+                    cmd.Parameters.Add("@IdProducto", SqlDbType.VarChar).Value = dataGridView1[5, i].Value.ToString().Trim();
+                    cmd.Parameters.Add("@Cantidad", SqlDbType.Float).Value = Convert.ToDouble(dataGridView1[0, i].Value);
+                    cmd.Parameters.Add("@Producto", SqlDbType.VarChar).Value = dataGridView1[1, i].Value.ToString();
+                    cmd.Parameters.Add("@MontoTotal", SqlDbType.Decimal).Value = Convert.ToDecimal(dataGridView1[3, i].Value);
+                    cmd.Parameters.Add("@IdCliente", SqlDbType.Int).Value = Convert.ToInt32(idCliente);
+                    cmd.Parameters.Add("@Fecha", SqlDbType.DateTime).Value = DateTime.Now;
+                    cmd.Parameters.Add("@Categoria", SqlDbType.VarChar).Value = categoria ?? "";
                     cmd.ExecuteNonQuery();
 
                     //KARDEX
                     if (manejaInventario)
                     {
-                        cmd = new OleDbCommand(@"
+                        cmd = new SqlCommand(@"
                                         INSERT INTO Kardex 
                                         (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha)
-                                        VALUES (?, ?, ?, ?, ?, ?)", conectar, trans);
+                                        VALUES (@IdProducto, 'SALIDA', @Desc, @ExisAntes, @ExisDespues, @FechaK)", conectar, trans);
 
-                        cmd.Parameters.Add("?", OleDbType.VarChar).Value = idProducto;
-                        cmd.Parameters.Add("?", OleDbType.VarChar).Value = "SALIDA";
-                        cmd.Parameters.Add("?", OleDbType.VarChar).Value = "VENTA A CREDITO DE ARTICULO FOLIO: " + folioVenta;
-                        cmd.Parameters.Add("?", OleDbType.Double).Value = exisAntes;
-                        cmd.Parameters.Add("?", OleDbType.Double).Value = exisDespues;
-                        cmd.Parameters.Add("?", OleDbType.Date).Value = DateTime.Now;
+                        cmd.Parameters.Add("@IdProducto", SqlDbType.VarChar).Value = idProducto;
+                        cmd.Parameters.Add("@Desc", SqlDbType.VarChar).Value = "VENTA A CREDITO DE ARTICULO FOLIO: " + folioVenta;
+                        cmd.Parameters.Add("@ExisAntes", SqlDbType.Float).Value = exisAntes;
+                        cmd.Parameters.Add("@ExisDespues", SqlDbType.Float).Value = exisDespues;
+                        cmd.Parameters.Add("@FechaK", SqlDbType.DateTime).Value = DateTime.Now;
                         cmd.ExecuteNonQuery();
                     }
 
@@ -240,30 +239,30 @@ namespace JaegerSoft
 
                 if (abono > 0)
                 {
-                    cmd = new OleDbCommand(@"
+                    cmd = new SqlCommand(@"
                         INSERT INTO Abonos (Abono,idCliente,Fecha,Nombre,Folio,Estatus)
-                        VALUES (?,?,?,?,?,?)", conectar, trans);
+                        VALUES (@abono, @idCliente, @fecha, @cliente, @folio, @estatus)", conectar, trans);
 
-                    cmd.Parameters.AddWithValue("?", txtAbono.Text);
-                    cmd.Parameters.AddWithValue("?", idCliente);
-                    cmd.Parameters.Add("?", OleDbType.Date).Value = DateTime.Now;
-                    cmd.Parameters.AddWithValue("?", lblCliente.Text);
-                    cmd.Parameters.AddWithValue("?", folioVenta);
-                    cmd.Parameters.AddWithValue("?", "PAGADO");
+                    cmd.Parameters.AddWithValue("@abono", txtAbono.Text);
+                    cmd.Parameters.AddWithValue("@idCliente", idCliente);
+                    cmd.Parameters.Add("@fecha", SqlDbType.DateTime).Value = DateTime.Now;
+                    cmd.Parameters.AddWithValue("@cliente", lblCliente.Text);
+                    cmd.Parameters.AddWithValue("@folio", folioVenta);
+                    cmd.Parameters.AddWithValue("@estatus", "PAGADO");
 
                     cmd.ExecuteNonQuery();
                 }
-                cmd = new OleDbCommand("insert into Ventas2(Monto,Fecha,Folio,IdCliente,Estatus, Saldo) values('" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + folioVenta + "','" + idCliente + "','COBRADO'," + total + ");", conectar, trans);
+                cmd = new SqlCommand("insert into Ventas2(Monto,Fecha,Folio,IdCliente,Estatus, Saldo) values('" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + folioVenta + "','" + idCliente + "','COBRADO'," + total + ");", conectar, trans);
                 cmd.ExecuteNonQuery();
-                cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono de la venta a credito folio " + folioVenta + "','" + txtAbono.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + cmbPago.Text + "');", conectar,trans);
+                cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono de la venta a credito folio " + folioVenta + "','" + txtAbono.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + cmbPago.Text + "');", conectar,trans);
                 cmd.ExecuteNonQuery();
-                cmd = new OleDbCommand("UPDATE Clientes SET Adeudo = ? WHERE Id = ?", conectar, trans);
+                cmd = new SqlCommand("UPDATE Clientes SET Adeudo = @adeudo WHERE Id = @id", conectar, trans);
                 cmd.Parameters.AddWithValue("@adeudo", nuevoAdeudo);
                 cmd.Parameters.AddWithValue("@id", idCliente);
                 cmd.ExecuteNonQuery();
 
                 // ACTUALIZAR FOLIO
-                cmd = new OleDbCommand("UPDATE Folios SET Numero = Numero + 1 WHERE Folio='FolioCredito'", conectar, trans);
+                cmd = new SqlCommand("UPDATE Folios SET Numero = Numero + 1 WHERE Folio='FolioCredito'", conectar, trans);
                 cmd.ExecuteNonQuery();
 
                 // COMMIT
@@ -358,13 +357,13 @@ namespace JaegerSoft
                 }
                 else
                 {
-                    cmd = new OleDbCommand("select count(*) from Inventario where Id='" + textBox1.Text + "';", conectar);
+                    cmd = new SqlCommand("select count(*) from Inventario where Id='" + textBox1.Text + "';", conectar);
                     int valor = int.Parse(cmd.ExecuteScalar().ToString());
                     if (valor == 1)
                     {
                         total = Convert.ToDouble(lblTotal.Text);
-                        cmd = new OleDbCommand("select * from Inventario where Id='" + textBox1.Text + "';", conectar);
-                        OleDbDataReader reader = cmd.ExecuteReader();
+                        cmd = new SqlCommand("select * from Inventario where Id='" + textBox1.Text + "';", conectar);
+                        SqlDataReader reader = cmd.ExecuteReader();
                         if (reader.Read())
                         {
                             using (frmPrecio buscar = new frmPrecio())
@@ -804,7 +803,7 @@ namespace JaegerSoft
             try
             {
                 if (conectar.State != ConnectionState.Open) conectar.Open();
-                using (var cmdA = new OleDbCommand("SELECT Id, Nombre FROM Almacenes ORDER BY Nombre", conectar))
+                using (var cmdA = new SqlCommand("SELECT Id, Nombre FROM Almacenes ORDER BY Nombre", conectar))
                 using (var dr = cmdA.ExecuteReader())
                 {
                     DataTable dt = new DataTable();
@@ -840,12 +839,12 @@ namespace JaegerSoft
                     {
                         if (conectar.State != ConnectionState.Open) conectar.Open();
                         // Comprobar existencia
-                        var cmdCheck = new OleDbCommand("select count(*) from Inventario where Id='" + txtCodigo.Text.Trim() + "';", conectar);
+                        var cmdCheck = new SqlCommand("select count(*) from Inventario where Id='" + txtCodigo.Text.Trim() + "';", conectar);
                         int count = Convert.ToInt32(cmdCheck.ExecuteScalar());
 
                         if (count == 1)
                         {
-                            var cmdName = new OleDbCommand("select Nombre from Inventario where Id='" + txtCodigo.Text.Trim() + "';", conectar);
+                            var cmdName = new SqlCommand("select Nombre from Inventario where Id='" + txtCodigo.Text.Trim() + "';", conectar);
                             lblProd.Text = Convert.ToString(cmdName.ExecuteScalar());
                         }
                         else
@@ -876,7 +875,7 @@ namespace JaegerSoft
                     if (conectar.State != ConnectionState.Open) conectar.Open();
 
                     // Validar Stock en el almacén origen
-                    var cmdStock = new OleDbCommand("SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = @org AND IdProducto = @id", conectar);
+                    var cmdStock = new SqlCommand("SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = @org AND IdProducto = @id", conectar);
                     cmdStock.Parameters.AddWithValue("@org", idAlmacen);
                     cmdStock.Parameters.AddWithValue("@id", cod);
 
@@ -895,21 +894,21 @@ namespace JaegerSoft
                         try
                         {
                             // 1. Descontar del almacén
-                            var cmdSub = new OleDbCommand("UPDATE InventarioAlmacenes SET Existencia = Existencia - @qty WHERE IdAlmacen = @org AND IdProducto = @id", conectar, trans);
+                            var cmdSub = new SqlCommand("UPDATE InventarioAlmacenes SET Existencia = Existencia - @qty WHERE IdAlmacen = @org AND IdProducto = @id", conectar, trans);
                             cmdSub.Parameters.AddWithValue("@qty", cant);
                             cmdSub.Parameters.AddWithValue("@org", idAlmacen);
                             cmdSub.Parameters.AddWithValue("@id", cod);
                             cmdSub.ExecuteNonQuery();
 
                             // 2. Sumar al mostrador (Inventario)
-                            var cmdAdd = new OleDbCommand("UPDATE Inventario SET Existencia = Existencia + @qty WHERE Id = @id", conectar, trans);
+                            var cmdAdd = new SqlCommand("UPDATE Inventario SET Existencia = Existencia + @qty WHERE Id = @id", conectar, trans);
                             cmdAdd.Parameters.AddWithValue("@qty", cant);
                             cmdAdd.Parameters.AddWithValue("@id", cod);
                             cmdAdd.ExecuteNonQuery();
 
                             // 3. Registrar Movimiento
                             string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
-                            var cmdLog = new OleDbCommand("INSERT INTO MovimientosAlmacenes (IdOrigen, IdDestino, IdProducto, Cantidad, Fecha, Usuario) VALUES (@org, 0, @id, @qty, @fecha, @usu)", conectar, trans);
+                            var cmdLog = new SqlCommand("INSERT INTO MovimientosAlmacenes (IdOrigen, IdDestino, IdProducto, Cantidad, Fecha, Usuario) VALUES (@org, 0, @id, @qty, @fecha, @usu)", conectar, trans);
                             cmdLog.Parameters.AddWithValue("@org", idAlmacen);
                             cmdLog.Parameters.AddWithValue("@id", cod);
                             cmdLog.Parameters.AddWithValue("@qty", cant);
@@ -919,7 +918,7 @@ namespace JaegerSoft
 
                             // 4. Kardex
                             string kardexQuery = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) VALUES (@id, 'TRASPASO_ENTRADA', @desc, 0, 0, @fecha, 'NA')";
-                            using (var cmdK = new OleDbCommand(kardexQuery, conectar, trans))
+                            using (var cmdK = new SqlCommand(kardexQuery, conectar, trans))
                             {
                                 cmdK.Parameters.AddWithValue("@id", cod);
                                 cmdK.Parameters.AddWithValue("@desc", $"TRASPASO EXPRESS DESDE ALMACÉN: {cmbAlmacen.Text}");
@@ -1031,3 +1030,5 @@ namespace JaegerSoft
 
     }
 }
+
+

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,9 +14,9 @@ namespace JaegerSoft
     public partial class frmVentaDetalladaCredito : frmBase
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
+        SqlCommand cmd;
         public string id;
         double existenciasTotales = 0;
         public String usuario = "";
@@ -40,7 +40,7 @@ namespace JaegerSoft
         {
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from VentasCredito where FolioVenta='" + lblFolio.Text + "';", conectar);
+            da = new SqlDataAdapter("select * from VentasCredito where FolioVenta='" + lblFolio.Text + "';", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
@@ -55,8 +55,8 @@ namespace JaegerSoft
             if (dataGridView1.RowCount > 0)
             {
                 idCliente = dataGridView1[6, 0].Value.ToString();
-                cmd = new OleDbCommand("select * from Clientes where Id=" + idCliente + ";", conectar);
-                OleDbDataReader reader = cmd.ExecuteReader();
+                cmd = new SqlCommand("select * from Clientes where Id=" + idCliente + ";", conectar);
+                SqlDataReader reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
                     lblCliente.Text = Convert.ToString(reader[1].ToString());
@@ -140,8 +140,8 @@ namespace JaegerSoft
             {
                 for (int i = 0; i < dataGridView1.RowCount; i++)
                 {
-                    cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
-                    OleDbDataReader reader = cmd.ExecuteReader();
+                    cmd = new SqlCommand("select * from Inventario where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
+                    SqlDataReader reader = cmd.ExecuteReader();
                     if (reader.Read())
                     {
                         existenciasTotales = Convert.ToDouble(dataGridView1[3, i].Value.ToString()) + Convert.ToDouble(Convert.ToString(reader[4].ToString()));
@@ -152,18 +152,18 @@ namespace JaegerSoft
                             manejaInventario = Convert.ToBoolean(reader["ManejaInventario"]);
                         }
 
-                        cmd = new OleDbCommand("UPDATE VentasCredito set MontoTotal='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
+                        cmd = new SqlCommand("UPDATE VentasCredito set MontoTotal='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
                         cmd.ExecuteNonQuery();
                         if (manejaInventario)
                         {
-                            cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[2, i].Value.ToString() + "' AND ManejaInventario = True;", conectar);
+                            cmd = new SqlCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[2, i].Value.ToString() + "' AND ManejaInventario = 1;", conectar);
                             cmd.ExecuteNonQuery();
                         }
                     }
                 }
 
-                cmd = new OleDbCommand("select * from Clientes where Id=" + idCliente + ";", conectar);
-                OleDbDataReader reader2 = cmd.ExecuteReader();
+                cmd = new SqlCommand("select * from Clientes where Id=" + idCliente + ";", conectar);
+                SqlDataReader reader2 = cmd.ExecuteReader();
                 double adeu2 = 0;
                 if (reader2.Read())
                 {
@@ -171,13 +171,13 @@ namespace JaegerSoft
                 }
                 adeu2 -= adeudo; // Se asume que 'adeudo' contiene el monto exacto de esta venta que se está cancelando
 
-                cmd = new OleDbCommand("update Ventas2 set Estatus='CANCELADO', Saldo='0' where Folio='" + lblFolio.Text + "';", conectar);
+                cmd = new SqlCommand("update Ventas2 set Estatus='CANCELADO', Saldo='0' where Folio='" + lblFolio.Text + "';", conectar);
                 cmd.ExecuteNonQuery();
 
-                cmd = new OleDbCommand("update Clientes set Adeudo='" + adeu2 + "' where Id=" + idCliente + ";", conectar);
+                cmd = new SqlCommand("update Clientes set Adeudo='" + adeu2 + "' where Id=" + idCliente + ";", conectar);
                 cmd.ExecuteNonQuery();
 
-                cmd = new OleDbCommand("insert into Corte(Concepto,Monto) Values('Cancelacion de la venta a credito folio " + lblFolio.Text + "',-" + lblMonto.Text + ");", conectar);
+                cmd = new SqlCommand("insert into Corte(Concepto,Monto) Values('Cancelacion de la venta a credito folio " + lblFolio.Text + "',-" + lblMonto.Text + ");", conectar);
                 cmd.ExecuteNonQuery();
 
                 MessageBox.Show("VENTA A CRÉDITO CANCELADA CON ÉXITO", "CANCELADA!", MessageBoxButtons.OK, MessageBoxIcon.Information);

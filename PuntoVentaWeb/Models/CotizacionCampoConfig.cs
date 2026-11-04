@@ -1,4 +1,4 @@
-﻿namespace PuntoVentaWeb.Models
+namespace PuntoVentaWeb.Models
 {
     public class CotizacionCampoConfig
     {

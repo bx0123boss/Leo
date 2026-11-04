@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,10 +14,10 @@ namespace JaegerSoft
     public partial class frmDescuentoPorCategoria : Form
     {
         private DataSet ds;
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        OleDbCommand cmd;
-        OleDbDataAdapter da;
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL); 
+        SqlCommand cmd;
+        SqlDataAdapter da;
 
         public frmDescuentoPorCategoria()
         {
@@ -28,12 +28,12 @@ namespace JaegerSoft
         {
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select Id,Nombre,PrecioVenta from Inventario order by Nombre;", conectar);
+            da = new SqlDataAdapter("select Id,Nombre,PrecioVenta from Inventario order by Nombre;", conectar);
             da.Fill(ds, "Id");
             dataGridView2.DataSource = ds.Tables["Id"];
             
             ds = new DataSet();
-            da = new OleDbDataAdapter("select * from RespaldoInventario;", conectar);
+            da = new SqlDataAdapter("select * from RespaldoInventario;", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
 
@@ -51,12 +51,12 @@ namespace JaegerSoft
                 for (int i = 0; i < dataGridView2.RowCount; i++)
                 {
                     double descuento = Convert.ToDouble(dataGridView2[2, i].Value.ToString()) + (Convert.ToDouble(dataGridView2[2, i].Value.ToString()) * (Convert.ToDouble(textBox2.Text) / 100));
-                    cmd = new OleDbCommand("UPDATE Inventario set PrecioVenta='" + descuento + "' where Id='" + dataGridView2[0, i].Value.ToString() + "';", conectar);
+                    cmd = new SqlCommand("UPDATE Inventario set PrecioVenta='" + descuento + "' where Id='" + dataGridView2[0, i].Value.ToString() + "';", conectar);
                     cmd.ExecuteNonQuery();
                 }
                 MessageBox.Show("Se ha actualizado los precios con exito", "Editado", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select Id,Nombre,PrecioVenta from Inventario order by Nombre;", conectar);
+                da = new SqlDataAdapter("select Id,Nombre,PrecioVenta from Inventario order by Nombre;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
             }
@@ -73,12 +73,12 @@ namespace JaegerSoft
                 for (int i = 0; i < dataGridView2.RowCount; i++)
                 {
                     double descuento = Convert.ToDouble(dataGridView2[2, i].Value.ToString()) - (Convert.ToDouble(dataGridView2[2, i].Value.ToString()) * (Convert.ToDouble(textBox2.Text) / 100));
-                    cmd = new OleDbCommand("UPDATE Inventario set PrecioVenta='" + descuento + "' where Id='" + dataGridView2[0, i].Value.ToString() + "';", conectar);
+                    cmd = new SqlCommand("UPDATE Inventario set PrecioVenta='" + descuento + "' where Id='" + dataGridView2[0, i].Value.ToString() + "';", conectar);
                     cmd.ExecuteNonQuery();
                 }
                 MessageBox.Show("Se ha actualizado los precios con exito", "Editado", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select Id,Nombre,PrecioVenta from Inventario order by Nombre;", conectar);
+                da = new SqlDataAdapter("select Id,Nombre,PrecioVenta from Inventario order by Nombre;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
             }
@@ -92,13 +92,13 @@ namespace JaegerSoft
         {
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
-                cmd = new OleDbCommand("UPDATE Inventario set PrecioVenta='" + dataGridView1[1, i].Value.ToString() + "' where Id='" + dataGridView1[0, i].Value.ToString() + "';", conectar);
+                cmd = new SqlCommand("UPDATE Inventario set PrecioVenta='" + dataGridView1[1, i].Value.ToString() + "' where Id='" + dataGridView1[0, i].Value.ToString() + "';", conectar);
                 cmd.ExecuteNonQuery();
             }
             MessageBox.Show("Se ha restablecido los precios con exito", "Editado", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             ds = new DataSet();
-            da = new OleDbDataAdapter("select Id,Nombre,PrecioVenta from Inventario order by Nombre;", conectar);
+            da = new SqlDataAdapter("select Id,Nombre,PrecioVenta from Inventario order by Nombre;", conectar);
             da.Fill(ds, "Id");
             dataGridView2.DataSource = ds.Tables["Id"];
         }
@@ -108,21 +108,21 @@ namespace JaegerSoft
             if (comboBox2.SelectedIndex == 4)
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select Id,Nombre,PrecioVenta from Inventario order by Nombre;", conectar);
+                da = new SqlDataAdapter("select Id,Nombre,PrecioVenta from Inventario order by Nombre;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
             }
             if (comboBox2.SelectedIndex == 3)
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select Id,Nombre,PrecioVenta from Inventario WHERE SubCategoria='BROQUELES' order by Nombre;", conectar);
+                da = new SqlDataAdapter("select Id,Nombre,PrecioVenta from Inventario WHERE SubCategoria='BROQUELES' order by Nombre;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
             }
             else
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select Id,Nombre,PrecioVenta from Inventario where Categoria='" + comboBox2.Text + "';", conectar);
+                da = new SqlDataAdapter("select Id,Nombre,PrecioVenta from Inventario where Categoria='" + comboBox2.Text + "';", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
             }
@@ -130,11 +130,11 @@ namespace JaegerSoft
 
         private void button3_Click(object sender, EventArgs e)
         {
-            cmd = new OleDbCommand("delete * from RespaldoInventario;", conectar);
+            cmd = new SqlCommand("delete * from RespaldoInventario;", conectar);
             cmd.ExecuteNonQuery();
             for (int i = 0; i < dataGridView2.RowCount; i++)
             {
-                cmd = new OleDbCommand("insert into RespaldoInventario values('" + dataGridView2[0, i].Value.ToString() + "','" + dataGridView2[2, i].Value.ToString() + "');", conectar);
+                cmd = new SqlCommand("insert into RespaldoInventario values('" + dataGridView2[0, i].Value.ToString() + "','" + dataGridView2[2, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             MessageBox.Show("PRECIOS RESPALDADOS");

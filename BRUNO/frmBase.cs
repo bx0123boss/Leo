@@ -1,4 +1,4 @@
-﻿using iTextSharp.text;
+using iTextSharp.text;
 using iTextSharp.text.pdf;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;

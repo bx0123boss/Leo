@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,10 +9,8 @@ namespace JaegerSoft
 {
     public class Conexion
     {
-        public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Jaeger Soft\Jaeger.accdb; Jet OLEDB:Database Password=75941232";
         public static string CadSQL = @"Data Source=.\SQLEXPRESS;Initial Catalog=PuntoDeVenta;Integrated Security=True;MultipleActiveResultSets=True;";
-
-        //public static string CadCon = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.1.1\Jaeger Soft\Jaeger.accdb; Jet OLEDB:Database Password=75941232";
+        public static string CadCon = CadSQL; // Redirigido a SQL Server al 100%
         
         public static string lugar;
         public static string[] datosTicket;
@@ -32,11 +30,11 @@ namespace JaegerSoft
 
         public static void CargarConfiguracion(int id)
         {
-            using (var conexion = new OleDbConnection(CadCon))
+            using (var conexion = new SqlConnection(CadSQL))
             {
                 conexion.Open();
                 string query = "SELECT * FROM Configuracion WHERE Id = @id";
-                using (var cmd = new OleDbCommand(query, conexion))
+                using (var cmd = new SqlCommand(query, conexion))
                 {
                     cmd.Parameters.AddWithValue("@id", id);
                     using (var reader = cmd.ExecuteReader())

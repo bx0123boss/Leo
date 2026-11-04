@@ -1,4 +1,4 @@
-﻿namespace PuntoVentaWeb.Models;
+namespace PuntoVentaWeb.Models;
 public class Producto
 {
     public string Id { get; set; } // Asumo que es numérico en Access

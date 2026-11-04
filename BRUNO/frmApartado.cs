@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Globalization;
@@ -12,8 +12,8 @@ namespace JaegerSoft
 {
     public partial class frmApartado : frmBase // Hereda de frmBase para los estilos
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlCommand cmd;
         double total = 0;
         string origen = "";
         double exis = 0.0;
@@ -55,8 +55,8 @@ namespace JaegerSoft
         private void frmApartado_Load(object sender, EventArgs e)
         {
             conectar.Open();
-            cmd = new OleDbCommand("select Numero from Folios where Folio='FolioApartado';", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
+            cmd = new SqlCommand("select Numero from Folios where Folio='FolioApartado';", conectar);
+            SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
@@ -112,12 +112,12 @@ namespace JaegerSoft
             {
                 if (textBox1.Text != "")
                 {
-                    cmd = new OleDbCommand("select count(*) from Inventario where Id='" + textBox1.Text + "';", conectar);
+                    cmd = new SqlCommand("select count(*) from Inventario where Id='" + textBox1.Text + "';", conectar);
                     int valor = int.Parse(cmd.ExecuteScalar().ToString());
                     if (valor == 1)
                     {
-                        cmd = new OleDbCommand("select * from Inventario where Id='" + textBox1.Text + "';", conectar);
-                        OleDbDataReader reader = cmd.ExecuteReader();
+                        cmd = new SqlCommand("select * from Inventario where Id='" + textBox1.Text + "';", conectar);
+                        SqlDataReader reader = cmd.ExecuteReader();
                         if (reader.Read())
                         {
                             using (frmPrecio buscar = new frmPrecio())
@@ -547,7 +547,7 @@ namespace JaegerSoft
             try
             {
                 if (conectar.State != ConnectionState.Open) conectar.Open();
-                using (var cmdA = new OleDbCommand("SELECT Id, Nombre FROM Almacenes ORDER BY Nombre", conectar))
+                using (var cmdA = new SqlCommand("SELECT Id, Nombre FROM Almacenes ORDER BY Nombre", conectar))
                 using (var dr = cmdA.ExecuteReader())
                 {
                     DataTable dt = new DataTable();
@@ -583,12 +583,12 @@ namespace JaegerSoft
                     {
                         if (conectar.State != ConnectionState.Open) conectar.Open();
                         // Comprobar existencia
-                        var cmdCheck = new OleDbCommand("select count(*) from Inventario where Id='" + txtCodigo.Text.Trim() + "';", conectar);
+                        var cmdCheck = new SqlCommand("select count(*) from Inventario where Id='" + txtCodigo.Text.Trim() + "';", conectar);
                         int count = Convert.ToInt32(cmdCheck.ExecuteScalar());
 
                         if (count == 1)
                         {
-                            var cmdName = new OleDbCommand("select Nombre from Inventario where Id='" + txtCodigo.Text.Trim() + "';", conectar);
+                            var cmdName = new SqlCommand("select Nombre from Inventario where Id='" + txtCodigo.Text.Trim() + "';", conectar);
                             lblProd.Text = Convert.ToString(cmdName.ExecuteScalar());
                         }
                         else
@@ -619,7 +619,7 @@ namespace JaegerSoft
                     if (conectar.State != ConnectionState.Open) conectar.Open();
 
                     // Validar Stock en el almacén origen
-                    var cmdStock = new OleDbCommand("SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = @org AND IdProducto = @id", conectar);
+                    var cmdStock = new SqlCommand("SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = @org AND IdProducto = @id", conectar);
                     cmdStock.Parameters.AddWithValue("@org", idAlmacen);
                     cmdStock.Parameters.AddWithValue("@id", cod);
 
@@ -638,21 +638,21 @@ namespace JaegerSoft
                         try
                         {
                             // 1. Descontar del almacén
-                            var cmdSub = new OleDbCommand("UPDATE InventarioAlmacenes SET Existencia = Existencia - @qty WHERE IdAlmacen = @org AND IdProducto = @id", conectar, trans);
+                            var cmdSub = new SqlCommand("UPDATE InventarioAlmacenes SET Existencia = Existencia - @qty WHERE IdAlmacen = @org AND IdProducto = @id", conectar, trans);
                             cmdSub.Parameters.AddWithValue("@qty", cant);
                             cmdSub.Parameters.AddWithValue("@org", idAlmacen);
                             cmdSub.Parameters.AddWithValue("@id", cod);
                             cmdSub.ExecuteNonQuery();
 
                             // 2. Sumar al mostrador (Inventario)
-                            var cmdAdd = new OleDbCommand("UPDATE Inventario SET Existencia = Existencia + @qty WHERE Id = @id", conectar, trans);
+                            var cmdAdd = new SqlCommand("UPDATE Inventario SET Existencia = Existencia + @qty WHERE Id = @id", conectar, trans);
                             cmdAdd.Parameters.AddWithValue("@qty", cant);
                             cmdAdd.Parameters.AddWithValue("@id", cod);
                             cmdAdd.ExecuteNonQuery();
 
                             // 3. Registrar Movimiento
                             string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
-                            var cmdLog = new OleDbCommand("INSERT INTO MovimientosAlmacenes (IdOrigen, IdDestino, IdProducto, Cantidad, Fecha, Usuario) VALUES (@org, 0, @id, @qty, @fecha, @usu)", conectar, trans);
+                            var cmdLog = new SqlCommand("INSERT INTO MovimientosAlmacenes (IdOrigen, IdDestino, IdProducto, Cantidad, Fecha, Usuario) VALUES (@org, 0, @id, @qty, @fecha, @usu)", conectar, trans);
                             cmdLog.Parameters.AddWithValue("@org", idAlmacen);
                             cmdLog.Parameters.AddWithValue("@id", cod);
                             cmdLog.Parameters.AddWithValue("@qty", cant);
@@ -662,7 +662,7 @@ namespace JaegerSoft
 
                             // 4. Kardex
                             string kardexQuery = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) VALUES (@id, 'TRASPASO_ENTRADA', @desc, 0, 0, @fecha, 'NA')";
-                            using (var cmdK = new OleDbCommand(kardexQuery, conectar, trans))
+                            using (var cmdK = new SqlCommand(kardexQuery, conectar, trans))
                             {
                                 cmdK.Parameters.AddWithValue("@id", cod);
                                 cmdK.Parameters.AddWithValue("@desc", $"TRASPASO EXPRESS DESDE ALMACÉN: {cmbAlmacen.Text}");
@@ -843,8 +843,8 @@ namespace JaegerSoft
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
                 string unidad = "0";
-                cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
-                OleDbDataReader reader = cmd.ExecuteReader();
+                cmd = new SqlCommand("select * from Inventario where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
+                SqlDataReader reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
                     exis = Convert.ToDouble(Convert.ToString(reader[4].ToString()));
@@ -855,7 +855,7 @@ namespace JaegerSoft
                     }
                 }
 
-                cmd = new OleDbCommand("select * from Unidades where Id=" + unidad + ";", conectar);
+                cmd = new SqlCommand("select * from Unidades where Id=" + unidad + ";", conectar);
                 reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
@@ -870,11 +870,11 @@ namespace JaegerSoft
 
                 if (existencia < 0)
                 {
-                    cmd = new OleDbCommand("insert into VentasApartados(FolioVenta,idProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha,Estatus) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','PENDIENTE');", conectar);
+                    cmd = new SqlCommand("insert into VentasApartados(FolioVenta,idProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha,Estatus) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','PENDIENTE');", conectar);
                     cmd.ExecuteNonQuery();
 
                     // Actualizar FechaUltimaVenta
-                    using (var cmdUpd = new OleDbCommand("UPDATE Inventario SET FechaUltimaVenta = NOW() WHERE Id = '" + dataGridView1[5, i].Value.ToString() + "';", conectar))
+                    using (var cmdUpd = new SqlCommand("UPDATE Inventario SET FechaUltimaVenta = GETDATE() WHERE Id = '" + dataGridView1[5, i].Value.ToString() + "';", conectar))
                     {
                         cmdUpd.ExecuteNonQuery();
                     }
@@ -882,14 +882,14 @@ namespace JaegerSoft
                 else
                 {
                     // Actualizamos existencias
-                    cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existencia + "', FechaUltimaVenta = NOW() Where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
+                    cmd = new SqlCommand("UPDATE Inventario set Existencia='" + existencia + "', FechaUltimaVenta = GETDATE() Where Id='" + dataGridView1[5, i].Value.ToString() + "';", conectar);
                     cmd.ExecuteNonQuery();
 
                     // Insertamos en la venta apartados
-                    cmd = new OleDbCommand("insert into VentasApartados(FolioVenta,idProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha,Estatus) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','DESCONTADO DE INVENTARIO');", conectar);
+                    cmd = new SqlCommand("insert into VentasApartados(FolioVenta,idProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha,Estatus) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','DESCONTADO DE INVENTARIO');", conectar);
                     cmd.ExecuteNonQuery();
 
-                    cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[5, i].Value.ToString() + "','SALIDA','APARTADO DE ARTICULO FOLIO: " + lblFolio.Text + "'," + exis + ",'" + existencia + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                    cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[5, i].Value.ToString() + "','SALIDA','APARTADO DE ARTICULO FOLIO: " + lblFolio.Text + "'," + exis + ",'" + existencia + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
                     cmd.ExecuteNonQuery();
                 }
 
@@ -909,10 +909,10 @@ namespace JaegerSoft
             double restanteGuardar = granTotal - abonoGuardar;
 
             // Inserción maestra a Apartados usando el Total Real
-            cmd = new OleDbCommand("insert into Apartados (MontoTotal,Fecha,Folio,IdCliente,NombreCliente,Abono,Restante) values('" + granTotal + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','" + idCliente + "','" + lblCliente.Text + "','" + abonoGuardar + "','" + restanteGuardar + "');", conectar);
+            cmd = new SqlCommand("insert into Apartados (MontoTotal,Fecha,Folio,IdCliente,NombreCliente,Abono,Restante) values('" + granTotal + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','" + idCliente + "','" + lblCliente.Text + "','" + abonoGuardar + "','" + restanteGuardar + "');", conectar);
             cmd.ExecuteNonQuery();
 
-            cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono del apartado con folio " + lblFolio.Text + "','" + abonoGuardar + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + cmbPago.Text + "');", conectar);
+            cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono del apartado con folio " + lblFolio.Text + "','" + abonoGuardar + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + cmbPago.Text + "');", conectar);
             cmd.ExecuteNonQuery();
 
             // -- ÁREA DE IMPRESIÓN --
@@ -976,7 +976,7 @@ namespace JaegerSoft
             }
 
             foli = foli + 1;
-            cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioApartado';", conectar);
+            cmd = new SqlCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioApartado';", conectar);
             cmd.ExecuteNonQuery();
 
             MessageBox.Show("Apartado realizado con éxito.", "APARTADO REALIZADO", MessageBoxButtons.OK, MessageBoxIcon.Information);

@@ -25,7 +25,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>73</ApplicationRevision>
+    <ApplicationRevision>76</ApplicationRevision>
     <ApplicationVersion>2.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -137,6 +137,12 @@
     </Compile>
     <Compile Include="frmAbonosFolio.Designer.cs">
       <DependentUpon>frmAbonosFolio.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmAbrirCaja.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmAbrirCaja.Designer.cs">
+      <DependentUpon>frmAbrirCaja.cs</DependentUpon>
     </Compile>
     <Compile Include="frmAdeudoProveedor.cs">
       <SubType>Form</SubType>
@@ -740,6 +746,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmAbonosFolio.resx">
       <DependentUpon>frmAbonosFolio.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmAbrirCaja.resx">
+      <DependentUpon>frmAbrirCaja.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmAdeudoProveedor.resx">
       <DependentUpon>frmAdeudoProveedor.cs</DependentUpon>

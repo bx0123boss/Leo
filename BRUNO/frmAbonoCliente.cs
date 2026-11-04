@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using LibPrintTicket;
 using System.Globalization;
 
@@ -15,8 +15,8 @@ namespace JaegerSoft
 {
     public partial class frmAbonoCliente : frmBase
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlCommand cmd;
 
         public string folio = "";
         public double saldo = 0;
@@ -160,7 +160,7 @@ namespace JaegerSoft
                 // ====================================================
                 // ACTUALIZAR CLIENTE
                 // ====================================================
-                cmd = new OleDbCommand(
+                cmd = new SqlCommand(
                     "UPDATE Clientes SET Adeudo = " + nuevoAdeudo +
                     ", UltimoPago = '" +
                     DateTime.Now.ToShortDateString() + " " +
@@ -173,7 +173,7 @@ namespace JaegerSoft
                 // ====================================================
                 // ACTUALIZAR VENTA
                 // ====================================================
-                cmd = new OleDbCommand(
+                cmd = new SqlCommand(
                     "UPDATE Ventas2 SET Saldo = '" +
                     txtRestante.Text +
                     "' WHERE Folio = '" +
@@ -186,7 +186,7 @@ namespace JaegerSoft
                 // ====================================================
                 // INSERTAR EN CORTE
                 // ====================================================
-                cmd = new OleDbCommand(
+                cmd = new SqlCommand(
                     "INSERT INTO Corte " +
                     "(Concepto, Monto, FechaHora, Pago) " +
                     "VALUES (" +
@@ -203,7 +203,7 @@ namespace JaegerSoft
                 // ====================================================
                 // INSERTAR ABONO
                 // ====================================================
-                cmd = new OleDbCommand(
+                cmd = new SqlCommand(
                     "INSERT INTO Abonos " +
                     "(Abono, idCliente, Fecha, Nombre, Folio, Estatus) " +
                     "VALUES (" +

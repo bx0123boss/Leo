@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -15,7 +15,7 @@ namespace JaegerSoft
 
         private void frmProductoMasVendido_Load(object sender, EventArgs e)
         {
-            EstilizarDataGridView(dataGridView1); // Crédito
+            EstilizarDataGridView(dataGridView1); // Crï¿½dito
             EstilizarDataGridView(dataGridView2); // Contado
             EstilizarBotonPrimario(button1);
             EstilizarTextBox(txtTop);
@@ -28,7 +28,7 @@ namespace JaegerSoft
         {
             if (!int.TryParse(txtTop.Text, out int topNum) || topNum <= 0)
             {
-                MessageBox.Show("Proporciona una cantidad de productos válida (Ej: 10, 20, 50).", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Proporciona una cantidad de productos vï¿½lida (Ej: 10, 20, 50).", "Atenciï¿½n", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtTop.Focus();
                 return;
             }
@@ -38,21 +38,21 @@ namespace JaegerSoft
 
             try
             {
-                using (OleDbConnection conectar = new OleDbConnection(Conexion.CadCon))
+                using (SqlConnection conectar = new SqlConnection(Conexion.CadSQL))
                 {
                     conectar.Open();
 
                     // 1. PRODUCTOS ESTRELLA - CONTADO
                     DataSet dsContado = new DataSet();
                     string queryContado = $"SELECT TOP {topNum} Producto, SUM(Cantidad) AS CantidadVendidos " +
-                                          "FROM VentasContado WHERE Fecha >= ? AND Fecha <= ? " +
+                                          "FROM VentasContado WHERE Fecha >= @fInicio AND Fecha <= @fFin " +
                                           "GROUP BY Producto ORDER BY SUM(Cantidad) DESC";
 
-                    using (OleDbCommand cmd1 = new OleDbCommand(queryContado, conectar))
+                    using (SqlCommand cmd1 = new SqlCommand(queryContado, conectar))
                     {
-                        cmd1.Parameters.AddWithValue("?", fechaInicio);
-                        cmd1.Parameters.AddWithValue("?", fechaFin);
-                        using (OleDbDataAdapter da1 = new OleDbDataAdapter(cmd1))
+                        cmd1.Parameters.AddWithValue("@fInicio", fechaInicio);
+                        cmd1.Parameters.AddWithValue("@fFin", fechaFin);
+                        using (SqlDataAdapter da1 = new SqlDataAdapter(cmd1))
                         {
                             da1.Fill(dsContado, "Contado");
                         }
@@ -62,14 +62,14 @@ namespace JaegerSoft
                     // 2. PRODUCTOS ESTRELLA - CREDITO
                     DataSet dsCredito = new DataSet();
                     string queryCredito = $"SELECT TOP {topNum} Producto, SUM(Cantidad) AS CantidadVendidos " +
-                                          "FROM VentasCredito WHERE Fecha >= ? AND Fecha <= ? " +
+                                          "FROM VentasCredito WHERE Fecha >= @fInicio AND Fecha <= @fFin " +
                                           "GROUP BY Producto ORDER BY SUM(Cantidad) DESC";
 
-                    using (OleDbCommand cmd2 = new OleDbCommand(queryCredito, conectar))
+                    using (SqlCommand cmd2 = new SqlCommand(queryCredito, conectar))
                     {
-                        cmd2.Parameters.AddWithValue("?", fechaInicio);
-                        cmd2.Parameters.AddWithValue("?", fechaFin);
-                        using (OleDbDataAdapter da2 = new OleDbDataAdapter(cmd2))
+                        cmd2.Parameters.AddWithValue("@fInicio", fechaInicio);
+                        cmd2.Parameters.AddWithValue("@fFin", fechaFin);
+                        using (SqlDataAdapter da2 = new SqlDataAdapter(cmd2))
                         {
                             da2.Fill(dsCredito, "Credito");
                         }

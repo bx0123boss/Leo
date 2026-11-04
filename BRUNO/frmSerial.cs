@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -9,14 +9,14 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 
 namespace JaegerSoft
 {
     public partial class frmSerial : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlCommand cmd;
         bool frase = false;
         string palabra;
         string key;
@@ -63,7 +63,7 @@ namespace JaegerSoft
                     DateTime Fecha = DateTime.Now;
                     Fecha = Fecha.AddDays(15);
                     Fecha = Fecha.AddYears(1);
-                    cmd = new OleDbCommand("UPDATE Fech set Caja='1', Fecha='" + Fecha + "' where Id=2;", conectar);
+                    cmd = new SqlCommand("UPDATE Fech set Caja='1', Fecha='" + Fecha + "' where Id=2;", conectar);
                     cmd.ExecuteNonQuery();
                     MessageBox.Show("Clave verificada correctamente, contacte a soporte tecnico para auxiliarle con la instalación de sus bases de datos", "Exito!", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     MessageBox.Show("La licencia expira el dia: " + Fecha, "Exito!", MessageBoxButtons.OK, MessageBoxIcon.Information);

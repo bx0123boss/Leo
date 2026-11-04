@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -14,8 +14,8 @@ namespace JaegerSoft
 {
     public partial class frmAgregarCompras : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlCommand cmd;
         public int folioExp;
         public frmAgregarCompras()
         {
@@ -51,8 +51,8 @@ namespace JaegerSoft
         private void button2_Click(object sender, EventArgs e)
         {
             conectar.Open();
-            cmd = new OleDbCommand("select Id from Compras ORDER BY Id DESC;", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
+            cmd = new SqlCommand("select Id from Compras ORDER BY Id DESC;", conectar);
+            SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 folioExp = Convert.ToInt32(reader[0].ToString());
@@ -62,22 +62,22 @@ namespace JaegerSoft
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
                 bool manejaInventario = true;
-                cmd = new OleDbCommand("SELECT ManejaInventario FROM Inventario WHERE Id='" + dataGridView1[3, i].Value.ToString() + "';", conectar);
+                cmd = new SqlCommand("SELECT ManejaInventario FROM Inventario WHERE Id='" + dataGridView1[3, i].Value.ToString() + "';", conectar);
                 object resM = cmd.ExecuteScalar();
                 if (resM != null && resM != DBNull.Value) manejaInventario = Convert.ToBoolean(resM);
 
                 if (manejaInventario)
                 {
-                    cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + dataGridView1[5, i].Value.ToString() + "' Where Id='" + dataGridView1[3, i].Value.ToString() + "' AND ManejaInventario = True;", conectar);
+                    cmd = new SqlCommand("UPDATE Inventario set Existencia='" + dataGridView1[5, i].Value.ToString() + "' Where Id='" + dataGridView1[3, i].Value.ToString() + "' AND ManejaInventario = 1;", conectar);
                     cmd.ExecuteNonQuery();
-                    cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[3, i].Value.ToString() + "','ENTRADA','COMPRA DE ARTICULO FOLIO: " + txtFolio.Text + "'," + dataGridView1[4, i].Value.ToString() + ",'" + dataGridView1[5, i].Value.ToString() + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                    cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[3, i].Value.ToString() + "','ENTRADA','COMPRA DE ARTICULO FOLIO: " + txtFolio.Text + "'," + dataGridView1[4, i].Value.ToString() + ",'" + dataGridView1[5, i].Value.ToString() + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
                     cmd.ExecuteNonQuery();
                 }
 
-                cmd = new OleDbCommand("insert into ComprasC(FolioCompra,IdProducto,CantidadAnterior,CantidadActual,Producto,Fecha) values('" + txtFolio.Text + "','" + dataGridView1[3, i].Value.ToString() + "','" + dataGridView1[4, i].Value.ToString() + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                cmd = new SqlCommand("insert into ComprasC(FolioCompra,IdProducto,CantidadAnterior,CantidadActual,Producto,Fecha) values('" + txtFolio.Text + "','" + dataGridView1[3, i].Value.ToString() + "','" + dataGridView1[4, i].Value.ToString() + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
-            cmd = new OleDbCommand("insert into Compras(Fecha,Folio,Tipo) values('" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + txtFolio.Text + "','COMPRA');", conectar);
+            cmd = new SqlCommand("insert into Compras(Fecha,Folio,Tipo) values('" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + txtFolio.Text + "','COMPRA');", conectar);
             cmd.ExecuteNonQuery();
             MessageBox.Show("Compra realizada con exito", "COMPRA REALIZADA", MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();            

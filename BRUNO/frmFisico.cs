@@ -1,3 +1,4 @@
+using System.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,9 +14,9 @@ namespace JaegerSoft
 {
     public partial class frmFisico : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        OleDbConnection conn;
-        OleDbDataAdapter MyDataAdapter;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL); 
+        System.Data.OleDb.OleDbConnection conn;
+        System.Data.OleDb.OleDbDataAdapter MyDataAdapter;
         DataTable dt;
         public frmFisico()
         {
@@ -105,7 +106,7 @@ namespace JaegerSoft
 
             // Usamos el cursor de espera porque esto puede tardar
             this.Cursor = Cursors.WaitCursor;
-            OleDbTransaction transaccion = null;
+            SqlTransaction transaccion = null;
 
             try
             {
@@ -116,7 +117,7 @@ namespace JaegerSoft
 
                 // 1. Insertar el encabezado
                 string queryFisico = "INSERT INTO Fisico(Fecha) VALUES(@fecha)";
-                using (OleDbCommand cmdEncabezado = new OleDbCommand(queryFisico, conectar, transaccion))
+                using (SqlCommand cmdEncabezado = new SqlCommand(queryFisico, conectar, transaccion))
                 {
                     cmdEncabezado.Parameters.AddWithValue("@fecha", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
                     cmdEncabezado.ExecuteNonQuery();
@@ -124,17 +125,17 @@ namespace JaegerSoft
 
                 // 2. Obtener el ID recién creado
                 string idFisico = "";
-                using (OleDbCommand cmdId = new OleDbCommand("SELECT @@Identity;", conectar, transaccion))
+                using (SqlCommand cmdId = new SqlCommand("SELECT @@Identity;", conectar, transaccion))
                 {
                     idFisico = cmdId.ExecuteScalar().ToString();
                 }
 
                 // 3. Preparamos los comandos del ciclo (es mucho más rápido prepararlos una vez)
                 string queryDetalle = "INSERT INTO FisicoDetallado(Id, Nombre, Existen, Fisico, Diferencia, IdFisico) VALUES(@id, @nombre, @existen, @fisico, @diferencia, @idFisico)";
-                string queryUpdate = "UPDATE Inventario SET Existencia=@fisico WHERE Id=@id AND ManejaInventario = True";
+                string queryUpdate = "UPDATE Inventario SET Existencia=@fisico WHERE Id=@id AND ManejaInventario = 1";
 
-                using (OleDbCommand cmdDetalle = new OleDbCommand(queryDetalle, conectar, transaccion))
-                using (OleDbCommand cmdUpd = new OleDbCommand(queryUpdate, conectar, transaccion))
+                using (SqlCommand cmdDetalle = new SqlCommand(queryDetalle, conectar, transaccion))
+                using (SqlCommand cmdUpd = new SqlCommand(queryUpdate, conectar, transaccion))
                 {
                     for (int i = 0; i < dataGridView1.RowCount; i++)
                     {

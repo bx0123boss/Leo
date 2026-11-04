@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,10 +14,10 @@ namespace JaegerSoft
     public partial class frmListaPendientes : Form
     {
         private DataSet ds;
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        OleDbDataAdapter da;
-        OleDbCommand cmd;
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL); 
+        SqlDataAdapter da;
+        SqlCommand cmd;
         public frmListaPendientes()
         {
             InitializeComponent();
@@ -27,7 +27,7 @@ namespace JaegerSoft
         {
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from VentasApartados where Estatus='PENDIENTE';", conectar);
+            da = new SqlDataAdapter("select * from VentasApartados where Estatus='PENDIENTE';", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
@@ -47,22 +47,22 @@ namespace JaegerSoft
         {
             try
             {
-            cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString() + "';", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
+            cmd = new SqlCommand("select * from Inventario where Id='" + dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString() + "';", conectar);
+            SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 double existencia = Convert.ToDouble(Convert.ToString(reader[4].ToString())) - Convert.ToDouble(dataGridView1[3, dataGridView1.CurrentRow.Index].Value.ToString());
                 if (existencia >= 0)
                 {
-                    cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existencia + "', FechaUltimaVenta = NOW() where Id='" + dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString() + "';", conectar);
+                    cmd = new SqlCommand("UPDATE Inventario set Existencia='" + existencia + "', FechaUltimaVenta = GETDATE() where Id='" + dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString() + "';", conectar);
                     cmd.ExecuteNonQuery();
-                    cmd = new OleDbCommand("UPDATE VentasApartados set Estatus='DESCONTADO DE INVENTARIO' where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
+                    cmd = new SqlCommand("UPDATE VentasApartados set Estatus='DESCONTADO DE INVENTARIO' where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
                     cmd.ExecuteNonQuery();
-                    cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString() + "','SALIDA','APARTADO DE ARTICULO FOLIO: " + dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString() + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existencia + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                    cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString() + "','SALIDA','APARTADO DE ARTICULO FOLIO: " + dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString() + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existencia + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
                     cmd.ExecuteNonQuery();
                     MessageBox.Show("PRODUCTO DESCONTADO DE INVENTARIO", "DESCONTADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     ds = new DataSet();
-                    da = new OleDbDataAdapter("select * from VentasApartados where Estatus='PENDIENTE';", conectar);
+                    da = new SqlDataAdapter("select * from VentasApartados where Estatus='PENDIENTE';", conectar);
                     da.Fill(ds, "Id");
                     dataGridView1.DataSource = ds.Tables["Id"];
                     dataGridView1.Columns[0].Visible = false;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,14 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 
 namespace JaegerSoft
 {
     public partial class frmVentasPorProducto : frmBase
     {
         // Se asume que usas la cadena de conexión centralizada
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
         public String usuario = "";
 
         public frmVentasPorProducto()
@@ -39,9 +39,9 @@ namespace JaegerSoft
             {
                 conectar.Open();
                 string queryCat = "SELECT DISTINCT Categoria FROM Inventario WHERE Categoria IS NOT NULL AND Categoria <> ''";
-                using (OleDbCommand cmd = new OleDbCommand(queryCat, conectar))
+                using (SqlCommand cmd = new SqlCommand(queryCat, conectar))
                 {
-                    using (OleDbDataReader reader = cmd.ExecuteReader())
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         cmbCategoria.Items.Clear();
                         cmbCategoria.Items.Add("TODAS");
@@ -89,13 +89,13 @@ namespace JaegerSoft
 
                 if (cmbCategoria.Text != "TODAS") queryCredito += " AND VC.Categoria = @categoria ";
 
-                using (OleDbCommand cmdCredito = new OleDbCommand(queryCredito, conectar))
+                using (SqlCommand cmdCredito = new SqlCommand(queryCredito, conectar))
                 {
                     cmdCredito.Parameters.AddWithValue("@fechaInicio", fechaInicio);
                     cmdCredito.Parameters.AddWithValue("@fechaFin", fechaFin);
                     if (cmbCategoria.Text != "TODAS") cmdCredito.Parameters.AddWithValue("@categoria", cmbCategoria.Text);
 
-                    using (OleDbDataAdapter da = new OleDbDataAdapter(cmdCredito))
+                    using (SqlDataAdapter da = new SqlDataAdapter(cmdCredito))
                     {
                         da.Fill(dtResultados); // Metemos las ventas a crédito a la tabla
                     }
@@ -111,13 +111,13 @@ namespace JaegerSoft
 
                     if (cmbCategoria.Text != "TODAS") queryContado += " AND VC.Categoria = @categoria ";
 
-                    using (OleDbCommand cmdContado = new OleDbCommand(queryContado, conectar))
+                    using (SqlCommand cmdContado = new SqlCommand(queryContado, conectar))
                     {
                         cmdContado.Parameters.AddWithValue("@fechaInicio", fechaInicio);
                         cmdContado.Parameters.AddWithValue("@fechaFin", fechaFin);
                         if (cmbCategoria.Text != "TODAS") cmdContado.Parameters.AddWithValue("@categoria", cmbCategoria.Text);
 
-                        using (OleDbDataAdapter daContado = new OleDbDataAdapter(cmdContado))
+                        using (SqlDataAdapter daContado = new SqlDataAdapter(cmdContado))
                         {
                             daContado.Fill(dtResultados); // Metemos las de contado a la MISMA tabla
                         }

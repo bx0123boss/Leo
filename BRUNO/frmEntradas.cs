@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -16,9 +16,9 @@ namespace JaegerSoft
 {
     public partial class frmEntradas : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL); 
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlCommand cmd;
         public string usuario;
         public frmEntradas()
         {
@@ -37,7 +37,7 @@ namespace JaegerSoft
                 double monto = 0;
                 double.TryParse(txtIngreso.Text, out monto);
                 conectar.Open();
-                cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Entrada en caja por concepto: " + txtConcepto.Text + "'," + txtIngreso.Text + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','01=EFECTIVO');", conectar);
+                cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Entrada en caja por concepto: " + txtConcepto.Text + "'," + txtIngreso.Text + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','01=EFECTIVO');", conectar);
                 cmd.ExecuteNonQuery();
 
                 // =========================================================

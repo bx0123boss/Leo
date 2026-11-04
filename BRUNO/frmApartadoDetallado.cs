@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -10,10 +10,10 @@ namespace JaegerSoft
     public partial class frmApartadoDetallado : frmBase // Heredamos de frmBase para los estilos
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbDataAdapter da;
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlDataAdapter da;
+        SqlCommand cmd;
         double existenciasTotales = 0;
         public String usuario = "";
         string nombreCliente = "PUBLICO EN GENERAL";
@@ -35,7 +35,7 @@ namespace JaegerSoft
         {
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from VentasApartados where FolioVenta='" + lblFolio.Text + "';", conectar);
+            da = new SqlDataAdapter("select * from VentasApartados where FolioVenta='" + lblFolio.Text + "';", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
@@ -58,7 +58,7 @@ namespace JaegerSoft
             if (dataGridView1.RowCount > 0)
             {
                 string idCliente = dataGridView1.Rows[0].Cells[6].Value.ToString();
-                cmd = new OleDbCommand("select Nombre from Clientes where Id=" + idCliente, conectar);
+                cmd = new SqlCommand("select Nombre from Clientes where Id=" + idCliente, conectar);
                 try
                 {
                     object res = cmd.ExecuteScalar();
@@ -77,23 +77,23 @@ namespace JaegerSoft
                 {
                     if (dataGridView1[8, i].Value.ToString() == "DESCONTADO DE INVENTARIO")
                     {
-                        cmd = new OleDbCommand("select Existencia from Inventario where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
-                        OleDbDataReader reader = cmd.ExecuteReader();
+                        cmd = new SqlCommand("select Existencia from Inventario where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
+                        SqlDataReader reader = cmd.ExecuteReader();
                         if (reader.Read())
                         {
                             existenciasTotales = Convert.ToDouble(dataGridView1[3, i].Value.ToString()) + Convert.ToDouble(Convert.ToString(reader[0].ToString()));
-                            cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
+                            cmd = new SqlCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
                             cmd.ExecuteNonQuery();
                         }
                     }
-                    cmd = new OleDbCommand("UPDATE VentasApartados set Estatus='CANCELADO' where Id=" + dataGridView1[0, i].Value.ToString(), conectar);
+                    cmd = new SqlCommand("UPDATE VentasApartados set Estatus='CANCELADO' where Id=" + dataGridView1[0, i].Value.ToString(), conectar);
                     cmd.ExecuteNonQuery();
                 }
 
-                cmd = new OleDbCommand("delete from Apartados where Folio='" + lblFolio.Text + "';", conectar);
+                cmd = new SqlCommand("delete from Apartados where Folio='" + lblFolio.Text + "';", conectar);
                 cmd.ExecuteNonQuery();
 
-                cmd = new OleDbCommand("insert into Corte(Concepto,Monto) Values('Cancelacion de la apartado folio " + lblFolio.Text + "',-" + lblAbonado.Text + ");", conectar);
+                cmd = new SqlCommand("insert into Corte(Concepto,Monto) Values('Cancelacion de la apartado folio " + lblFolio.Text + "',-" + lblAbonado.Text + ");", conectar);
                 cmd.ExecuteNonQuery();
 
                 MessageBox.Show("APARTADO CANCELADO CON EXITO", "CANCELADA!", MessageBoxButtons.OK, MessageBoxIcon.Information);
