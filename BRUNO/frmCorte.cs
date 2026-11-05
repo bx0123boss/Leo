@@ -584,11 +584,11 @@ namespace JaegerSoft
             cmd.ExecuteNonQuery();
             cmd = new SqlCommand("UPDATE Folios set Numero=0 where Folio='Inicio';", conectar);
             cmd.ExecuteNonQuery();
-            cmd = new SqlCommand("delete from Corte where 1;", conectar);
+            cmd = new SqlCommand("truncate table Corte;", conectar);
             cmd.ExecuteNonQuery();
             cmd = new SqlCommand("UPDATE Fech set Caja='0' where Id=1;", conectar);
             cmd.ExecuteNonQuery();
-            cmd = new SqlCommand("delete from Credito where 1;", conectar);
+            cmd = new SqlCommand("truncate table Credito;", conectar);
             cmd.ExecuteNonQuery();
 
             string GetNumericValue(string input)

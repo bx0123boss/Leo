@@ -30,8 +30,32 @@ namespace JaegerSoft
             {
                 if (txtAdeudo.Text!="" && textBox1.Text!="")
                 {
-                    cmd = new SqlCommand("insert into Clientes(Nombre, Telefono, Direccion, Referencia, RFC,Correo, Adeudo, Limite, UltimoPago,Estatus, CP, Regimen) values('" + txtNombre.Text + "','" + txtTelefono.Text + "','" + txtDireccion.Text + "','" + txtReferencia.Text + "','" + txtRFC.Text + "','" + txtCorreo.Text + "','" + txtAdeudo.Text + "','" + textBox1.Text + "','" + dateTimePicker1.Value.ToString() + "','ACTIVO','" + txtCP.Text + "','" + txtRegimen.Text + "');", conectar);
-                    cmd.ExecuteNonQuery();
+                    using (var cmd = new SqlCommand(
+                            "INSERT INTO Clientes (Nombre, Telefono, Direccion, Referencia, RFC, Correo, Adeudo, Limite, UltimoPago, Estatus, CP, Regimen) " +
+                            "VALUES (@Nombre, @Telefono, @Direccion, @Referencia, @RFC, @Correo, @Adeudo, @Limite, @UltimoPago, 'ACTIVO', @CP, @Regimen)", conectar))
+                    {
+                        cmd.Parameters.AddWithValue("@Nombre", txtNombre.Text.Trim());
+                        cmd.Parameters.AddWithValue("@Telefono", txtTelefono.Text.Trim());
+                        cmd.Parameters.AddWithValue("@Direccion", txtDireccion.Text.Trim());
+                        cmd.Parameters.AddWithValue("@Referencia", txtReferencia.Text.Trim());
+                        cmd.Parameters.AddWithValue("@RFC", txtRFC.Text.Trim());
+                        cmd.Parameters.AddWithValue("@Correo", txtCorreo.Text.Trim());
+
+                        decimal adeudo = 0;
+                        decimal.TryParse(txtAdeudo.Text, out adeudo);
+                        cmd.Parameters.AddWithValue("@Adeudo", adeudo);
+
+                        decimal limite = 0;
+                        decimal.TryParse(textBox1.Text, out limite);
+                        cmd.Parameters.AddWithValue("@Limite", limite);
+
+                        cmd.Parameters.AddWithValue("@UltimoPago", dateTimePicker1.Value);
+
+                        cmd.Parameters.AddWithValue("@CP", txtCP.Text.Trim());
+                        cmd.Parameters.AddWithValue("@Regimen", txtRegimen.Text.Trim());
+
+                        cmd.ExecuteNonQuery();
+                    }
                     cmd = new SqlCommand("SELECT @@Identity;", conectar);
                     SqlDataReader reader = cmd.ExecuteReader();
                     string idCliente = "";

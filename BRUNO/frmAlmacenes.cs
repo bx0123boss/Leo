@@ -59,7 +59,7 @@ namespace JaegerSoft
             {
                 try
                 {
-                    using (var cmd = new SqlCommand("CREATE TABLE Almacenes (Id COUNTER PRIMARY KEY, Nombre VARCHAR(100))", conectar))
+                    using (var cmd = new SqlCommand("CREATE TABLE Almacenes (Id INT IDENTITY(1,1) PRIMARY KEY, Nombre NVARCHAR(100))", conectar))
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -89,7 +89,7 @@ namespace JaegerSoft
             {
                 try
                 {
-                    using (var cmd = new SqlCommand("CREATE TABLE InventarioAlmacenes (IdAlmacen INT, IdProducto VARCHAR(255), Existencia DOUBLE, CONSTRAINT PK_InventarioAlmacenes PRIMARY KEY (IdAlmacen, IdProducto))", conectar))
+                    using (var cmd = new SqlCommand("CREATE TABLE InventarioAlmacenes (IdAlmacen INT, IdProducto NVARCHAR(255), Existencia FLOAT, CONSTRAINT PK_InventarioAlmacenes PRIMARY KEY (IdAlmacen, IdProducto))", conectar))
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -119,7 +119,7 @@ namespace JaegerSoft
             {
                 try
                 {
-                    using (var cmd = new SqlCommand("CREATE TABLE MovimientosAlmacenes (Id COUNTER PRIMARY KEY, IdOrigen INT, IdDestino INT, IdProducto VARCHAR(255), Cantidad DOUBLE, Fecha DATETIME, Usuario VARCHAR(100), Cancelado YESNO DEFAULT 0)", conectar))
+                    using (var cmd = new SqlCommand("CREATE TABLE MovimientosAlmacenes (Id INT IDENTITY(1,1) PRIMARY KEY, IdOrigen INT, IdDestino INT, IdProducto NVARCHAR(255), Cantidad FLOAT, Fecha DATETIME, Usuario NVARCHAR(100), Cancelado BIT DEFAULT 0)", conectar))
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -143,7 +143,7 @@ namespace JaegerSoft
                 {
                     try
                     {
-                        using (var cmd = new SqlCommand("ALTER TABLE MovimientosAlmacenes ADD COLUMN Cancelado YESNO", conectar))
+                        using (var cmd = new SqlCommand("ALTER TABLE MovimientosAlmacenes ADD Cancelado BIT DEFAULT 0", conectar))
                         {
                             cmd.ExecuteNonQuery();
                         }
@@ -167,7 +167,7 @@ namespace JaegerSoft
             {
                 try
                 {
-                    using (var cmd = new SqlCommand("ALTER TABLE Poliza ADD COLUMN IdAlmacen INT", conectar))
+                    using (var cmd = new SqlCommand("ALTER TABLE Poliza ADD IdAlmacen INT", conectar))
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -328,12 +328,12 @@ namespace JaegerSoft
                     // Evitar caracteres que rompan SQL
                     string aName = row["Nombre"].ToString().Replace("]", "").Replace("[", "");
 
-                    // MODIFICACIÓN: Ya no concatenamos la palabra "Stock ", solo el nombre del almacén
-                    selectCols += $"IIF(IsNull(P.A{aId}), 0, P.A{aId}) AS [{aName}], ";
-                    pivotSums += $"SUM(IIF(IdAlmacen = {aId}, Existencia, 0)) AS A{aId}, ";
+                    // ISNULL en SQL Server reemplaza directo el valor NULL por 0
+                    selectCols += $"ISNULL(P.A{aId}, 0) AS [{aName}], ";
+                    pivotSums += $"SUM(CASE WHEN IdAlmacen = {aId} THEN Existencia ELSE 0 END) AS A{aId}, ";
                 }
 
-                selectCols += "(I.Existencia + IIF(IsNull(P.TotalIA), 0, P.TotalIA)) AS [TOTAL EN EXISTENCIA] ";
+                selectCols += "(I.Existencia + ISNULL(P.TotalIA, 0)) AS [TOTAL EN EXISTENCIA] ";
                 pivotSums += "SUM(Existencia) AS TotalIA ";
 
                 query = $"SELECT {selectCols} " +
@@ -351,9 +351,9 @@ namespace JaegerSoft
             {
                 // Almacén Dinámico Individual
                 query = "SELECT I.Id, I.Nombre, I.Categoria, " +
-                        "IIF(IsNull(IA.Existencia), 0, IA.Existencia) AS Existencia, " +
+                        "ISNULL(IA.Existencia, 0) AS Existencia, " +
                         "I.Existencia AS ExistenciaPrincipal, " +
-                        "(I.Existencia + IIF(IsNull(Totales.TotalIA), 0, Totales.TotalIA)) AS [TOTAL EN EXISTENCIA] " +
+                        "(I.Existencia + ISNULL(Totales.TotalIA, 0)) AS [TOTAL EN EXISTENCIA] " +
                         "FROM (Inventario I " +
                         "LEFT JOIN (SELECT IdProducto, Existencia FROM InventarioAlmacenes WHERE IdAlmacen = " + idAlmacen + ") IA ON I.Id = IA.IdProducto) " +
                         "LEFT JOIN (SELECT IdProducto, SUM(Existencia) AS TotalIA FROM InventarioAlmacenes GROUP BY IdProducto) Totales ON I.Id = Totales.IdProducto " +
@@ -413,7 +413,6 @@ namespace JaegerSoft
                         }
 
                         // 6. Darle estilo a las N columnas dinámicas (NombreAlmacen directo)
-                        // Para detectarlas ahora, simplemente ignoramos las que ya sabemos que son fijas.
                         foreach (DataGridViewColumn col in dgvStock.Columns)
                         {
                             if (col.Name != "Id" &&
@@ -454,14 +453,15 @@ namespace JaegerSoft
         {
             if (conectar.State != ConnectionState.Open) conectar.Open();
 
-            string query = "SELECT M.Id, M.IdOrigen, M.IdDestino, M.Cancelado, IIF(M.Cancelado = 1, 'Cancelado', 'Activo') AS Estado, " +
-                           "IIF(M.IdOrigen = 0, 'Almacén Principal (Bodega)', A1.Nombre) AS Origen, " +
-                           "IIF(M.IdDestino = 0, 'Almacén Principal (Bodega)', A2.Nombre) AS Destino, " +
-                           "M.IdProducto AS Código, P.Nombre AS Producto, M.Cantidad, M.Fecha, M.Usuario " +
-                           "FROM ((MovimientosAlmacenes M LEFT JOIN Almacenes A1 ON M.IdOrigen = A1.Id) " +
-                           "LEFT JOIN Almacenes A2 ON M.IdDestino = A2.Id) " +
-                           "LEFT JOIN Inventario P ON M.IdProducto = P.Id " +
-                           "ORDER BY M.Fecha DESC;";
+            string query = "SELECT M.Id, M.IdOrigen, M.IdDestino, M.Cancelado, " +
+                "CASE WHEN M.Cancelado = 1 THEN 'Cancelado' ELSE 'Activo' END AS Estado, " +
+                "CASE WHEN M.IdOrigen = 0 THEN 'Almacén Principal (Bodega)' ELSE A1.Nombre END AS Origen, " +
+                "CASE WHEN M.IdDestino = 0 THEN 'Almacén Principal (Bodega)' ELSE A2.Nombre END AS Destino, " +
+                "M.IdProducto AS Código, P.Nombre AS Producto, M.Cantidad, M.Fecha, M.Usuario " +
+                "FROM ((MovimientosAlmacenes M LEFT JOIN Almacenes A1 ON M.IdOrigen = A1.Id) " +
+                "LEFT JOIN Almacenes A2 ON M.IdDestino = A2.Id) " +
+                "LEFT JOIN Inventario P ON M.IdProducto = P.Id " +
+                "ORDER BY M.Fecha DESC;";
 
             using (var cmd = new SqlCommand(query, conectar))
             {
@@ -732,7 +732,7 @@ namespace JaegerSoft
                     {
                         cmd.Parameters.AddWithValue("@id", codigo);
                         object res = cmd.ExecuteScalar();
-                        stockOrigen = res != null ? Convert.ToDouble(res) : 0;
+                        stockOrigen = res != null && res != DBNull.Value ? Convert.ToDouble(res) : 0;
                     }
                 }
                 lblStockOrigenVal.Text = stockOrigen.ToString();
@@ -750,7 +750,7 @@ namespace JaegerSoft
                     {
                         cmd.Parameters.AddWithValue("@id", codigo);
                         object res = cmd.ExecuteScalar();
-                        stockDestino = res != null ? Convert.ToDouble(res) : 0;
+                        stockDestino = res != null && res != DBNull.Value ? Convert.ToDouble(res) : 0;
                     }
                 }
                 lblStockDestinoVal.Text = stockDestino.ToString();
@@ -902,7 +902,6 @@ namespace JaegerSoft
                 if (idOrigen == 0)
                 {
                     // Origen Principal -> Destino Dinámico (Salida del Principal)
-                    // Buscamos el stock principal antes del movimiento
                     double stockPrincipalAntes = stockOrigAntes;
                     double stockPrincipalDespues = stockOrigDespues;
 
@@ -921,7 +920,6 @@ namespace JaegerSoft
                 else if (idDestino == 0)
                 {
                     // Origen Dinámico -> Destino Principal (Entrada al Principal)
-                    // Buscamos el stock principal antes del movimiento
                     double stockPrincipalAntes = stockDestAntes;
                     double stockPrincipalDespues = stockDestDespues;
 
@@ -940,7 +938,6 @@ namespace JaegerSoft
                 else
                 {
                     // Traspaso entre dos Almacenes Dinámicos
-                    // Loggeamos 2 registros detallados en Kardex: uno para el Origen y otro para el Destino
                     string queryKardexOrig = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) " +
                                              "VALUES (@id, 'TRASPASO_SALIDA', @desc, @antes, @despues, @fecha, 'NA')";
                     using (var cmd = new SqlCommand(queryKardexOrig, conectar, trans))
@@ -1028,7 +1025,7 @@ namespace JaegerSoft
                 {
                     cmd.Parameters.AddWithValue("@id", codigo);
                     object val = cmd.ExecuteScalar();
-                    stockDestinoActual = val != null ? Convert.ToDouble(val) : 0;
+                    stockDestinoActual = val != null && val != DBNull.Value ? Convert.ToDouble(val) : 0;
                 }
             }
             else
@@ -1039,7 +1036,7 @@ namespace JaegerSoft
                     cmd.Parameters.AddWithValue("@dst", idDestino);
                     cmd.Parameters.AddWithValue("@id", codigo);
                     object val = cmd.ExecuteScalar();
-                    stockDestinoActual = val != null ? Convert.ToDouble(val) : 0;
+                    stockDestinoActual = val != null && val != DBNull.Value ? Convert.ToDouble(val) : 0;
                 }
             }
 
@@ -1076,7 +1073,7 @@ namespace JaegerSoft
                         cmd.Parameters.AddWithValue("@org", idOrigen);
                         cmd.Parameters.AddWithValue("@id", codigo);
                         object val = cmd.ExecuteScalar();
-                        stockOrigAntes = val != null ? Convert.ToDouble(val) : 0;
+                        stockOrigAntes = val != null && val != DBNull.Value ? Convert.ToDouble(val) : 0;
                     }
                 }
 

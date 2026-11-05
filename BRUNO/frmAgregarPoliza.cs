@@ -10,7 +10,7 @@ namespace JaegerSoft
 {
     public partial class frmAgregarPoliza : frmBase
     {
-        string idProv = "0", nombreProv = "";
+        string idProv = "-1", nombreProv = "";
 
         public frmAgregarPoliza()
         {
@@ -306,7 +306,7 @@ namespace JaegerSoft
                 MessageBox.Show("Ingrese un Folio para guardar la compra.", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 txtFolio.Focus(); return;
             }
-            if (idProv == "0")
+            if (idProv == "-1")
             {
                 MessageBox.Show("Debe seleccionar un proveedor.", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;

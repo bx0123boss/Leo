@@ -1,15 +1,17 @@
+using Microsoft.Office.Interop.Excel;
+using Org.BouncyCastle.Asn1.X509;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlClient;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data.SqlClient;
-using System.Globalization;
-using Microsoft.Office.Interop.Excel;
 using Font = System.Drawing.Font;
 
 namespace JaegerSoft
@@ -126,14 +128,17 @@ namespace JaegerSoft
             comboBox2.DataSource = dt;
             DataSet ds = new DataSet();
 
-            string queryInventario = "SELECT I.*, " +
-                           "IIF(IsNull(I.EsInsumo), False, I.EsInsumo) AS EsInsumoClean, " +
-                           "IIF(IsNull(I.EsReceta), False, I.EsReceta) AS EsRecetaClean, " +
-                           "(I.Existencia + IIF(IsNull(Totales.TotalIA), 0, Totales.TotalIA)) AS ExistenciaTotal " +
-                           "FROM Inventario I " +
-                           "LEFT JOIN (SELECT IdProducto, SUM(Existencia) AS TotalIA FROM InventarioAlmacenes GROUP BY IdProducto) Totales " +
-                           "ON I.Id = Totales.IdProducto " +
-                           "ORDER BY I.Nombre;";
+            string queryInventario = @"SELECT I.*,
+                                   CASE WHEN I.EsInsumo IS NULL THEN 0 ELSE I.EsInsumo END AS EsInsumoClean,
+                                   CASE WHEN I.EsReceta IS NULL THEN 0 ELSE I.EsReceta END AS EsRecetaClean,
+                                   (I.Existencia + ISNULL(Totales.TotalIA, 0)) AS ExistenciaTotal
+                            FROM Inventario I
+                            LEFT JOIN(
+                                SELECT IdProducto, SUM(Existencia) AS TotalIA
+                                FROM InventarioAlmacenes
+                                GROUP BY IdProducto
+                            ) Totales ON I.Id = Totales.IdProducto
+                            ORDER BY I.Nombre; ";
 
             da = new SqlDataAdapter(queryInventario, conectar);
             da.Fill(ds, "Inventario");
