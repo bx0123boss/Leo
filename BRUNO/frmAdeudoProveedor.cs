@@ -98,19 +98,19 @@ namespace JaegerSoft
             if (Convert.ToDouble(lblPesos.Text) != pesos)
             {
                 //PESOS
-                cmd = new SqlCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,Unidad,ValorUnidad,ValorPesos,AdeudoActual) values('" + id + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + (pesos - Convert.ToDouble(lblPesos.Text)) + "','PESOS (MX)','1','" + (pesos - Convert.ToDouble(lblPesos.Text)) + "','" + lblActual.Text + "');", conectar);
+                cmd = new SqlCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,Unidad,ValorUnidad,ValorPesos,AdeudoActual) values('" + id + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + (pesos - Convert.ToDouble(lblPesos.Text)) + "','PESOS (MX)','1','" + (pesos - Convert.ToDouble(lblPesos.Text)) + "','" + lblActual.Text + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             if (Convert.ToDouble(lblDolares.Text) != dolar)
             {
                 //DOLAR
-                cmd = new SqlCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,Unidad,ValorUnidad,ValorPesos,AdeudoActual) values('" + id + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + (dolar - Convert.ToDouble(lblDolares.Text)) + "','DOLAR (EU)','" + textBox1.Text + "','" + ((dolar - Convert.ToDouble(lblDolares.Text)) * Convert.ToDouble(textBox1.Text)) + "','" + lblActual.Text + "');", conectar);
+                cmd = new SqlCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,Unidad,ValorUnidad,ValorPesos,AdeudoActual) values('" + id + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + (dolar - Convert.ToDouble(lblDolares.Text)) + "','DOLAR (EU)','" + textBox1.Text + "','" + ((dolar - Convert.ToDouble(lblDolares.Text)) * Convert.ToDouble(textBox1.Text)) + "','" + lblActual.Text + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             if (Convert.ToDouble(lblOro.Text) != oro)
             {
                 //ORO
-                cmd = new SqlCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,Unidad,ValorUnidad,ValorPesos,AdeudoActual) values('" + id + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + (oro - Convert.ToDouble(lblOro.Text)) + "','ORO (GRAMOS)','" + textBox2.Text + "','" + ((oro - Convert.ToDouble(lblOro.Text)) * Convert.ToDouble(textBox2.Text)) + "','" + lblActual.Text + "');", conectar);
+                cmd = new SqlCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,Unidad,ValorUnidad,ValorPesos,AdeudoActual) values('" + id + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + (oro - Convert.ToDouble(lblOro.Text)) + "','ORO (GRAMOS)','" + textBox2.Text + "','" + ((oro - Convert.ToDouble(lblOro.Text)) * Convert.ToDouble(textBox2.Text)) + "','" + lblActual.Text + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             cmd = new SqlCommand("UPDATE Proveedores set AdeudoActual='" + lblActual.Text + "', AdeudoPesos='" + lblPesos.Text + "', AdeudoDolares='" + lblDolares.Text + "', AdeudoOro='"+lblOro.Text+"' where Id=" + id + ";", conectar);

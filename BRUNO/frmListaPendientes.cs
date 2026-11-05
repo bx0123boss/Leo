@@ -58,7 +58,7 @@ namespace JaegerSoft
                     cmd.ExecuteNonQuery();
                     cmd = new SqlCommand("UPDATE VentasApartados set Estatus='DESCONTADO DE INVENTARIO' where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
                     cmd.ExecuteNonQuery();
-                    cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString() + "','SALIDA','APARTADO DE ARTICULO FOLIO: " + dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString() + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existencia + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                    cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, dataGridView1.CurrentRow.Index].Value.ToString() + "','SALIDA','APARTADO DE ARTICULO FOLIO: " + dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString() + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existencia + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');", conectar);
                     cmd.ExecuteNonQuery();
                     MessageBox.Show("PRODUCTO DESCONTADO DE INVENTARIO", "DESCONTADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     ds = new DataSet();

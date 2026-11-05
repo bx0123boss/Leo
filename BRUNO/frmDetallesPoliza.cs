@@ -72,11 +72,11 @@ namespace JaegerSoft
                          existenciasTotales = Convert.ToDouble(Convert.ToString(reader[4].ToString())) - Convert.ToDouble(dataGridView1[2, i].Value.ToString());
                          cmd = new SqlCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[0, i].Value.ToString() + "';", conectar);
                          cmd.ExecuteNonQuery();
-                         cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','SALIDA','CANCELACION DE COMPRA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                         cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','SALIDA','CANCELACION DE COMPRA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');", conectar);
                          cmd.ExecuteNonQuery();
                      }
                  }
-                 cmd = new SqlCommand("insert into Poliza2 Values('" + lblFolio.Text + "','" + lblFechaPoli.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "', '" + lblMonto.Text + "','" + lblExtra.Text + "','" + Id + "');", conectar);
+                 cmd = new SqlCommand("insert into Poliza2 Values('" + lblFolio.Text + "','" + lblFechaPoli.Text + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', '" + lblMonto.Text + "','" + lblExtra.Text + "','" + Id + "');", conectar);
                  cmd.ExecuteNonQuery();
                  //cmd = new SqlCommand("delete from productosPoliza where FolioPoliza='" + dataGridView1[7, 0].Value.ToString() + "';", conectar);
                  //cmd.ExecuteNonQuery();

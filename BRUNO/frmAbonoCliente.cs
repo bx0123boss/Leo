@@ -163,8 +163,7 @@ namespace JaegerSoft
                 cmd = new SqlCommand(
                     "UPDATE Clientes SET Adeudo = " + nuevoAdeudo +
                     ", UltimoPago = '" +
-                    DateTime.Now.ToShortDateString() + " " +
-                    DateTime.Now.ToShortTimeString() +
+                    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") +
                     "' WHERE Id = " + lblID.Text + ";",
                     conectar);
 
@@ -192,8 +191,7 @@ namespace JaegerSoft
                     "VALUES (" +
                     "'Abono a cuenta de cliente " + lblCliente.Text + "'," +
                     "'" + txtAbono.Text + "'," +
-                    "'" + DateTime.Now.ToShortDateString() + " " +
-                    DateTime.Now.ToShortTimeString() + "'," +
+                    "'" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "'," +
                     "'" + cmbPago.Text + "'" +
                     ");",
                     conectar);
@@ -209,8 +207,7 @@ namespace JaegerSoft
                     "VALUES (" +
                     "'" + txtAbono.Text + "'," +
                     "'" + lblID.Text + "'," +
-                    "'" + DateTime.Now.ToShortDateString() + " " +
-                    DateTime.Now.ToShortTimeString() + "'," +
+                    "'" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "'," +
                     "'" + lblCliente.Text + "'," +
                     "'" + folio + "'," +
                     "'PAGADO'" +

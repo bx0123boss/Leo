@@ -248,7 +248,7 @@ namespace JaegerSoft
                                 cmd.ExecuteNonQuery();
                             }
 
-                            string fechaKardex = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                            string fechaKardex = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                             using (SqlCommand cmdK = new SqlCommand("INSERT INTO Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) VALUES (@IdProducto,'ENTRADA','CANCELACION DE ENTREGA A CONSIGNA',@ExistenciaAntes,@ExistenciaDespues,@Fecha)", con, transaccion))
                             {
                                 cmdK.Parameters.AddWithValue("@IdProducto", idProducto);
@@ -290,7 +290,7 @@ namespace JaegerSoft
                                 cmd.ExecuteNonQuery();
                             }
 
-                            string fechaKardex = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                            string fechaKardex = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                             using (SqlCommand cmdK = new SqlCommand("INSERT INTO Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) VALUES (@IdProducto,'SALIDA','CANCELACION DE DEVOLUCION DE CONSIGNA',@ExistenciaAntes,@ExistenciaDespues,@Fecha)", con, transaccion))
                             {
                                 cmdK.Parameters.AddWithValue("@IdProducto", idProducto);

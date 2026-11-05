@@ -518,8 +518,24 @@ namespace JaegerSoft
                                 {
                                     cmd.ExecuteNonQuery();
                                 }
-                                using (var cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + idProd + "','SALIDA','VENTA DE ARTICULO FOLIO: " + lblFolio.Text + "'," + exis + ",'" + existencia + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", con, transaccion))
+                                using (var cmd = new SqlCommand(
+                                                "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) " +
+                                                "VALUES (@IdProducto, @Tipo, @Descripcion, @ExistenciaAntes, @ExistenciaDespues, @Fecha)", con, transaccion))
                                 {
+                                    // IdProducto es nvarchar(255) en tu tabla, así que se envía como String (VarChar/NVarChar)
+                                    cmd.Parameters.Add("@IdProducto", System.Data.SqlDbType.NVarChar, 255).Value = idProd.ToString();
+
+                                    cmd.Parameters.Add("@Tipo", System.Data.SqlDbType.NVarChar, 255).Value = "SALIDA";
+
+                                    cmd.Parameters.Add("@Descripcion", System.Data.SqlDbType.NVarChar, 255).Value = "VENTA DE ARTICULO FOLIO: " + lblFolio.Text;
+
+                                    // ExistenciaAntes y ExistenciaDespues son float en tu tabla
+                                    cmd.Parameters.Add("@ExistenciaAntes", System.Data.SqlDbType.Float).Value = exis;
+                                    cmd.Parameters.Add("@ExistenciaDespues", System.Data.SqlDbType.Float).Value = existencia;
+
+                                    // Fecha es datetime
+                                    cmd.Parameters.Add("@Fecha", System.Data.SqlDbType.DateTime).Value = DateTime.Now;
+
                                     cmd.ExecuteNonQuery();
                                 }
                             }
@@ -527,7 +543,7 @@ namespace JaegerSoft
                             double descuentoProporcional = totalUtilidad > 0 ? (utilidad / totalUtilidad) * descuento : 0;
                             double nuevaUtilidad = utilidad - descuentoProporcional;
 
-                            string queryVentasContado = "insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad, Categoria) values('" + lblFolio.Text + "','" + idProd + "','" + cantidad + "','" + nombreProd + "','" + montoFila + "','" + (string.IsNullOrEmpty(idCliente) ? "0" : idCliente) + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + nuevaUtilidad + "','" + categoria + "');";
+                            string queryVentasContado = "insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad, Categoria) values('" + lblFolio.Text + "','" + idProd + "','" + cantidad + "','" + nombreProd + "','" + montoFila + "','" + (string.IsNullOrEmpty(idCliente) ? "0" : idCliente) + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + nuevaUtilidad + "','" + categoria + "');";
                             using (var cmd = new SqlCommand(queryVentasContado, con, transaccion))
                             {
                                 cmd.ExecuteNonQuery();
@@ -575,7 +591,7 @@ namespace JaegerSoft
                             TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", "", total, false, totales, tipoPagoVenta);
                             ticketPrinter.ImprimirTicket();
                         }
-                        using (var cmd = new SqlCommand("insert into Ventas(Monto,Fecha,Folio,Estatus, Descuento, Pago) values('" + total + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','COBRADO','" + descuento + "','" + tipoPagoVenta + "');", con, transaccion))
+                        using (var cmd = new SqlCommand("insert into Ventas(Monto,Fecha,Folio,Estatus, Descuento, Pago) values('" + total + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + lblFolio.Text + "','COBRADO','" + descuento + "','" + tipoPagoVenta + "');", con, transaccion))
                         {
                             cmd.ExecuteNonQuery();
                         }
@@ -593,14 +609,14 @@ namespace JaegerSoft
                                     cmdPago.Parameters.AddWithValue("@Monto", pago.Value);
                                     cmdPago.ExecuteNonQuery();
                                 }
-                                using (var cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Venta a contado folio " + lblFolio.Text + "','" + pago.Value + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + pago.Key + "');", con, transaccion))
+                                using (var cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Venta a contado folio " + lblFolio.Text + "','" + pago.Value + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + pago.Key + "');", con, transaccion))
                                 {
                                     cmd.ExecuteNonQuery();
                                 }
                             }
                         }
 
-                        using (var cmd = new SqlCommand("insert into VentasCajero(IdUsuario,Usuario,FolioVenta,Total,Fecha,Cajero) values('" + idUsuario + "','" + lblUsuario.Text + "','" + lblFolio.Text + "','" + total + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblCajero.Text + "');", con, transaccion))
+                        using (var cmd = new SqlCommand("insert into VentasCajero(IdUsuario,Usuario,FolioVenta,Total,Fecha,Cajero) values('" + idUsuario + "','" + lblUsuario.Text + "','" + lblFolio.Text + "','" + total + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + lblCajero.Text + "');", con, transaccion))
                         {
                             cmd.ExecuteNonQuery();
                         }
@@ -843,7 +859,7 @@ namespace JaegerSoft
                             cmdAdd.ExecuteNonQuery();
 
                             // 3. Registrar Movimiento
-                            string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                            string fechaActual = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                             var cmdLog = new SqlCommand("INSERT INTO MovimientosAlmacenes (IdOrigen, IdDestino, IdProducto, Cantidad, Fecha, Usuario) VALUES (@org, 0, @id, @qty, @fecha, @usu)", conectar, trans);
                             cmdLog.Parameters.AddWithValue("@org", idAlmacen);
                             cmdLog.Parameters.AddWithValue("@id", cod);

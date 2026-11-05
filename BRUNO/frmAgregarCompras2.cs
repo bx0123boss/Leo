@@ -132,7 +132,7 @@ namespace JaegerSoft
             {
                 relacion = comboBox1.Text;
             }
-            cmd = new SqlCommand("INSERT INTO Compras2(Movimiento,Fecha,Capturo,Relacion) VALUES ('" + movimiento + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + usuario + "','" + relacion + "');", conectar);
+            cmd = new SqlCommand("INSERT INTO Compras2(Movimiento,Fecha,Capturo,Relacion) VALUES ('" + movimiento + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + usuario + "','" + relacion + "');", conectar);
             cmd.ExecuteNonQuery();
             string idInsertado = "";
             cmd = new SqlCommand("select @@IDENTITY;", conectar);
@@ -158,11 +158,11 @@ namespace JaegerSoft
                 {
                     cmd = new SqlCommand("UPDATE Inventario SET Existencia='" + suma + "' where Id='" + id + "' AND ManejaInventario = 1;", conectar);
                     cmd.ExecuteNonQuery();
-                    cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha,Precio) values('" + id + "','ENTRADA','EXISTENCIA POR: "+movimiento+", FOLIO: " + idInsertado + "'," + existencias + ",'" + suma + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','NA');", conectar);
+                    cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha,Precio) values('" + id + "','ENTRADA','EXISTENCIA POR: "+movimiento+", FOLIO: " + idInsertado + "'," + existencias + ",'" + suma + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','NA');", conectar);
                     cmd.ExecuteNonQuery();
                 }
 
-                cmd = new SqlCommand("INSERT INTO ComprasMovimientos(Folio,IdProducto,Nombre,ExistenciasAntiguas,Movimiento,ExistenciasActuales,Tipo,Fecha) VALUES ('" + idInsertado + "','" + id + "','" + nombre + "','" + existencias + "','" + mov + "','" + suma + "','" + movimiento + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                cmd = new SqlCommand("INSERT INTO ComprasMovimientos(Folio,IdProducto,Nombre,ExistenciasAntiguas,Movimiento,ExistenciasActuales,Tipo,Fecha) VALUES ('" + idInsertado + "','" + id + "','" + nombre + "','" + existencias + "','" + mov + "','" + suma + "','" + movimiento + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             MessageBox.Show("SE HA AGREGADO AL INVENTARIO CON EXITO", "CERRAR ORDEN", MessageBoxButtons.OK, MessageBoxIcon.Information);

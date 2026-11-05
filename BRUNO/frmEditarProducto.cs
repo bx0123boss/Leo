@@ -289,7 +289,7 @@ namespace JaegerSoft
                     using (SqlCommand cmdKardex = new SqlCommand(sqlKardex, conectar))
                     {
                         cmdKardex.Parameters.AddWithValue("@IdProducto", txtID.Text);
-                        cmdKardex.Parameters.AddWithValue("@Fecha", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+                        cmdKardex.Parameters.AddWithValue("@Fecha", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                         cmdKardex.Parameters.AddWithValue("@Precio", txtVenta.Text);
                         cmdKardex.ExecuteNonQuery();
                     }

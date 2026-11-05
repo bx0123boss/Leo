@@ -333,7 +333,7 @@ namespace JaegerSoft
                 {
                     try
                     {
-                        string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                        string fechaActual = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
                         // 1. RECORRER PRODUCTOS DEL GRID
                         for (int i = 0; i < dataGridView1.RowCount; i++)
@@ -604,7 +604,7 @@ namespace JaegerSoft
                         using (SqlCommand cmdPol = new SqlCommand(insPoliza, conn, transaction))
                         {
                             cmdPol.Parameters.AddWithValue("@Folio", txtFolio.Text);
-                            cmdPol.Parameters.AddWithValue("@Fech1", dateTimePicker1.Value.Date.ToString("MM/dd/yyyy 00:00:00"));
+                            cmdPol.Parameters.AddWithValue("@Fech1", dateTimePicker1.Value.Date.ToString("yyyy-MM-dd 00:00:00"));
                             cmdPol.Parameters.AddWithValue("@Fech2", fechaActual);
                             cmdPol.Parameters.AddWithValue("@CostoT", lblTotal.Text);
                             cmdPol.Parameters.AddWithValue("@CostoE", textBox1.Text);

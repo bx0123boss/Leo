@@ -37,7 +37,7 @@ namespace JaegerSoft
                 double monto = 0;
                 double.TryParse(txtIngreso.Text, out monto);
                 conectar.Open();
-                cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Entrada en caja por concepto: " + txtConcepto.Text + "'," + txtIngreso.Text + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','01=EFECTIVO');", conectar);
+                cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Entrada en caja por concepto: " + txtConcepto.Text + "'," + txtIngreso.Text + ",'" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','01=EFECTIVO');", conectar);
                 cmd.ExecuteNonQuery();
 
                 // =========================================================

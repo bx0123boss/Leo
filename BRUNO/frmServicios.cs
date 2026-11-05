@@ -125,7 +125,7 @@ namespace JaegerSoft
                 ticket.AddItem("1", dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString(), "$" + dataGridView1[9, dataGridView1.CurrentRow.Index].Value.ToString());
                 ticket.AddTotal("ABONADO", "$" + dataGridView1[13, dataGridView1.CurrentRow.Index].Value.ToString());
                 ticket.AddTotal("RESTANTE","$"+restante);                
-                cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora) Values('COBRO DE SERVICIO FOLIO " + dataGridView1[12, dataGridView1.CurrentRow.Index].Value.ToString() + "','" + restante + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora) Values('COBRO DE SERVICIO FOLIO " + dataGridView1[12, dataGridView1.CurrentRow.Index].Value.ToString() + "','" + restante + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');", conectar);
                 cmd.ExecuteNonQuery();
                 cmd = new SqlCommand("delete from Servicios where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
                 cmd.ExecuteNonQuery();

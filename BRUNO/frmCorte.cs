@@ -523,7 +523,7 @@ namespace JaegerSoft
             if (totalB > 0)
             {
                 double inversionB = totalB - utilidadB;
-                string fechaCorteB = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                string fechaCorteB = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                 string rangoFolios = primerFolio + "-" + ultimoFolio;
                 // Insertamos el resumen (la sumatoria total) en histocortesB
                 string queryHistoB = "INSERT INTO histocortesB (Id, Monto, Fecha, Mas, Menos, Tarjeta, utilidad, inversion, CubreFolio) VALUES ('" + folio + "', '" + totalB + "', '" + fechaCorteB + "', '" + masB + "', '0', '" + tarjetaB + "', '" + utilidadB + "', '" + inversionB + "','"+ rangoFolios+"');";
@@ -577,7 +577,7 @@ namespace JaegerSoft
                 cmd.ExecuteNonQuery();
             }
 
-            cmd = new SqlCommand("INSERT INTO histocortes(Id,Monto,Fecha,Mas,Menos,Tarjeta,utilidad,inversion) VALUES ('" + folio + "','" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + mas + "','" + menos + "','" + tarjeta + "','" + utilidad + "','" + inversion + "');", conectar);
+            cmd = new SqlCommand("INSERT INTO histocortes(Id,Monto,Fecha,Mas,Menos,Tarjeta,utilidad,inversion) VALUES ('" + folio + "','" + lblTotal.Text + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + mas + "','" + menos + "','" + tarjeta + "','" + utilidad + "','" + inversion + "');", conectar);
             cmd.ExecuteNonQuery();
             folio++;
             cmd = new SqlCommand("UPDATE Folios set Numero=" + folio + " where Folio='Corte';", conectar);

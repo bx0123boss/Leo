@@ -252,9 +252,9 @@ namespace JaegerSoft
 
                     cmd.ExecuteNonQuery();
                 }
-                cmd = new SqlCommand("insert into Ventas2(Monto,Fecha,Folio,IdCliente,Estatus, Saldo) values('" + lblTotal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + folioVenta + "','" + idCliente + "','COBRADO'," + total + ");", conectar, trans);
+                cmd = new SqlCommand("insert into Ventas2(Monto,Fecha,Folio,IdCliente,Estatus, Saldo) values('" + lblTotal.Text + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + folioVenta + "','" + idCliente + "','COBRADO'," + total + ");", conectar, trans);
                 cmd.ExecuteNonQuery();
-                cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono de la venta a credito folio " + folioVenta + "','" + txtAbono.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + cmbPago.Text + "');", conectar,trans);
+                cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono de la venta a credito folio " + folioVenta + "','" + txtAbono.Text + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + cmbPago.Text + "');", conectar,trans);
                 cmd.ExecuteNonQuery();
                 cmd = new SqlCommand("UPDATE Clientes SET Adeudo = @adeudo WHERE Id = @id", conectar, trans);
                 cmd.Parameters.AddWithValue("@adeudo", nuevoAdeudo);
@@ -907,7 +907,7 @@ namespace JaegerSoft
                             cmdAdd.ExecuteNonQuery();
 
                             // 3. Registrar Movimiento
-                            string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                            string fechaActual = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                             var cmdLog = new SqlCommand("INSERT INTO MovimientosAlmacenes (IdOrigen, IdDestino, IdProducto, Cantidad, Fecha, Usuario) VALUES (@org, 0, @id, @qty, @fecha, @usu)", conectar, trans);
                             cmdLog.Parameters.AddWithValue("@org", idAlmacen);
                             cmdLog.Parameters.AddWithValue("@id", cod);

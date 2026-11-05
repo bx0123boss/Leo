@@ -42,9 +42,9 @@ namespace JaegerSoft
                     
                     if (txtAdeudo.Text != "" || Convert.ToDouble(txtAdeudo.Text) > 0)
                     {
-                        cmd = new SqlCommand("insert into VentasCredito(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha, Categoria) values('INI" + idCliente + "','0','1','ADEUDO INICIAL','" + txtAdeudo.Text + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "', 'ADEUDO INICIAL');", conectar);
+                        cmd = new SqlCommand("insert into VentasCredito(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha, Categoria) values('INI" + idCliente + "','0','1','ADEUDO INICIAL','" + txtAdeudo.Text + "','" + idCliente + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'ADEUDO INICIAL');", conectar);
                         cmd.ExecuteNonQuery();
-                        cmd = new SqlCommand("insert into Ventas2(Monto,Fecha,Folio,IdCliente,Saldo) values('" + txtAdeudo.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','INI" + idCliente + "','" + idCliente + "','" + txtAdeudo.Text + "');", conectar);
+                        cmd = new SqlCommand("insert into Ventas2(Monto,Fecha,Folio,IdCliente,Saldo) values('" + txtAdeudo.Text + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','INI" + idCliente + "','" + idCliente + "','" + txtAdeudo.Text + "');", conectar);
                         cmd.ExecuteNonQuery();
                     }
                     MessageBox.Show("Se ha agregado el cliente con exito", "AGREGADO", MessageBoxButtons.OK, MessageBoxIcon.Information);

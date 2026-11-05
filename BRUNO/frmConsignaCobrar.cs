@@ -615,7 +615,7 @@ namespace JaegerSoft
                                 // D) Kardex General de la tienda (Sin restar stock, existencia antes y después es igual)
                                 if (manejaInventario)
                                 {
-                                    string queryKardexGen = "insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + idProducto + "','VENTA','VENTA DE CONSIGNA FOLIO: " + folioVenta + "'," + exis + ",'" + exis + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');";
+                                    string queryKardexGen = "insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + idProducto + "','VENTA','VENTA DE CONSIGNA FOLIO: " + folioVenta + "'," + exis + ",'" + exis + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');";
                                     using (var cmd = new SqlCommand(queryKardexGen, con, transaccion))
                                     {
                                         cmd.ExecuteNonQuery();
@@ -624,7 +624,7 @@ namespace JaegerSoft
 
                                 // E) Guardar en VentasContado (Detalle de Venta)
                                 double utilidad = (Convert.ToDouble(precioCobrado) * aPagar) - (precioCompra * aPagar);
-                                string queryVentasContado = "insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad, Categoria) values('" + folioVenta + "','" + idProducto + "','" + aPagar + "','" + nombreProd + "','" + montoFila + "','" + _idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + utilidad + "','" + categoria + "');";
+                                string queryVentasContado = "insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad, Categoria) values('" + folioVenta + "','" + idProducto + "','" + aPagar + "','" + nombreProd + "','" + montoFila + "','" + _idCliente + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + utilidad + "','" + categoria + "');";
                                 using (var cmd = new SqlCommand(queryVentasContado, con, transaccion))
                                 {
                                     cmd.ExecuteNonQuery();
@@ -653,7 +653,7 @@ namespace JaegerSoft
 
                         // 4. CABECERA GENERAL DE VENTA
                         string tipoPagoVenta = pagosFinales.Count > 1 ? "MIXTO" : pagosFinales.First().Key;
-                        using (var cmd = new SqlCommand("insert into Ventas(Monto,Fecha,Folio,Estatus, Descuento, Pago) values('" + totalVenta + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + folioVenta + "','COBRADO','0','" + tipoPagoVenta + "');", con, transaccion))
+                        using (var cmd = new SqlCommand("insert into Ventas(Monto,Fecha,Folio,Estatus, Descuento, Pago) values('" + totalVenta + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + folioVenta + "','COBRADO','0','" + tipoPagoVenta + "');", con, transaccion))
                         {
                             cmd.ExecuteNonQuery();
                         }
@@ -663,7 +663,7 @@ namespace JaegerSoft
                         {
                             if (pago.Value > 0)
                             {
-                                using (var cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cobro de consigna folio " + folioVenta + "','" + pago.Value + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + pago.Key + "');", con, transaccion))
+                                using (var cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cobro de consigna folio " + folioVenta + "','" + pago.Value + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + pago.Key + "');", con, transaccion))
                                 {
                                     cmd.ExecuteNonQuery();
                                 }
@@ -671,7 +671,7 @@ namespace JaegerSoft
                         }
 
                         // 6. REGISTRAR CAJERO
-                        using (var cmd = new SqlCommand("insert into VentasCajero(IdUsuario,Usuario,FolioVenta,Total,Fecha,Cajero) values('1','Administrador','" + folioVenta + "','" + totalVenta + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','Cajero');", con, transaccion))
+                        using (var cmd = new SqlCommand("insert into VentasCajero(IdUsuario,Usuario,FolioVenta,Total,Fecha,Cajero) values('1','Administrador','" + folioVenta + "','" + totalVenta + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','Cajero');", con, transaccion))
                         {
                             cmd.ExecuteNonQuery();
                         }

@@ -300,7 +300,7 @@ namespace JaegerSoft
                         cmdKardex.Parameters.AddWithValue("@p0", txtID.Text);
                         cmdKardex.Parameters.AddWithValue("@p1", ParseDouble(txtActuales.Text));
                         cmdKardex.Parameters.AddWithValue("@p2", ParseDouble(txtTotales.Text));
-                        cmdKardex.Parameters.AddWithValue("@p3", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+                        cmdKardex.Parameters.AddWithValue("@p3", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                         cmdKardex.ExecuteNonQuery();
                     }
 
@@ -384,7 +384,7 @@ namespace JaegerSoft
                 {
                     cmdKardex.Parameters.AddWithValue("@p0", txtID.Text);
                     cmdKardex.Parameters.AddWithValue("@p1", ParseDouble(txtCantidad.Text));
-                    cmdKardex.Parameters.AddWithValue("@p2", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+                    cmdKardex.Parameters.AddWithValue("@p2", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                     cmdKardex.ExecuteNonQuery();
                 }
 

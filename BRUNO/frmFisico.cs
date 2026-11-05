@@ -119,7 +119,7 @@ namespace JaegerSoft
                 string queryFisico = "INSERT INTO Fisico(Fecha) VALUES(@fecha)";
                 using (SqlCommand cmdEncabezado = new SqlCommand(queryFisico, conectar, transaccion))
                 {
-                    cmdEncabezado.Parameters.AddWithValue("@fecha", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
+                    cmdEncabezado.Parameters.AddWithValue("@fecha", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                     cmdEncabezado.ExecuteNonQuery();
                 }
 

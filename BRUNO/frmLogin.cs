@@ -207,7 +207,7 @@ namespace JaegerSoft
                     DateTime fecha1 = Convert.ToDateTime(fecha[0]);
                     if (fecha1 <= DateTime.Now)
                     {
-                        cmd = new SqlCommand("UPDATE Fech set Caja='0', Fecha='" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' where Id=2;", conectar);
+                        cmd = new SqlCommand("UPDATE Fech set Caja='0', Fecha='" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "' where Id=2;", conectar);
                         cmd.ExecuteNonQuery();
                         BloquearLogin();
                     }

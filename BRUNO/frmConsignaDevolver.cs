@@ -127,7 +127,7 @@ namespace JaegerSoft
                             }
 
                             int existenciaDespues = existenciaAntes + cantidadDevolver; // Aquí sumamos porque regresó
-                            string fechaKardex = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                            string fechaKardex = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                             string descripcionKardex = "DEVOLUCIÓN DE CONSIGNA. CLIENTE ID: " + _idCliente.ToString();
                             string queryKardexGen = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) VALUES (@IdProducto, 'ENTRADA', @Descripcion, @ExistenciaAntes, @ExistenciaDespues, @Fecha)";
                             using (SqlCommand cmdK = new SqlCommand(queryKardexGen, con, transaccion))

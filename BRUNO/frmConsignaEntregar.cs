@@ -146,7 +146,7 @@ namespace JaegerSoft
 
                             int existenciaDespues = existenciaAntes - cantidad;
 
-                            string fechaKardex = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                            string fechaKardex = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                             string descripcionKardex = "SALIDA A CONSIGNA. CLIENTE: " + _nombreCliente;
                             string queryKardexGen = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) VALUES (@IdProducto, 'SALIDA', @Descripcion, @ExistenciaAntes, @ExistenciaDespues, @Fecha)";
                             using (SqlCommand cmdK = new SqlCommand(queryKardexGen, con, transaccion))

@@ -59,7 +59,7 @@ namespace JaegerSoft
             conectar.Open();
             for (int i = 0; i < dataGridView1.RowCount; i++)
             {
-                cmd = new SqlCommand("insert into Captura(IdProducto,Cantidad,Fecha) values('" + dataGridView1[0, i].Value.ToString() + "'," + dataGridView1[1, i].Value.ToString() + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                cmd = new SqlCommand("insert into Captura(IdProducto,Cantidad,Fecha) values('" + dataGridView1[0, i].Value.ToString() + "'," + dataGridView1[1, i].Value.ToString() + ",'" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             MessageBox.Show("Captura realizada con exito", "CAPTURA", MessageBoxButtons.OK, MessageBoxIcon.Information);

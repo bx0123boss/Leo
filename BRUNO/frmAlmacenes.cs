@@ -803,7 +803,7 @@ namespace JaegerSoft
                 if (conectar.State != ConnectionState.Open) conectar.Open();
 
                 trans = conectar.BeginTransaction();
-                string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                string fechaActual = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
                 // 1. Descontar del origen
                 double stockOrigAntes = stockOrigen;
@@ -1057,7 +1057,7 @@ namespace JaegerSoft
             {
                 if (conectar.State != ConnectionState.Open) conectar.Open();
                 trans = conectar.BeginTransaction();
-                string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                string fechaActual = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
                 // 1. Obtener stocks antes de la reversión (para Kardex)
                 double stockOrigAntes = 0;

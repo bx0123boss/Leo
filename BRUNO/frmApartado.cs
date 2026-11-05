@@ -651,7 +651,7 @@ namespace JaegerSoft
                             cmdAdd.ExecuteNonQuery();
 
                             // 3. Registrar Movimiento
-                            string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                            string fechaActual = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                             var cmdLog = new SqlCommand("INSERT INTO MovimientosAlmacenes (IdOrigen, IdDestino, IdProducto, Cantidad, Fecha, Usuario) VALUES (@org, 0, @id, @qty, @fecha, @usu)", conectar, trans);
                             cmdLog.Parameters.AddWithValue("@org", idAlmacen);
                             cmdLog.Parameters.AddWithValue("@id", cod);
@@ -870,7 +870,7 @@ namespace JaegerSoft
 
                 if (existencia < 0)
                 {
-                    cmd = new SqlCommand("insert into VentasApartados(FolioVenta,idProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha,Estatus) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','PENDIENTE');", conectar);
+                    cmd = new SqlCommand("insert into VentasApartados(FolioVenta,idProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha,Estatus) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','PENDIENTE');", conectar);
                     cmd.ExecuteNonQuery();
 
                     // Actualizar FechaUltimaVenta
@@ -886,10 +886,10 @@ namespace JaegerSoft
                     cmd.ExecuteNonQuery();
 
                     // Insertamos en la venta apartados
-                    cmd = new SqlCommand("insert into VentasApartados(FolioVenta,idProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha,Estatus) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','DESCONTADO DE INVENTARIO');", conectar);
+                    cmd = new SqlCommand("insert into VentasApartados(FolioVenta,idProducto,Cantidad,Producto,MontoTotal,IdCliente,Fecha,Estatus) values('" + lblFolio.Text + "','" + dataGridView1[5, i].Value.ToString() + "','" + dataGridView1[0, i].Value.ToString() + "','" + dataGridView1[1, i].Value.ToString() + "','" + dataGridView1[3, i].Value.ToString() + "','" + idCliente + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','DESCONTADO DE INVENTARIO');", conectar);
                     cmd.ExecuteNonQuery();
 
-                    cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[5, i].Value.ToString() + "','SALIDA','APARTADO DE ARTICULO FOLIO: " + lblFolio.Text + "'," + exis + ",'" + existencia + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                    cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[5, i].Value.ToString() + "','SALIDA','APARTADO DE ARTICULO FOLIO: " + lblFolio.Text + "'," + exis + ",'" + existencia + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');", conectar);
                     cmd.ExecuteNonQuery();
                 }
 
@@ -909,10 +909,10 @@ namespace JaegerSoft
             double restanteGuardar = granTotal - abonoGuardar;
 
             // Inserción maestra a Apartados usando el Total Real
-            cmd = new SqlCommand("insert into Apartados (MontoTotal,Fecha,Folio,IdCliente,NombreCliente,Abono,Restante) values('" + granTotal + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + lblFolio.Text + "','" + idCliente + "','" + lblCliente.Text + "','" + abonoGuardar + "','" + restanteGuardar + "');", conectar);
+            cmd = new SqlCommand("insert into Apartados (MontoTotal,Fecha,Folio,IdCliente,NombreCliente,Abono,Restante) values('" + granTotal + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + lblFolio.Text + "','" + idCliente + "','" + lblCliente.Text + "','" + abonoGuardar + "','" + restanteGuardar + "');", conectar);
             cmd.ExecuteNonQuery();
 
-            cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono del apartado con folio " + lblFolio.Text + "','" + abonoGuardar + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + cmbPago.Text + "');", conectar);
+            cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono del apartado con folio " + lblFolio.Text + "','" + abonoGuardar + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + cmbPago.Text + "');", conectar);
             cmd.ExecuteNonQuery();
 
             // -- ÁREA DE IMPRESIÓN --

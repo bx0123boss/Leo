@@ -286,7 +286,7 @@ namespace JaegerSoft
 
                             if (manejaInventario)
                             {
-                                cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','ENTRADA','CANCELACION DE VENTA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                                cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','ENTRADA','CANCELACION DE VENTA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');", conectar);
                                 cmd.ExecuteNonQuery();
                             }
                         }
@@ -320,7 +320,7 @@ namespace JaegerSoft
                 {
                     foreach (var pago in pagosARevertir)
                     {
-                        cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "'," + (pago.Item1 * -1) + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + pago.Item2 + "');", conectar);
+                        cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "'," + (pago.Item1 * -1) + ",'" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + pago.Item2 + "');", conectar);
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -332,7 +332,7 @@ namespace JaegerSoft
                         metodoReembolso = "01=EFECTIVO";
                     }
 
-                    cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "',-" + monto + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' ,'" + metodoReembolso + "');", conectar);
+                    cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "',-" + monto + ",'" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "' ,'" + metodoReembolso + "');", conectar);
                     cmd.ExecuteNonQuery();
                 }
 

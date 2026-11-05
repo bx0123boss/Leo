@@ -134,7 +134,7 @@ namespace JaegerSoft
                     string unidad = row.Cells["Unidad"].Value?.ToString() ?? "";
                     string strIVA = tieneIVA ? "IVA(16)" : "NO INCLUYE IVA";
                     bool manejaInventario = Convert.ToBoolean(row.Cells["ManejaInventario"].Value ?? false);
-                    string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                    string fechaActual = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
                     // -------------------------------------------------------------
                     // 1. INSERCIÓN EN LA TABLA INVENTARIO

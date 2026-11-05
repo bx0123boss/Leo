@@ -166,7 +166,7 @@ public class ProduccionService
         if (req.InsumosAfectados == null || req.InsumosAfectados.Count == 0)
             return (false, "No se encontraron insumos a descontar para este producto.", "");
 
-        string fechaStr = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+        string fechaStr = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         string folioLote = "LOT-" + DateTime.Now.ToString("yyyyMMddHHmmss");
 
         try

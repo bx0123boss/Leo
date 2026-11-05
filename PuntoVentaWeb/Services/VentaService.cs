@@ -222,7 +222,7 @@ public class VentaService
         if (req.Items == null || req.Items.Count == 0)
             return (false, "El carrito no tiene productos.", "");
 
-        string fechaStr = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+        string fechaStr = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
         try
         {
