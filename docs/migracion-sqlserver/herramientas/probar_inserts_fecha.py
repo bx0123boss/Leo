@@ -35,9 +35,8 @@ FORMAS = [
     ("Abonos", ["Abono", "idCliente", "Fecha", "Nombre", "Folio", "Estatus"]),
     ("AbonosApartado", ["Abono", "idCliente", "Fecha", "Folio"]),
     ("AbonosProveedores", ["idProveedor", "Fecha", "Monto", "AdeudoActual"]),
-    ("AbonosProveedores", ["idProveedor", "Fecha", "Monto", "Unidad", "ValorUnidad", "ValorPesos", "AdeudoActual"]),
     ("Apartados", ["MontoTotal", "Fecha", "Folio", "IdCliente", "NombreCliente", "Abono", "Restante"]),
-    ("Captura", ["IdProducto", "Cantidad", "Fecha"]),
+
     ("Compras", ["Fecha", "Folio", "Tipo"]),
     ("Compras2", ["Movimiento", "Fecha", "Capturo", "Relacion"]),
     ("ComprasC", ["FolioCompra", "IdProducto", "CantidadAnterior", "CantidadActual", "Producto", "Fecha"]),
