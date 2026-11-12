@@ -4,7 +4,6 @@ using PuntoVentaWeb.Services;
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(opciones =>
 {
-    // Servidor HTTP accesible desde la red local
     opciones.ListenAnyIP(5000);
 });
 // Add services to the container.

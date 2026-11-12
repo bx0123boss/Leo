@@ -46,7 +46,6 @@ namespace JaegerSoft
                 MessageBox.Show("Se ha editado la categoría con exito", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();
         }
-
         private void frmAgregarCategoria_Load(object sender, EventArgs e)
         {
             if (Editar)

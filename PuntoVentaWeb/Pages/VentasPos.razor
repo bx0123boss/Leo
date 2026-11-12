@@ -738,8 +738,8 @@
         }
         else
         {
-            textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
             montoRecibido = TotalCalculado;
+            textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
         }
     }
 
@@ -760,10 +760,14 @@
             await AbrirModalCliente();
             return;
         }
+        metodoPagoSeleccionado = "Efectivo";
+        metodoPagoAgregando = "Efectivo";
+        esPagoMixto = false;
+        pagosRealizados.Clear();
 
-        montoRecibido = TotalCalculado;
-        textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
-        montoMetodoAgregando = TotalCalculado;
+        montoRecibido = 0;
+        textoCapturaNumpad = "0";
+        montoMetodoAgregando = 0;
         abonoInicial = modoVenta == "APARTADO" ? Math.Round(TotalCalculado * 0.20, 2) : 0;
         mostrarCarrito = false;
         mostrarModalCobro = true;
@@ -1394,17 +1398,21 @@
             if (resultado.Exito)
             {
                 req.Folio = resultado.FolioFinal;
+                bool deseaImprimir = await JS.InvokeAsync<bool>("confirm", "¿Desea imprimir el ticket de esta venta?");
 
-                try
+                if (deseaImprimir)
                 {
-                    await ImpresionService.ImprimirTicketVentaAsync(req);
-                }
-                catch (Exception exPrint)
-                {
-                    System.Console.WriteLine($"Error al imprimir ticket: {exPrint.Message}");
-                    await MostrarToast("Venta guardada, pero falló la impresión.", "warning");
-                }
+                    try
+                    {
+                        await ImpresionService.ImprimirTicketVentaAsync(req);
+                    }
+                    catch (Exception exPrint)
+                    {
+                        System.Console.WriteLine($"Error al imprimir ticket: {exPrint.Message}");
+                        await MostrarToast("Venta guardada, pero falló la impresión.", "warning");
+                    }
 
+                }
                 await MostrarToast($"¡{TituloModo} registrada! Folio: {resultado.FolioFinal}", "success");
 
                 carrito.Clear();
@@ -1418,6 +1426,7 @@
 
                 todosProductos = await VentaService.ObtenerProductosAsync();
                 FiltrarProductos();
+
             }
             else
             {
@@ -1466,20 +1475,12 @@
         }
 
         if (pagosRealizados.ContainsKey(metodoPagoAgregando))
-        {
             pagosRealizados[metodoPagoAgregando] += montoMetodoAgregando;
-        }
         else
-        {
             pagosRealizados.Add(metodoPagoAgregando, montoMetodoAgregando);
-        }
 
-        double nuevoRestante = Math.Max(0, TotalCalculado - SumaPagosMixtos);
-
-        montoMetodoAgregando = nuevoRestante;
-        textoCapturaNumpad = nuevoRestante > 0
-            ? nuevoRestante.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)
-            : "0";
+        textoCapturaNumpad = "0";
+        montoMetodoAgregando = 0;
     }
 
     private void EliminarPagoMixto(string metodo)
@@ -1487,9 +1488,8 @@
         if (pagosRealizados.ContainsKey(metodo))
         {
             pagosRealizados.Remove(metodo);
-
-            montoMetodoAgregando = RestanteMixto;
-            textoCapturaNumpad = RestanteMixto.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+            textoCapturaNumpad = "0";
+            montoMetodoAgregando = 0;
         }
     }
 
@@ -1497,29 +1497,13 @@
     {
         esPagoMixto = (bool)(e.Value ?? false);
         pagosRealizados.Clear();
-
-        if (esPagoMixto)
-        {
-            montoMetodoAgregando = TotalCalculado;
-            textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
-        }
-        else
-        {
-            montoRecibido = TotalCalculado;
-            textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
-        }
+        textoCapturaNumpad = "0";
+        montoRecibido = 0;
+        montoMetodoAgregando = 0;
     }
-
     private void PresionarNumpad(string digito)
     {
-        bool esMontoSugerido = textoCapturaNumpad == TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)
-                            || textoCapturaNumpad == RestanteMixto.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
-
-        if (esMontoSugerido && digito != ".")
-        {
-            textoCapturaNumpad = digito;
-        }
-        else if (digito == ".")
+        if (digito == ".")
         {
             if (!textoCapturaNumpad.Contains("."))
                 textoCapturaNumpad += ".";
