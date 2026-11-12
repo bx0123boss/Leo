@@ -638,8 +638,8 @@
         }
         else
         {
-            textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
             montoRecibido = TotalCalculado;
+            textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
         }
     }
 
@@ -661,10 +661,14 @@
             await AbrirModalCliente();
             return;
         }
+        metodoPagoSeleccionado = "Efectivo";
+        metodoPagoAgregando = "Efectivo";
+        esPagoMixto = false;
+        pagosRealizados.Clear();
 
-        montoRecibido = TotalCalculado;
-        textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
-        montoMetodoAgregando = TotalCalculado;
+        montoRecibido = 0;
+        textoCapturaNumpad = "0";
+        montoMetodoAgregando = 0;
         abonoInicial = modoVenta == "APARTADO" ? Math.Round(TotalCalculado * 0.20, 2) : 0;
         mostrarCarrito = false;
         mostrarModalCobro = true;
@@ -1171,17 +1175,21 @@
             if (resultado.Exito)
             {
                 req.Folio = resultado.FolioFinal;
+                bool deseaImprimir = await JS.InvokeAsync<bool>("confirm", "¿Desea imprimir el ticket de esta venta?");
 
-                try
+                if (deseaImprimir)
                 {
-                    await ImpresionService.ImprimirTicketVentaAsync(req);
-                }
-                catch (Exception exPrint)
-                {
-                    System.Console.WriteLine($"Error al imprimir ticket: {exPrint.Message}");
-                    await MostrarToast("Venta guardada, pero falló la impresión.", "warning");
-                }
+                    try
+                    {
+                        await ImpresionService.ImprimirTicketVentaAsync(req);
+                    }
+                    catch (Exception exPrint)
+                    {
+                        System.Console.WriteLine($"Error al imprimir ticket: {exPrint.Message}");
+                        await MostrarToast("Venta guardada, pero falló la impresión.", "warning");
+                    }
 
+                }
                 await MostrarToast($"¡{TituloModo} registrada! Folio: {resultado.FolioFinal}", "success");
 
                 carrito.Clear();
@@ -1196,7 +1204,6 @@
                 todosProductos = await VentaService.ObtenerProductosAsync();
                 FiltrarProductos();
 
-                await JS.InvokeVoidAsync("focusBuscadorPOS");
             }
             else
             {
@@ -1233,7 +1240,7 @@
         StateHasChanged();
         await JS.InvokeVoidAsync("focusBuscadorPOS");
     }
-    // 1. Al presionar 'Agregar' en Pago Mixto
+
     private void AgregarPagoMixto()
     {
         if (montoMetodoAgregando <= 0) return;
@@ -1245,22 +1252,12 @@
         }
 
         if (pagosRealizados.ContainsKey(metodoPagoAgregando))
-        {
             pagosRealizados[metodoPagoAgregando] += montoMetodoAgregando;
-        }
         else
-        {
             pagosRealizados.Add(metodoPagoAgregando, montoMetodoAgregando);
-        }
 
-        // ⭐ CLAVE UX: Autocalcular el restante actualizado inmediatamente
-        double nuevoRestante = Math.Max(0, TotalCalculado - SumaPagosMixtos);
-
-        // Si queda saldo pendiente, el Numpad propone el restante exacto; si ya es 0, propone 0
-        montoMetodoAgregando = nuevoRestante;
-        textoCapturaNumpad = nuevoRestante > 0
-            ? nuevoRestante.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)
-            : "0";
+        textoCapturaNumpad = "0";
+        montoMetodoAgregando = 0;
     }
 
     // 2. Al eliminar un pago de la lista de Pago Mixto
@@ -1269,10 +1266,8 @@
         if (pagosRealizados.ContainsKey(metodo))
         {
             pagosRealizados.Remove(metodo);
-
-            // ⭐ Recalcular automáticamente el nuevo restante para la siguiente captura
-            montoMetodoAgregando = RestanteMixto;
-            textoCapturaNumpad = RestanteMixto.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+            textoCapturaNumpad = "0";
+            montoMetodoAgregando = 0;
         }
     }
 
@@ -1281,34 +1276,13 @@
     {
         esPagoMixto = (bool)(e.Value ?? false);
         pagosRealizados.Clear();
-
-        if (esPagoMixto)
-        {
-            // En mixto inicia sugiriendo el total/restante
-            montoMetodoAgregando = TotalCalculado;
-            textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
-        }
-        else
-        {
-            // En pago simple inicia con el valor total exacto
-            montoRecibido = TotalCalculado;
-            textoCapturaNumpad = TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
-        }
+        textoCapturaNumpad = "0";
+        montoRecibido = 0;
+        montoMetodoAgregando = 0;
     }
-
-    // 4. Mejorar la entrada de digitos en Numpad para reemplazo inteligente
     private void PresionarNumpad(string digito)
     {
-        // Si el texto actual coincide con el valor exacto del restante o total,
-        // al tocar el primer número se sobreescribe para evitar concatenar (ej: no convertir 20 en 205)
-        bool esMontoSugerido = textoCapturaNumpad == TotalCalculado.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)
-                            || textoCapturaNumpad == RestanteMixto.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
-
-        if (esMontoSugerido && digito != ".")
-        {
-            textoCapturaNumpad = digito;
-        }
-        else if (digito == ".")
+        if (digito == ".")
         {
             if (!textoCapturaNumpad.Contains("."))
                 textoCapturaNumpad += ".";
