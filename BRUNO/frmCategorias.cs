@@ -34,6 +34,7 @@ namespace JaegerSoft
             EstilizarBotonAdvertencia(button2);
             EstilizarBotonAdvertencia(button3);
             EstilizarDataGridView(dataGridView1);
+            CargarCategorias();
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
@@ -45,7 +46,7 @@ namespace JaegerSoft
             if (conectar.State == ConnectionState.Closed)
                 conectar.Open();
 
-            da = new OleDbDataAdapter("SELECT * FROM Categorias ORDER BY Nombre", conectar);
+            da = new SqlDataAdapter("SELECT * FROM Categorias ORDER BY Nombre", conectar);
             da.Fill(ds, "Id");
 
             dataGridView1.DataSource = ds.Tables["Id"];
@@ -97,18 +98,6 @@ namespace JaegerSoft
                 if (conectar.State == ConnectionState.Open)
                     conectar.Close();
             }
-        }
-        private void button2_Click(object sender, EventArgs e)
-        {
-            if (dataGridView1.CurrentRow == null) return;
-
-            frmAgregarCategoria CAT = new frmAgregarCategoria();
-            CAT.Editar = true;
-            CAT.Id = Convert.ToInt32(dataGridView1[0, dataGridView1.CurrentRow.Index].Value);
-            CAT.txtNombre.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-            CAT.Nombre = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
-            CAT.ShowDialog();
-            CargarCategorias();
         }
 
         private void button2_Click(object sender, EventArgs e)
