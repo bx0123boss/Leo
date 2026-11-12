@@ -1,9 +1,9 @@
-﻿using LibPrintTicket;
+using LibPrintTicket;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,9 +14,9 @@ namespace JaegerSoft
 {
     public partial class frmAbonoApartado : frmBase
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);             
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);             
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlCommand cmd;
         public double abonado;
         public int idCliente;
         public frmAbonoApartado()
@@ -85,11 +85,11 @@ namespace JaegerSoft
             ticket.AddItem("", "ADEUDO", "$" + txtAdeudo.Text);
             ticket.AddItem("", "ABONO", "$" + txtAbono.Text);
             ticket.AddItem("", "S. INSOLUTO", "$" + txtRestante.Text);
-            cmd = new OleDbCommand("UPDATE Apartados set Restante='" + txtRestante.Text + "', Abono='"+abonado+"' where Id=" + lblID.Text + ";", conectar);
+            cmd = new SqlCommand("UPDATE Apartados set Restante='" + txtRestante.Text + "', Abono='"+abonado+"' where Id=" + lblID.Text + ";", conectar);
             cmd.ExecuteNonQuery();
-            cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono a cuenta de Apartado con Folio:  " + lblFolio.Text + "','" + txtAbono.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+cmbPago.Text+"');", conectar);
+            cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Abono a cuenta de Apartado con Folio:  " + lblFolio.Text + "','" + txtAbono.Text + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','"+cmbPago.Text+"');", conectar);
             cmd.ExecuteNonQuery();
-            cmd = new OleDbCommand("insert into AbonosApartado(Abono,idCliente,Fecha,Folio) Values('" + txtAbono.Text + "','" + idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+lblFolio.Text+"');", conectar);
+            cmd = new SqlCommand("insert into AbonosApartado(Abono,idCliente,Fecha,Folio) Values('" + txtAbono.Text + "','" + idCliente + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','"+lblFolio.Text+"');", conectar);
             cmd.ExecuteNonQuery();
             ticket.PrintTicket(Conexion.impresora);
             MessageBox.Show("Se ha abonado con exito", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);

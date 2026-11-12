@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -15,9 +15,9 @@ namespace JaegerSoft
     public partial class frmDetallesPoliza : Form
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
+        SqlCommand cmd;
         double existenciasTotales = 0;
         public string Id;
         public int que;
@@ -33,10 +33,10 @@ namespace JaegerSoft
             conectar.Open();
             if (que == 2)
             {
-                da = new OleDbDataAdapter("select * from productosPoliza2 where IdPoliza='" + Id + "';", conectar);
+                da = new SqlDataAdapter("select * from productosPoliza2 where IdPoliza='" + Id + "';", conectar);
             }
             else
-                da = new OleDbDataAdapter("select * from productosPoliza where FolioPoliza='" + lblFolio.Text + "';", conectar);
+                da = new SqlDataAdapter("select * from productosPoliza where FolioPoliza='" + lblFolio.Text + "';", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[7].Visible = false;
@@ -62,27 +62,27 @@ namespace JaegerSoft
              {
                  for (int i = 0; i < dataGridView1.RowCount; i++)
                  {
-                     cmd = new OleDbCommand("insert into productosPoliza2 Values('" + dataGridView1[0, i].Value + "','" + dataGridView1[1, i].Value + "','" + dataGridView1[2, i].Value + "','" + dataGridView1[3, i].Value + "','" + dataGridView1[4, i].Value + "','" + dataGridView1[5, i].Value + "','" + dataGridView1[6, i].Value + "','" + Id + "');", conectar);
+                     cmd = new SqlCommand("insert into productosPoliza2 Values('" + dataGridView1[0, i].Value + "','" + dataGridView1[1, i].Value + "','" + dataGridView1[2, i].Value + "','" + dataGridView1[3, i].Value + "','" + dataGridView1[4, i].Value + "','" + dataGridView1[5, i].Value + "','" + dataGridView1[6, i].Value + "','" + Id + "');", conectar);
                      cmd.ExecuteNonQuery();
 
-                     cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[0, i].Value.ToString() + "';", conectar);
-                     OleDbDataReader reader = cmd.ExecuteReader();
+                     cmd = new SqlCommand("select * from Inventario where Id='" + dataGridView1[0, i].Value.ToString() + "';", conectar);
+                     SqlDataReader reader = cmd.ExecuteReader();
                      if (reader.Read())
                      {
                          existenciasTotales = Convert.ToDouble(Convert.ToString(reader[4].ToString())) - Convert.ToDouble(dataGridView1[2, i].Value.ToString());
-                         cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[0, i].Value.ToString() + "';", conectar);
+                         cmd = new SqlCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[0, i].Value.ToString() + "';", conectar);
                          cmd.ExecuteNonQuery();
-                         cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','SALIDA','CANCELACION DE COMPRA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                         cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','SALIDA','CANCELACION DE COMPRA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');", conectar);
                          cmd.ExecuteNonQuery();
                      }
                  }
-                 cmd = new OleDbCommand("insert into Poliza2 Values('" + lblFolio.Text + "','" + lblFechaPoli.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "', '" + lblMonto.Text + "','" + lblExtra.Text + "','" + Id + "');", conectar);
+                 cmd = new SqlCommand("insert into Poliza2 Values('" + lblFolio.Text + "','" + lblFechaPoli.Text + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', '" + lblMonto.Text + "','" + lblExtra.Text + "','" + Id + "');", conectar);
                  cmd.ExecuteNonQuery();
-                 //cmd = new OleDbCommand("delete from productosPoliza where FolioPoliza='" + dataGridView1[7, 0].Value.ToString() + "';", conectar);
+                 //cmd = new SqlCommand("delete from productosPoliza where FolioPoliza='" + dataGridView1[7, 0].Value.ToString() + "';", conectar);
                  //cmd.ExecuteNonQuery();
-                 cmd = new OleDbCommand("delete from Poliza where Folio='" + lblFolio.Text + "';", conectar);
+                 cmd = new SqlCommand("delete from Poliza where Folio='" + lblFolio.Text + "';", conectar);
                  cmd.ExecuteNonQuery();
-                 cmd = new OleDbCommand("delete from productosPoliza where FolioPoliza='" + lblFolio.Text + "';", conectar);
+                 cmd = new SqlCommand("delete from productosPoliza where FolioPoliza='" + lblFolio.Text + "';", conectar);
                  cmd.ExecuteNonQuery();
                  MessageBox.Show("Poliza eliminada correctamente!", "Poliza", MessageBoxButtons.OK, MessageBoxIcon.Information);
                  this.Close();

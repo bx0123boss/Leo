@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -24,7 +24,7 @@ namespace JaegerSoft
             dateTimePicker2.Value = DateTime.Now;
 
             ConfigurarDisenoGrafico(chart1, "TENDENCIA DE VENTAS EN CAJA (+)");
-            ConfigurarDisenoGrafico(chart2, "COSTO DE INVERSIÓN VENDIDA (-)");
+            ConfigurarDisenoGrafico(chart2, "COSTO DE INVERSIï¿½N VENDIDA (-)");
             ConfigurarDisenoGrafico(chart3, "UTILIDAD NETA OBTENIDA (+)");
         }
 
@@ -35,31 +35,31 @@ namespace JaegerSoft
             DateTime fechaInicio = dateTimePicker1.Value.Date;
             DateTime fechaFin = dateTimePicker2.Value.Date.AddDays(1).AddSeconds(-1);
 
-            // 1. OBTENER HISTORIAL DE CORTES PARA GRÁFICAS (Usando ?)
-            string queryCortes = "SELECT * FROM histocortes WHERE Fecha >= ? AND Fecha <= ? ORDER BY Fecha ASC";
+            // 1. OBTENER HISTORIAL DE CORTES PARA GRï¿½FICAS (Usando ?)
+            string queryCortes = "SELECT * FROM histocortes WHERE Fecha >= @fInicio AND Fecha <= @fFin ORDER BY Fecha ASC";
 
-            using (OleDbConnection conectar = new OleDbConnection(Conexion.CadCon))
+            using (SqlConnection conectar = new SqlConnection(Conexion.CadSQL))
             {
                 conectar.Open();
-                using (OleDbCommand cmd = new OleDbCommand(queryCortes, conectar))
+                using (SqlCommand cmd = new SqlCommand(queryCortes, conectar))
                 {
-                    cmd.Parameters.AddWithValue("?", fechaInicio);
-                    cmd.Parameters.AddWithValue("?", fechaFin);
+                    cmd.Parameters.AddWithValue("@fInicio", fechaInicio);
+                    cmd.Parameters.AddWithValue("@fFin", fechaFin);
 
-                    using (OleDbDataAdapter da = new OleDbDataAdapter(cmd))
+                    using (SqlDataAdapter da = new SqlDataAdapter(cmd))
                     {
                         da.Fill(ds, "Id");
                     }
                 }
 
                 // 2. OBTENER TOTAL DE TICKETS PARA EL TICKET PROMEDIO (Usando ?)
-                string queryTickets = "SELECT COUNT(Id) AS NumTickets FROM Ventas WHERE Fecha >= ? AND Fecha <= ? AND Estatus = 'COBRADO'";
+                string queryTickets = "SELECT COUNT(Id) AS NumTickets FROM Ventas WHERE Fecha >= @fInicio AND Fecha <= @fFin AND Estatus = 'COBRADO'";
                 int numTickets = 0;
 
-                using (OleDbCommand cmdTickets = new OleDbCommand(queryTickets, conectar))
+                using (SqlCommand cmdTickets = new SqlCommand(queryTickets, conectar))
                 {
-                    cmdTickets.Parameters.AddWithValue("?", fechaInicio);
-                    cmdTickets.Parameters.AddWithValue("?", fechaFin);
+                    cmdTickets.Parameters.AddWithValue("@fInicio", fechaInicio);
+                    cmdTickets.Parameters.AddWithValue("@fFin", fechaFin);
 
                     object result = cmdTickets.ExecuteScalar();
                     if (result != DBNull.Value && result != null)
@@ -69,19 +69,19 @@ namespace JaegerSoft
                 }
 
                 // =========================================================================
-                // 3. CONSULTA Y CÁLCULO DE GASTOS DETALLADOS POR PERIODO (Usando ?)
+                // 3. CONSULTA Y Cï¿½LCULO DE GASTOS DETALLADOS POR PERIODO (Usando ?)
                 // =========================================================================
                 decimal totalGastos = 0m;
 
-                string queryGastos = "SELECT Total FROM GastosDetallados WHERE Fecha >= ? AND Fecha <= ?";
+                string queryGastos = "SELECT Total FROM GastosDetallados WHERE Fecha >= @fInicio AND Fecha <= @fFin";
 
-                using (OleDbCommand cmdGastos = new OleDbCommand(queryGastos, conectar))
+                using (SqlCommand cmdGastos = new SqlCommand(queryGastos, conectar))
                 {
-                    // Agregamos explícitamente el tipo OleDbType.Date y en el orden correcto
-                    cmdGastos.Parameters.Add("@fechaInicio", OleDbType.Date).Value = fechaInicio;
-                    cmdGastos.Parameters.Add("@fechaFin", OleDbType.Date).Value = fechaFin;
+                    // Agregamos explï¿½citamente el tipo SqlDbType.DateTime y en el orden correcto
+                    cmdGastos.Parameters.Add("@fechaInicio", SqlDbType.DateTime).Value = fechaInicio;
+                    cmdGastos.Parameters.Add("@fechaFin", SqlDbType.DateTime).Value = fechaFin;
 
-                    using (OleDbDataReader readerGastos = cmdGastos.ExecuteReader())
+                    using (SqlDataReader readerGastos = cmdGastos.ExecuteReader())
                     {
                         while (readerGastos.Read())
                         {
@@ -122,7 +122,7 @@ namespace JaegerSoft
                 chart3.Series.Clear();
 
                 Series serieVentas = chart1.Series.Add("Ventas");
-                Series serieInversion = chart2.Series.Add("Inversión");
+                Series serieInversion = chart2.Series.Add("Inversiï¿½n");
                 Series serieUtilidad = chart3.Series.Add("Utilidad Neta");
 
                 ConfigurarSerieBarras(serieVentas, Color.MediumSeaGreen);
@@ -154,7 +154,7 @@ namespace JaegerSoft
                     granTotalVentas += ventaDia;
                     granTotalInversion += inversionDia;
 
-                    // Restamos el gasto promedio diario de la utilidad del día
+                    // Restamos el gasto promedio diario de la utilidad del dï¿½a
                     decimal utilidadNetaDia = utilidadDia - gastoDiarioParaGrafica;
                     granTotalUtilidad += utilidadNetaDia;
 

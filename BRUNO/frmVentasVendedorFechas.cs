@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -15,9 +15,9 @@ namespace JaegerSoft
     public partial class frmVentasVendedorFechas : frmBase
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbDataAdapter da;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlDataAdapter da;
 
         public frmVentasVendedorFechas()
         {
@@ -28,12 +28,12 @@ namespace JaegerSoft
         {
 
             ds = new DataSet();
-            da = new OleDbDataAdapter("SELECT distinct  usuario AS Vendedor, '0' as Total FROM VentasCajero where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker2.Value.Month.ToString() + "/" + dateTimePicker2.Value.Day.ToString() + "/" + dateTimePicker2.Value.Year.ToString() + " 23:59:59# ;", conectar);
+            da = new SqlDataAdapter("SELECT distinct  usuario AS Vendedor, '0' as Total FROM VentasCajero where Fecha >='" + dateTimePicker1.Value.ToString("yyyy-MM-dd") + " 00:00:00' and Fecha <='" + dateTimePicker2.Value.ToString("yyyy-MM-dd") + " 23:59:59' ;", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
 
             ds = new DataSet();
-            da = new OleDbDataAdapter("SELECT usuario, total FROM VentasCajero where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker2.Value.Month.ToString() + "/" + dateTimePicker2.Value.Day.ToString() + "/" + dateTimePicker2.Value.Year.ToString() + " 23:59:59# ;", conectar);
+            da = new SqlDataAdapter("SELECT usuario, total FROM VentasCajero where Fecha >='" + dateTimePicker1.Value.ToString("yyyy-MM-dd") + " 00:00:00' and Fecha <='" + dateTimePicker2.Value.ToString("yyyy-MM-dd") + " 23:59:59' ;", conectar);
             da.Fill(ds, "Id");
             dataGridView3.DataSource = ds.Tables["Id"];
             //data1 es vendedor

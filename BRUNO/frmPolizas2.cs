@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,8 +14,8 @@ namespace JaegerSoft
     public partial class frmPolizas2 : Form
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
 
         public frmPolizas2()
         {
@@ -26,7 +26,7 @@ namespace JaegerSoft
         {
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from Poliza2;", conectar);
+            da = new SqlDataAdapter("select * from Poliza2;", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
         }
@@ -37,7 +37,7 @@ namespace JaegerSoft
             if (textBox1.Text == "")
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Poliza2 ORDER BY Folio;", conectar);
+                da = new SqlDataAdapter("select * from Poliza2 ORDER BY Folio;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 //dataGridView1.Columns[0].Visible = false;
@@ -46,7 +46,7 @@ namespace JaegerSoft
             {
 
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Poliza2 where Folio LIKE '%" + textBox1.Text + "%' ORDER BY Folio ;", conectar);
+                da = new SqlDataAdapter("select * from Poliza2 where Folio LIKE '%" + textBox1.Text + "%' ORDER BY Folio ;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 //dataGridView1.Columns[0].Visible = false;
@@ -56,7 +56,7 @@ namespace JaegerSoft
         private void dateTimePicker1_CloseUp(object sender, EventArgs e)
         {
             ds = new DataSet();
-            da = new OleDbDataAdapter("Select * from Poliza2 where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59#;", conectar);
+            da = new SqlDataAdapter("Select * from Poliza2 where Fecha >='" + dateTimePicker1.Value.ToString("yyyy-MM-dd") + " 00:00:00' and Fecha <='" + dateTimePicker1.Value.ToString("yyyy-MM-dd") + " 23:59:59';", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
         }

@@ -1,9 +1,9 @@
-﻿using LibPrintTicket;
+using LibPrintTicket;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,11 +14,11 @@ namespace JaegerSoft
 {
     public partial class frmServicios : Form
     {
-        OleDbCommand cmd;
+        SqlCommand cmd;
         private DataSet ds;
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        OleDbDataAdapter da;
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL); 
+        SqlDataAdapter da;
 
         public frmServicios()
         {
@@ -29,7 +29,7 @@ namespace JaegerSoft
         {
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from Servicios;", conectar);
+            da = new SqlDataAdapter("select * from Servicios;", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
@@ -41,7 +41,7 @@ namespace JaegerSoft
             if (textBox1.Text == "")
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Servicios;", conectar);
+                da = new SqlDataAdapter("select * from Servicios;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 dataGridView1.Columns[0].Visible = false;
@@ -51,7 +51,7 @@ namespace JaegerSoft
             {
 
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Servicios where Folio LIKE '%" + textBox1.Text + "%';", conectar);
+                da = new SqlDataAdapter("select * from Servicios where Folio LIKE '%" + textBox1.Text + "%';", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 dataGridView1.Columns[0].Visible = false;
@@ -64,7 +64,7 @@ namespace JaegerSoft
             if (textBox2.Text == "")
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Servicios;", conectar);
+                da = new SqlDataAdapter("select * from Servicios;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 dataGridView1.Columns[0].Visible = false;
@@ -74,7 +74,7 @@ namespace JaegerSoft
             {
 
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Servicios where NombreCliente LIKE '%" + textBox2.Text + "%';", conectar);
+                da = new SqlDataAdapter("select * from Servicios where NombreCliente LIKE '%" + textBox2.Text + "%';", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 dataGridView1.Columns[0].Visible = false;
@@ -85,7 +85,7 @@ namespace JaegerSoft
         private void dateTimePicker1_ValueChanged(object sender, EventArgs e)
         {
             ds = new DataSet();
-            da = new OleDbDataAdapter("Select * from Servicios where Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59#;", conectar);
+            da = new SqlDataAdapter("Select * from Servicios where Fecha >='" + dateTimePicker1.Value.ToString("yyyy-MM-dd") + " 00:00:00' and Fecha <='" + dateTimePicker1.Value.ToString("yyyy-MM-dd") + " 23:59:59';", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
@@ -125,9 +125,9 @@ namespace JaegerSoft
                 ticket.AddItem("1", dataGridView1[4, dataGridView1.CurrentRow.Index].Value.ToString(), "$" + dataGridView1[9, dataGridView1.CurrentRow.Index].Value.ToString());
                 ticket.AddTotal("ABONADO", "$" + dataGridView1[13, dataGridView1.CurrentRow.Index].Value.ToString());
                 ticket.AddTotal("RESTANTE","$"+restante);                
-                cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora) Values('COBRO DE SERVICIO FOLIO " + dataGridView1[12, dataGridView1.CurrentRow.Index].Value.ToString() + "','" + restante + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora) Values('COBRO DE SERVICIO FOLIO " + dataGridView1[12, dataGridView1.CurrentRow.Index].Value.ToString() + "','" + restante + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');", conectar);
                 cmd.ExecuteNonQuery();
-                cmd = new OleDbCommand("delete from Servicios where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
+                cmd = new SqlCommand("delete from Servicios where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
                 cmd.ExecuteNonQuery();
                 ticket.AddFooterLine("1.-TODO SERVICIO DE REPARACION REQUIERE UN 50%.");
                 ticket.AddFooterLine("2.-NO SE ACEPTAN CANCELACIONES, NI SE HARAN DEVOLUCIONES DESPUES DE ESTAR PROCESADO EL TRABAJO SOLICITADO.");
@@ -138,7 +138,7 @@ namespace JaegerSoft
                 //ticket.PrintTicket(Conexion.impresora);
                 MessageBox.Show("Se ha cobrado el servicio con exito", "COBRADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Servicios;", conectar);
+                da = new SqlDataAdapter("select * from Servicios;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 dataGridView1.Columns[0].Visible = false;

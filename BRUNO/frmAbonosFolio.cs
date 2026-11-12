@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,15 +7,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 
 namespace JaegerSoft
 {
     public partial class frmAbonosFolio : frmBase
     {   
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
 
         public frmAbonosFolio()
         {
@@ -26,7 +26,7 @@ namespace JaegerSoft
         {
             conectar.Open();
             ds = new DataSet();
-            da = new OleDbDataAdapter("select Id,Abono,idCliente,Fecha,Folio from Abonos where Folio='" + lblFolio.Text + "';", conectar);
+            da = new SqlDataAdapter("select Id,Abono,idCliente,Fecha,Folio from Abonos where Folio='" + lblFolio.Text + "';", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;

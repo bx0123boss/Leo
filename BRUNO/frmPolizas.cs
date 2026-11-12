@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -15,9 +15,9 @@ namespace JaegerSoft
     public partial class frmPolizas : frmBase
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
+        SqlCommand cmd;
         public String usuario = "";
         public int idProveedor = 0;
         public frmPolizas()
@@ -30,9 +30,9 @@ namespace JaegerSoft
             ds = new DataSet();
             conectar.Open();
             if(idProveedor!=0 )
-                da = new OleDbDataAdapter("SELECT P.Folio, P.Fecha, P.FechaCaptura, P.CostoTotal, P.CostoExtra, P.Id, P.IdProv, P.Proveedor, P.IVA, P.Total, P.IdAlmacen, IIF(P.IdAlmacen IS NULL OR P.IdAlmacen = 0, 'Almacén Principal (Bodega)', A.Nombre) AS [Almacén Destino] FROM Poliza P LEFT JOIN Almacenes A ON P.IdAlmacen = A.Id where P.IdProv = '"+idProveedor+"'", conectar);
+                da = new SqlDataAdapter("SELECT P.Folio, P.Fecha, P.FechaCaptura, P.CostoTotal, P.CostoExtra, P.Id, P.IdProv, P.Proveedor, P.IVA, P.Total, P.IdAlmacen, IIF(P.IdAlmacen IS NULL OR P.IdAlmacen = 0, 'Almacén Principal (Bodega)', A.Nombre) AS [Almacén Destino] FROM Poliza P LEFT JOIN Almacenes A ON P.IdAlmacen = A.Id where P.IdProv = '"+idProveedor+"'", conectar);
             else
-                da = new OleDbDataAdapter("SELECT P.Folio, P.Fecha, P.FechaCaptura, P.CostoTotal, P.CostoExtra, P.Id, P.IdProv, P.Proveedor, P.IVA, P.Total, P.IdAlmacen, IIF(P.IdAlmacen IS NULL OR P.IdAlmacen = 0, 'Almacén Principal (Bodega)', A.Nombre) AS [Almacén Destino] FROM Poliza P LEFT JOIN Almacenes A ON P.IdAlmacen = A.Id where P.Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and P.Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59#;", conectar);
+                da = new SqlDataAdapter("SELECT P.Folio, P.Fecha, P.FechaCaptura, P.CostoTotal, P.CostoExtra, P.Id, P.IdProv, P.Proveedor, P.IVA, P.Total, P.IdAlmacen, IIF(P.IdAlmacen IS NULL OR P.IdAlmacen = 0, 'Almacén Principal (Bodega)', A.Nombre) AS [Almacén Destino] FROM Poliza P LEFT JOIN Almacenes A ON P.IdAlmacen = A.Id where P.Fecha >='" + dateTimePicker1.Value.ToString("yyyy-MM-dd") + " 00:00:00' and P.Fecha <='" + dateTimePicker1.Value.ToString("yyyy-MM-dd") + " 23:59:59';", conectar);
 
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
@@ -54,7 +54,7 @@ namespace JaegerSoft
             frmAgregarPoliza add = new frmAgregarPoliza();
             add.ShowDialog();
             ds = new DataSet();
-            da = new OleDbDataAdapter("SELECT P.Folio, P.Fecha, P.FechaCaptura, P.CostoTotal, P.CostoExtra, P.Id, P.IdProv, P.Proveedor, P.IVA, P.Total, P.IdAlmacen, IIF(P.IdAlmacen IS NULL OR P.IdAlmacen = 0, 'Almacén Principal (Bodega)', A.Nombre) AS [Almacén Destino] FROM Poliza P LEFT JOIN Almacenes A ON P.IdAlmacen = A.Id ORDER BY P.Folio;", conectar);
+            da = new SqlDataAdapter("SELECT P.Folio, P.Fecha, P.FechaCaptura, P.CostoTotal, P.CostoExtra, P.Id, P.IdProv, P.Proveedor, P.IVA, P.Total, P.IdAlmacen, IIF(P.IdAlmacen IS NULL OR P.IdAlmacen = 0, 'Almacén Principal (Bodega)', A.Nombre) AS [Almacén Destino] FROM Poliza P LEFT JOIN Almacenes A ON P.IdAlmacen = A.Id ORDER BY P.Folio;", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
         }
@@ -64,7 +64,7 @@ namespace JaegerSoft
             if (textBox1.Text == "")
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("SELECT P.Folio, P.Fecha, P.FechaCaptura, P.CostoTotal, P.CostoExtra, P.Id, P.IdProv, P.Proveedor, P.IVA, P.Total, P.IdAlmacen, IIF(P.IdAlmacen IS NULL OR P.IdAlmacen = 0, 'Almacén Principal (Bodega)', A.Nombre) AS [Almacén Destino] FROM Poliza P LEFT JOIN Almacenes A ON P.IdAlmacen = A.Id ORDER BY P.Folio;", conectar);
+                da = new SqlDataAdapter("SELECT P.Folio, P.Fecha, P.FechaCaptura, P.CostoTotal, P.CostoExtra, P.Id, P.IdProv, P.Proveedor, P.IVA, P.Total, P.IdAlmacen, IIF(P.IdAlmacen IS NULL OR P.IdAlmacen = 0, 'Almacén Principal (Bodega)', A.Nombre) AS [Almacén Destino] FROM Poliza P LEFT JOIN Almacenes A ON P.IdAlmacen = A.Id ORDER BY P.Folio;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
             }
@@ -72,7 +72,7 @@ namespace JaegerSoft
             {
 
                 ds = new DataSet();
-                da = new OleDbDataAdapter("SELECT P.Folio, P.Fecha, P.FechaCaptura, P.CostoTotal, P.CostoExtra, P.Id, P.IdProv, P.Proveedor, P.IVA, P.Total, P.IdAlmacen, IIF(P.IdAlmacen IS NULL OR P.IdAlmacen = 0, 'Almacén Principal (Bodega)', A.Nombre) AS [Almacén Destino] FROM Poliza P LEFT JOIN Almacenes A ON P.IdAlmacen = A.Id where P.Folio LIKE '%" + textBox1.Text + "%' ORDER BY P.Folio ;", conectar);
+                da = new SqlDataAdapter("SELECT P.Folio, P.Fecha, P.FechaCaptura, P.CostoTotal, P.CostoExtra, P.Id, P.IdProv, P.Proveedor, P.IVA, P.Total, P.IdAlmacen, IIF(P.IdAlmacen IS NULL OR P.IdAlmacen = 0, 'Almacén Principal (Bodega)', A.Nombre) AS [Almacén Destino] FROM Poliza P LEFT JOIN Almacenes A ON P.IdAlmacen = A.Id where P.Folio LIKE '%" + textBox1.Text + "%' ORDER BY P.Folio ;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
             }
@@ -82,7 +82,7 @@ namespace JaegerSoft
         private void dateTimePicker1_CloseUp(object sender, EventArgs e)
         {
             ds = new DataSet();
-            da = new OleDbDataAdapter("SELECT P.Folio, P.Fecha, P.FechaCaptura, P.CostoTotal, P.CostoExtra, P.Id, P.IdProv, P.Proveedor, P.IVA, P.Total, P.IdAlmacen, IIF(P.IdAlmacen IS NULL OR P.IdAlmacen = 0, 'Almacén Principal (Bodega)', A.Nombre) AS [Almacén Destino] FROM Poliza P LEFT JOIN Almacenes A ON P.IdAlmacen = A.Id where P.Fecha >=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 00:00:00# and P.Fecha <=#" + dateTimePicker1.Value.Month.ToString() + "/" + dateTimePicker1.Value.Day.ToString() + "/" + dateTimePicker1.Value.Year.ToString() + " 23:59:59#;", conectar);
+            da = new SqlDataAdapter("SELECT P.Folio, P.Fecha, P.FechaCaptura, P.CostoTotal, P.CostoExtra, P.Id, P.IdProv, P.Proveedor, P.IVA, P.Total, P.IdAlmacen, IIF(P.IdAlmacen IS NULL OR P.IdAlmacen = 0, 'Almacén Principal (Bodega)', A.Nombre) AS [Almacén Destino] FROM Poliza P LEFT JOIN Almacenes A ON P.IdAlmacen = A.Id where P.Fecha >='" + dateTimePicker1.Value.ToString("yyyy-MM-dd") + " 00:00:00' and P.Fecha <='" + dateTimePicker1.Value.ToString("yyyy-MM-dd") + " 23:59:59';", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             if (dataGridView1.Columns["IdAlmacen"] != null) dataGridView1.Columns["IdAlmacen"].Visible = false;

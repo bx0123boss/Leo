@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -13,8 +13,8 @@ namespace JaegerSoft
 {
     public partial class frmClaveVendedor : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlCommand cmd;
         public int Id { get; set; }
         public string Usuario { get; set; }
         public string Tipo { get; set; }
@@ -49,8 +49,8 @@ namespace JaegerSoft
             }
             else
             {
-                cmd = new OleDbCommand("select Id,Usuario from Usuarios where Contraseña='" + txtPass.Text + "';", conectar);
-                OleDbDataReader reader = cmd.ExecuteReader();
+                cmd = new SqlCommand("select Id,Usuario from Usuarios where Contraseña='" + txtPass.Text + "';", conectar);
+                SqlDataReader reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
                     Id = Convert.ToInt32(reader[0].ToString());

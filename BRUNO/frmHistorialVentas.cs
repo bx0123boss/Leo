@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -15,8 +15,8 @@ namespace JaegerSoft
     public partial class frmHistorialVentas : Form
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
         public double adeudo = 0;
 
         public frmHistorialVentas()
@@ -28,7 +28,7 @@ namespace JaegerSoft
         {
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from Ventas2 where Saldo > 0 and IdCliente=" + lblID.Text + " order by Fecha;", conectar);
+            da = new SqlDataAdapter("select * from Ventas2 where Saldo > 0 and IdCliente=" + lblID.Text + " order by Fecha;", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
@@ -79,7 +79,7 @@ namespace JaegerSoft
                     if (abonar.ShowDialog() == DialogResult.OK)
                     {
                         ds = new DataSet();
-                        da = new OleDbDataAdapter("select * from Ventas2 where Saldo > 0 and IdCliente=" + lblID.Text + " order by Fecha;", conectar);
+                        da = new SqlDataAdapter("select * from Ventas2 where Saldo > 0 and IdCliente=" + lblID.Text + " order by Fecha;", conectar);
                         da.Fill(ds, "Id");
                         dataGridView1.DataSource = ds.Tables["Id"];
                         dataGridView1.Columns[0].Visible = false;
@@ -96,7 +96,7 @@ namespace JaegerSoft
             if (checkBox1.Checked)
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Ventas2 where IdCliente=" + lblID.Text + " order by Fecha;", conectar);
+                da = new SqlDataAdapter("select * from Ventas2 where IdCliente=" + lblID.Text + " order by Fecha;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 dataGridView1.Columns[0].Visible = false;
@@ -106,7 +106,7 @@ namespace JaegerSoft
             else
             {
                 ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Ventas2 where Saldo > 0 and IdCliente=" + lblID.Text + " order by Fecha;", conectar);
+                da = new SqlDataAdapter("select * from Ventas2 where Saldo > 0 and IdCliente=" + lblID.Text + " order by Fecha;", conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
                 dataGridView1.Columns[0].Visible = false;

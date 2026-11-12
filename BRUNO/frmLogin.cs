@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
 namespace JaegerSoft
 {
-    public partial class frmLogin : frmBase 
+    public partial class frmLogin : frmBase
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlCommand cmd;
 
         public frmLogin()
         {
@@ -24,7 +24,7 @@ namespace JaegerSoft
         {
             EstilizarComboBox(this.txtUsuario);
             EstilizarTextBox(this.txtContraseña);
-            EstilizarBotonPrimario(this.button1); 
+            EstilizarBotonPrimario(this.button1);
             button2.FlatStyle = FlatStyle.Flat;
             button2.FlatAppearance.BorderSize = 0;
             label1.BackColor = Color.Transparent;
@@ -55,8 +55,8 @@ namespace JaegerSoft
 
             conectar.Open();
             DataTable dt = new DataTable();
-            cmd = new OleDbCommand("Select Id,Usuario from Usuarios;", conectar);
-            OleDbDataAdapter da = new OleDbDataAdapter(cmd);
+            cmd = new SqlCommand("Select Id,Usuario from Usuarios;", conectar);
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             txtUsuario.DisplayMember = "Usuario";
             txtUsuario.ValueMember = "Id";
@@ -67,6 +67,7 @@ namespace JaegerSoft
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             txtUsuario.Focus();
         }
+
         private void txtUsuario_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)Keys.Enter)
@@ -105,30 +106,15 @@ namespace JaegerSoft
                 this.Hide();
                 return;
             }
-            cmd = new OleDbCommand("select * from Fech where Id=1;", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                int caja = Convert.ToInt32(Convert.ToString(reader[1].ToString()));
-                if (caja == 0)
-                {
-                    cmd = new OleDbCommand("UPDATE Fech set Caja='1', Fecha='" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' where Id=1;", conectar);
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            reader.Close();
 
             // Validar Credenciales
-            cmd = new OleDbCommand("select * from Usuarios where Usuario='" + txtUsuario.Text + "' and Contraseña='" + txtContraseña.Text + "';", conectar);
-            reader = cmd.ExecuteReader();
+            cmd = new SqlCommand("select * from Usuarios where Usuario='" + txtUsuario.Text + "' and Contraseña='" + txtContraseña.Text + "';", conectar);
+            SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
-                string TIPO = reader[3].ToString() == "ADMINISTRADOR" ? "Admin" : "Invitado";
-
-                // (Asumiendo que ya validaste que el usuario y password son correctos)
-                // Aquí guardamos los datos básicos en la Sesión
-                Sesion.IdUsuario = reader["Id"].ToString(); // Sustituye "reader" por como se llame tu variable del Sql/OleDbDataReader
-                Sesion.NombreUsuario = txtUsuario.Text;     // O reader["Usuario"].ToString()
+                // Guardamos los datos básicos en la Sesión
+                Sesion.IdUsuario = reader["Id"].ToString();
+                Sesion.NombreUsuario = txtUsuario.Text;
 
                 // 1. Limpiamos cualquier permiso viejo por seguridad
                 Sesion.PermisosActuales.Clear();
@@ -136,15 +122,13 @@ namespace JaegerSoft
                 // 2. Traemos sus permisos asignados desde Access
                 try
                 {
-                    // Asumiendo que usas "conectar" como tu OleDbConnection ya abierta
                     string queryPermisos = "SELECT Permiso FROM PermisosUsuario WHERE IdUsuario = '" + Sesion.IdUsuario + "'";
-                    using (OleDbCommand cmdPermisos = new OleDbCommand(queryPermisos, conectar))
+                    using (SqlCommand cmdPermisos = new SqlCommand(queryPermisos, conectar))
                     {
-                        using (OleDbDataReader rdrPermisos = cmdPermisos.ExecuteReader())
+                        using (SqlDataReader rdrPermisos = cmdPermisos.ExecuteReader())
                         {
                             while (rdrPermisos.Read())
                             {
-                                // Metemos cada permiso a la mochila de la Sesión
                                 Sesion.PermisosActuales.Add(rdrPermisos["Permiso"].ToString().ToUpper());
                             }
                         }
@@ -154,25 +138,62 @@ namespace JaegerSoft
                 {
                     MessageBox.Show("Error al cargar permisos: " + exPermisos.Message);
                 }
-                frmPrincipal menu = new frmPrincipal();
-                menu.usuario = Sesion.NombreUsuario; 
-                menu.Show();
+
+                reader.Close(); // Cerramos el lector de usuarios antes de hacer otra consulta
+
+                // 3. Consultar el estado de inicio del sistema (caja abierta o cerrada)
+                using (SqlCommand cmdEstado = new SqlCommand("SELECT Caja FROM Fech WHERE Id = 1", conectar))
+                {
+                    using (SqlDataReader rdrEstado = cmdEstado.ExecuteReader())
+                    {
+                        if (rdrEstado.Read())
+                        {
+                            string estadoInicio = rdrEstado["Caja"].ToString();
+
+                            if (estadoInicio == "0")
+                            {
+                                // Abrir caja
+                                frmAbrirCaja caja = new frmAbrirCaja();
+                                caja.usuario = Sesion.NombreUsuario;
+                                // caja.id = idMesero; // Descomenta y asigna si tu formulario de caja lo requiere
+                                // caja.nombre = txtUsuario.Text; // Descomenta si lo requiere
+                                caja.ShowDialog();
+                                this.Hide();
+                            }
+                            else
+                            {
+                                // Ir al Form principal
+                                frmPrincipal principal = new frmPrincipal();
+                                principal.usuario = Sesion.NombreUsuario;
+                                // principal.id = idMesero; // Descomenta si lo requiere
+                                // principal.lblUser.Text = txtUsuario.Text; // Descomenta si lo requiere
+                                principal.Show();
+                                this.Hide();
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("No se encontró información del estado del sistema.",
+                                          "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                }
+
                 CerrarTeclado();
-                this.Hide();
             }
             else
             {
                 MessageBox.Show("Contraseña incorrecta, favor de verificar.", "Acceso Denegado", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 txtContraseña.Clear();
                 txtContraseña.Focus();
+                reader.Close();
             }
-            reader.Close();
         }
 
         private void ValidarCajaYLicencia()
         {
-            cmd = new OleDbCommand("select * from Fech where Id=2;", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
+            cmd = new SqlCommand("select * from Fech where Id=2;", conectar);
+            SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 int caja = Convert.ToInt32(Convert.ToString(reader[1].ToString()));
@@ -186,7 +207,7 @@ namespace JaegerSoft
                     DateTime fecha1 = Convert.ToDateTime(fecha[0]);
                     if (fecha1 <= DateTime.Now)
                     {
-                        cmd = new OleDbCommand("UPDATE Fech set Caja='0', Fecha='" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' where Id=2;", conectar);
+                        cmd = new SqlCommand("UPDATE Fech set Caja='0', Fecha='" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "' where Id=2;", conectar);
                         cmd.ExecuteNonQuery();
                         BloquearLogin();
                     }
@@ -227,20 +248,6 @@ namespace JaegerSoft
             }
         }
 
-        private void pictureBox2_Click(object sender, EventArgs e)
-        {
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-            // Método temporal de impresión
-            List<Producto> productos = new List<Producto>
-            {
-                new Producto { Nombre = "Arroz con leche y salsa ", Cantidad = 1, PrecioUnitario = 10.50, Total = 12.18, Comentario="Con todo" },
-                new Producto { Nombre = "Pollo horneado", Cantidad = 2, PrecioUnitario = 10.50, Total = 12.18, Comentario="Sin todo" }
-            };
-            TicketPrinter ticketPrinter = new TicketPrinter(productos, "MESA 3", "Brandon");
-            ticketPrinter.ImprimirComanda();
-        }
+      
     }
 }

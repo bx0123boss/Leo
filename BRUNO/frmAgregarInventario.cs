@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -16,9 +16,9 @@ namespace JaegerSoft
 {
     public partial class frmAgregarInventario : Form
     {
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        OleDbCommand cmd;
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL); 
+        SqlCommand cmd;
         private string rutaImagenSeleccionada = "";
         // Custom fields for new database columns
         private System.Windows.Forms.Label lblStockMaximo;
@@ -178,9 +178,9 @@ namespace JaegerSoft
             if (string.IsNullOrWhiteSpace(txtID.Text)) return;
 
             int valor = 0;
-            using (OleDbCommand cmdCheck = new OleDbCommand("select count(*) from [" + lblOrigen.Text + "] where Id = ?;", conectar))
+            using (SqlCommand cmdCheck = new SqlCommand("select count(*) from [" + lblOrigen.Text + "] where Id = @p0;", conectar))
             {
-                cmdCheck.Parameters.AddWithValue("?", txtID.Text);
+                cmdCheck.Parameters.AddWithValue("@p0", txtID.Text);
                 valor = Convert.ToInt32(cmdCheck.ExecuteScalar());
             }
 
@@ -192,9 +192,9 @@ namespace JaegerSoft
             }
             else
             {
-                using (OleDbCommand cmdCheckSusp = new OleDbCommand("select count(*) from InventarioSusp where Id = ?;", conectar))
+                using (SqlCommand cmdCheckSusp = new SqlCommand("select count(*) from InventarioSusp where Id = @p0;", conectar))
                 {
-                    cmdCheckSusp.Parameters.AddWithValue("?", txtID.Text);
+                    cmdCheckSusp.Parameters.AddWithValue("@p0", txtID.Text);
                     valor = Convert.ToInt32(cmdCheckSusp.ExecuteScalar());
                 }
 
@@ -214,32 +214,23 @@ namespace JaegerSoft
         private void frmAgregarInventario_Load(object sender, EventArgs e)
         {
             DataTable dt = new DataTable();
-            cmd = new OleDbCommand("Select Id,Nombre from Unidades;", conectar);
-            OleDbDataAdapter da = new OleDbDataAdapter(cmd);
+            cmd = new SqlCommand("Select Id,Nombre from Unidades;", conectar);
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             cmbUnidad.DisplayMember = "Nombre";
             cmbUnidad.ValueMember = "Id";
             cmbUnidad.DataSource = dt;
-            cmbUnidad.Text = "";
+            cmbUnidad.Text = "PIEZA";
 
 
             dt = new DataTable();
-            cmd = new OleDbCommand("Select Id,Nombre from Categorias;", conectar);
-            da = new OleDbDataAdapter(cmd);
+            cmd = new SqlCommand("Select Id,Nombre from Categorias;", conectar);
+            da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             cmbCategoria.DisplayMember = "Nombre";
             cmbCategoria.ValueMember = "Id";
             cmbCategoria.DataSource = dt;
-            cmbCategoria.Text = "";
-            //cmd = new OleDbCommand("select * from Cambio where Id=1;", conectar);
-            //OleDbDataReader reader = cmd.ExecuteReader();
-            //if (reader.Read())
-            //{
-            //    PrecioOro = Convert.ToDouble(reader[1].ToString());
-            //    Dolar = Convert.ToDouble(reader[2].ToString());
-            //    lblOroFino.Text = "" + PrecioOro;
-            //}
-            //cmbCategoria.SelectedIndex = 0;
+            cmbCategoria.Text = "SIN CATEGORÍA";
             comboBox1.SelectedIndex = 0;
             LlenarProveedores();
             AbrirTeclado();
@@ -269,9 +260,9 @@ namespace JaegerSoft
             try
             {
                 DataTable dt = new DataTable();
-                using (OleDbCommand cmdProv = new OleDbCommand("Select Id, Nombre from Proveedores ORDER BY Nombre;", conectar))
+                using (SqlCommand cmdProv = new SqlCommand("Select Id, Nombre from Proveedores ORDER BY Nombre;", conectar))
                 {
-                    using (OleDbDataAdapter da = new OleDbDataAdapter(cmdProv))
+                    using (SqlDataAdapter da = new SqlDataAdapter(cmdProv))
                     {
                         da.Fill(dt);
                     }
@@ -297,19 +288,19 @@ namespace JaegerSoft
             {
                 try
                 {
-                    using (OleDbCommand cmdUpdate = new OleDbCommand("UPDATE [" + lblOrigen.Text + "] set Existencia = ? Where Id = ?;", conectar))
+                    using (SqlCommand cmdUpdate = new SqlCommand("UPDATE [" + lblOrigen.Text + "] set Existencia = @p0 Where Id = @p1;", conectar))
                     {
-                        cmdUpdate.Parameters.AddWithValue("?", ParseDouble(txtTotales.Text));
-                        cmdUpdate.Parameters.AddWithValue("?", txtID.Text);
+                        cmdUpdate.Parameters.AddWithValue("@p0", ParseDouble(txtTotales.Text));
+                        cmdUpdate.Parameters.AddWithValue("@p1", txtID.Text);
                         cmdUpdate.ExecuteNonQuery();
                     }
 
-                    using (OleDbCommand cmdKardex = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values (?, 'ENTRADA', 'ENTRADA DE ARTICULO', ?, ?, ?);", conectar))
+                    using (SqlCommand cmdKardex = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values (@p0, 'ENTRADA', 'ENTRADA DE ARTICULO', @p1, @p2, @p3);", conectar))
                     {
-                        cmdKardex.Parameters.AddWithValue("?", txtID.Text);
-                        cmdKardex.Parameters.AddWithValue("?", ParseDouble(txtActuales.Text));
-                        cmdKardex.Parameters.AddWithValue("?", ParseDouble(txtTotales.Text));
-                        cmdKardex.Parameters.AddWithValue("?", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+                        cmdKardex.Parameters.AddWithValue("@p0", txtID.Text);
+                        cmdKardex.Parameters.AddWithValue("@p1", ParseDouble(txtActuales.Text));
+                        cmdKardex.Parameters.AddWithValue("@p2", ParseDouble(txtTotales.Text));
+                        cmdKardex.Parameters.AddWithValue("@p3", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                         cmdKardex.ExecuteNonQuery();
                     }
 
@@ -360,55 +351,55 @@ namespace JaegerSoft
                "(Id, Nombre, PrecioVentaMayoreo, PrecioVenta, Existencia, Limite, Categoria, " +
                " Especial, IVA, Unidad, Uni, ProveedorPrincipal, StockMaximo, DiasReposicion, " +
                " ManejaInventario, EsInsumo, EsReceta, ImagenUrl) " +
-               "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+               "values (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17);";
 
-                using (OleDbCommand cmdInsert = new OleDbCommand(sql, conectar))
+                using (SqlCommand cmdInsert = new SqlCommand(sql, conectar))
                 {
-                    cmdInsert.Parameters.AddWithValue("?", txtID.Text);
-                    cmdInsert.Parameters.AddWithValue("?", txtProducto.Text);
-                    cmdInsert.Parameters.AddWithValue("?", ParseDecimal(txtCompra.Text));
-                    cmdInsert.Parameters.AddWithValue("?", ParseDecimal(txtVenta.Text));
-                    cmdInsert.Parameters.AddWithValue("?", ParseDouble(txtCantidad.Text));
-                    cmdInsert.Parameters.AddWithValue("?", ParseInt(txtLimite.Text));
-                    cmdInsert.Parameters.AddWithValue("?", cmbCategoria.Text);
-                    cmdInsert.Parameters.AddWithValue("?", ParseDouble(txtEspecial.Text));
-                    cmdInsert.Parameters.AddWithValue("?", comboBox1.Text);
-                    cmdInsert.Parameters.AddWithValue("?", cmbUnidad.SelectedValue != null ? cmbUnidad.SelectedValue.ToString() : "");
-                    cmdInsert.Parameters.AddWithValue("?", cmbUnidad.Text);
-                    cmdInsert.Parameters.AddWithValue("?", cmbProveedor.Text);
-                    cmdInsert.Parameters.AddWithValue("?", ParseDouble(txtStockMaximo.Text));
-                    cmdInsert.Parameters.AddWithValue("?", ParseInt(txtDiasReposicion.Text));
-                    cmdInsert.Parameters.AddWithValue("?", chkManejaInventario.Checked);
-                    cmdInsert.Parameters.AddWithValue("?", ckbInsumo.Checked);
-                    cmdInsert.Parameters.AddWithValue("?", ckbReceta.Checked);
+                    cmdInsert.Parameters.AddWithValue("@p0", txtID.Text);
+                    cmdInsert.Parameters.AddWithValue("@p1", txtProducto.Text);
+                    cmdInsert.Parameters.AddWithValue("@p2", ParseDecimal(txtCompra.Text));
+                    cmdInsert.Parameters.AddWithValue("@p3", ParseDecimal(txtVenta.Text));
+                    cmdInsert.Parameters.AddWithValue("@p4", ParseDouble(txtCantidad.Text));
+                    cmdInsert.Parameters.AddWithValue("@p5", ParseInt(txtLimite.Text));
+                    cmdInsert.Parameters.AddWithValue("@p6", cmbCategoria.Text);
+                    cmdInsert.Parameters.AddWithValue("@p7", ParseDouble(txtEspecial.Text));
+                    cmdInsert.Parameters.AddWithValue("@p8", comboBox1.Text);
+                    cmdInsert.Parameters.AddWithValue("@p9", cmbUnidad.SelectedValue != null ? cmbUnidad.SelectedValue.ToString() : "");
+                    cmdInsert.Parameters.AddWithValue("@p10", cmbUnidad.Text);
+                    cmdInsert.Parameters.AddWithValue("@p11", cmbProveedor.Text);
+                    cmdInsert.Parameters.AddWithValue("@p12", ParseDouble(txtStockMaximo.Text));
+                    cmdInsert.Parameters.AddWithValue("@p13", ParseInt(txtDiasReposicion.Text));
+                    cmdInsert.Parameters.AddWithValue("@p14", chkManejaInventario.Checked);
+                    cmdInsert.Parameters.AddWithValue("@p15", ckbInsumo.Checked);
+                    cmdInsert.Parameters.AddWithValue("@p16", ckbReceta.Checked);
 
                     // Guardamos la imagen (o null si no se seleccionó)
                     string imagenUrl = GuardarImagenProducto(txtID.Text);
-                    cmdInsert.Parameters.AddWithValue("?", (object)imagenUrl ?? DBNull.Value);
+                    cmdInsert.Parameters.AddWithValue("@p17", (object)imagenUrl ?? DBNull.Value);
 
                     cmdInsert.ExecuteNonQuery();
                 }
 
-                using (OleDbCommand cmdKardex = new OleDbCommand("insert into Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) values (?, 'ENTRADA', 'CREACION DE ARTICULO', 0, ?, ?);", conectar))
+                using (SqlCommand cmdKardex = new SqlCommand("insert into Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) values (@p0, 'ENTRADA', 'CREACION DE ARTICULO', 0, @p1, @p2);", conectar))
                 {
-                    cmdKardex.Parameters.AddWithValue("?", txtID.Text);
-                    cmdKardex.Parameters.AddWithValue("?", ParseDouble(txtCantidad.Text));
-                    cmdKardex.Parameters.AddWithValue("?", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+                    cmdKardex.Parameters.AddWithValue("@p0", txtID.Text);
+                    cmdKardex.Parameters.AddWithValue("@p1", ParseDouble(txtCantidad.Text));
+                    cmdKardex.Parameters.AddWithValue("@p2", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                     cmdKardex.ExecuteNonQuery();
                 }
 
                 MessageBox.Show("Se ha agregado el producto con éxito", "AGREGADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 groupBox1.Enabled = false;
                 txtProducto.Clear();
-                txtCompra.Clear();
-                txtVenta.Clear();
-                txtCantidad.Clear();
+                txtCompra.Text = "0";
+                txtVenta.Text = "0";
+                txtCantidad.Text = "0";
                 txtID.Clear();
                 comboBox1.Text = "";
                 txtID.Focus();
-                txtEspecial.Clear();
-                txtLimite.Clear();
-                cmbUnidad.Text = "";
+                txtEspecial.Text = "0";
+                txtLimite.Text = "0";
+                cmbUnidad.Text = "PIEZA ";
                 if (txtStockMaximo != null) txtStockMaximo.Text = "0";
                 if (txtDiasReposicion != null) txtDiasReposicion.Text = "0";
                 if (cmbProveedor != null) cmbProveedor.SelectedIndex = -1;

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,10 +14,10 @@ namespace JaegerSoft
     public partial class frmUsuarios : frmBase
     {
         private DataSet ds;
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
-        OleDbCommand cmd;
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
+        SqlCommand cmd;
         public String usuario = "";
 
         public frmUsuarios()
@@ -35,7 +35,7 @@ namespace JaegerSoft
 
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from Usuarios;", conectar);
+            da = new SqlDataAdapter("select * from Usuarios;", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
             dataGridView1.Columns[0].Visible = false;
@@ -61,11 +61,11 @@ namespace JaegerSoft
                 DialogResult dialogResult = MessageBox.Show("¿Estas seguro de elimiar al usuario?", "Alto!", MessageBoxButtons.YesNo, MessageBoxIcon.Hand);
                 if (dialogResult == DialogResult.Yes)
                 {
-                    cmd = new OleDbCommand("delete from Usuarios where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
+                    cmd = new SqlCommand("delete from Usuarios where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
                     cmd.ExecuteNonQuery();
                     MessageBox.Show("Se ha eliminado el usuario con exito", "ELIMINADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     ds = new DataSet();
-                    da = new OleDbDataAdapter("select * from Usuarios;", conectar);
+                    da = new SqlDataAdapter("select * from Usuarios;", conectar);
                     da.Fill(ds, "Id");
                     dataGridView1.DataSource = ds.Tables["Id"];
                     dataGridView1.Columns[0].Visible = false;

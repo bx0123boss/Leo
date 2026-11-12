@@ -1,23 +1,25 @@
+using Microsoft.Office.Interop.Excel;
+using Org.BouncyCastle.Asn1.X509;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlClient;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data.OleDb;
-using System.Globalization;
-using Microsoft.Office.Interop.Excel;
 using Font = System.Drawing.Font;
 
 namespace JaegerSoft
 {
     public partial class frmInventario : frmBase
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlCommand cmd;
         public String usuario = "Admin";
 
         private List<ProductoInventario> listaCompletaInventario;
@@ -118,24 +120,27 @@ namespace JaegerSoft
 
             conectar.Open();
             System.Data.DataTable dt = new System.Data.DataTable();
-            cmd = new OleDbCommand("Select Id,Nombre from Categorias;", conectar);
-            OleDbDataAdapter da = new OleDbDataAdapter(cmd);
+            cmd = new SqlCommand("Select Id,Nombre from Categorias;", conectar);
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             comboBox2.DisplayMember = "Nombre";
             comboBox2.ValueMember = "Id";
             comboBox2.DataSource = dt;
             DataSet ds = new DataSet();
 
-            string queryInventario = "SELECT I.*, " +
-                           "IIF(IsNull(I.EsInsumo), False, I.EsInsumo) AS EsInsumoClean, " +
-                           "IIF(IsNull(I.EsReceta), False, I.EsReceta) AS EsRecetaClean, " +
-                           "(I.Existencia + IIF(IsNull(Totales.TotalIA), 0, Totales.TotalIA)) AS ExistenciaTotal " +
-                           "FROM Inventario I " +
-                           "LEFT JOIN (SELECT IdProducto, SUM(Existencia) AS TotalIA FROM InventarioAlmacenes GROUP BY IdProducto) Totales " +
-                           "ON I.Id = Totales.IdProducto " +
-                           "ORDER BY I.Nombre;";
+            string queryInventario = @"SELECT I.*,
+                                   CASE WHEN I.EsInsumo IS NULL THEN 0 ELSE I.EsInsumo END AS EsInsumoClean,
+                                   CASE WHEN I.EsReceta IS NULL THEN 0 ELSE I.EsReceta END AS EsRecetaClean,
+                                   (I.Existencia + ISNULL(Totales.TotalIA, 0)) AS ExistenciaTotal
+                            FROM Inventario I
+                            LEFT JOIN(
+                                SELECT IdProducto, SUM(Existencia) AS TotalIA
+                                FROM InventarioAlmacenes
+                                GROUP BY IdProducto
+                            ) Totales ON I.Id = Totales.IdProducto
+                            ORDER BY I.Nombre; ";
 
-            da = new OleDbDataAdapter(queryInventario, conectar);
+            da = new SqlDataAdapter(queryInventario, conectar);
             da.Fill(ds, "Inventario");
 
             // Permisos de visibilidad en interfaz
@@ -368,8 +373,8 @@ namespace JaegerSoft
                     editar.cmbProveedor.Text = prod.ProveedorPrincipal;
                     editar.categoriaSeleccionada = prod.Categoria;
                     System.Data.DataTable dt = new System.Data.DataTable();
-                    cmd = new OleDbCommand("Select Id,Nombre from Unidades;", conectar);
-                    OleDbDataAdapter da = new OleDbDataAdapter(cmd);
+                    cmd = new SqlCommand("Select Id,Nombre from Unidades;", conectar);
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
                     da.Fill(dt);
                     editar.cmbUnidad.DisplayMember = "Nombre";
                     editar.cmbUnidad.ValueMember = "Id";
@@ -409,7 +414,7 @@ namespace JaegerSoft
                 VALUES 
                 (@Id, @Nombre, @PrecioVentaMayoreo, @PrecioVenta, @Existencia, @Limite, @Categoria, @Especial, @IVA, @Unidad, @Uni)";
 
-                    using (OleDbCommand cmdInsert = new OleDbCommand(sqlInsert, conectar))
+                    using (SqlCommand cmdInsert = new SqlCommand(sqlInsert, conectar))
                     {
                         cmdInsert.Parameters.AddWithValue("@Id", productoSeleccionado.Id);
                         cmdInsert.Parameters.AddWithValue("@Nombre", productoSeleccionado.Nombre);
@@ -427,7 +432,7 @@ namespace JaegerSoft
                     }
 
                     string sqlDelete = "DELETE FROM Inventario WHERE Id = @Id";
-                    using (OleDbCommand cmdDelete = new OleDbCommand(sqlDelete, conectar))
+                    using (SqlCommand cmdDelete = new SqlCommand(sqlDelete, conectar))
                     {
                         cmdDelete.Parameters.AddWithValue("@Id", idParaEliminar);
                         cmdDelete.ExecuteNonQuery();
@@ -540,7 +545,7 @@ namespace JaegerSoft
 
                 this.Cursor = Cursors.WaitCursor;
                 System.Data.DataTable dtInventario = new System.Data.DataTable();
-                using (OleDbConnection conn = new OleDbConnection(Conexion.CadCon))
+                using (SqlConnection conn = new SqlConnection(Conexion.CadSQL))
                 {
                     conn.Open();
                     // Utilizamos la misma logica de sumar el TotalIA para el excel
@@ -549,7 +554,7 @@ namespace JaegerSoft
                                    "LEFT JOIN (SELECT IdProducto, SUM(Existencia) AS TotalIA FROM InventarioAlmacenes GROUP BY IdProducto) Totales " +
                                    "ON I.Id = Totales.IdProducto " +
                                    "ORDER BY I.Categoria, I.Nombre";
-                    OleDbDataAdapter da = new OleDbDataAdapter(query, conn);
+                    SqlDataAdapter da = new SqlDataAdapter(query, conn);
                     da.Fill(dtInventario);
                 }
 
@@ -716,7 +721,7 @@ namespace JaegerSoft
             foreach (var prod in listaFiltradaInventario)
             {
                 // Si guardamos, guardamos la principal. Modificar stock de almacenes debe ser via traspasos
-                cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + prod.Existencia.ToString() + "' where Id='" + prod.Id + "';", conectar);
+                cmd = new SqlCommand("UPDATE Inventario set Existencia='" + prod.Existencia.ToString() + "' where Id='" + prod.Id + "';", conectar);
                 cmd.ExecuteNonQuery();
             }
             MessageBox.Show("Se han guardado los cambios correctamente!", "Inventario", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1020,14 +1025,14 @@ namespace JaegerSoft
             {
                 string query = @"
                     SELECT IdProducto, 
-                           SUM(IIF(Month(Fecha) = Month(Date()) AND Year(Fecha) = Year(Date()), CantidadDouble, 0)) AS VentasMes, 
-                           SUM(IIF(Year(Fecha) = Year(Date()), CantidadDouble, 0)) AS VentasAnio
+                           SUM(IIF(MONTH(Fecha) = MONTH(GETDATE()) AND YEAR(Fecha) = YEAR(GETDATE()), CantidadDouble, 0)) AS VentasMes, 
+                           SUM(IIF(YEAR(Fecha) = YEAR(GETDATE()), CantidadDouble, 0)) AS VentasAnio
                     FROM (
                       SELECT IdProducto, Cantidad AS CantidadDouble, Fecha FROM VentasContado WHERE FolioVenta IN (SELECT Folio FROM Ventas WHERE Estatus <> 'CANCELADO')
                       UNION ALL
-                      SELECT IdProducto, CInt(Cantidad) AS CantidadDouble, Fecha FROM VentasCredito WHERE FolioVenta IN (SELECT Folio FROM Ventas2 WHERE Estatus <> 'CANCELADO')
+                      SELECT IdProducto, Cantidad AS CantidadDouble, Fecha FROM VentasCredito WHERE FolioVenta IN (SELECT Folio FROM Ventas2 WHERE Estatus <> 'CANCELADO')
                       UNION ALL
-                      SELECT IdProducto, Val(Cantidad) AS CantidadDouble, Fecha FROM VentasApartados WHERE Estatus <> 'CANCELADO'
+                      SELECT IdProducto, ISNULL(TRY_CAST(REPLACE(ISNULL(Cantidad,''),'$','') AS FLOAT), 0) AS CantidadDouble, Fecha FROM VentasApartados WHERE Estatus <> 'CANCELADO'
                     ) AS Combined
                     GROUP BY IdProducto
                 ";
@@ -1035,9 +1040,9 @@ namespace JaegerSoft
                 bool wasClosed = (conectar.State == ConnectionState.Closed);
                 if (wasClosed) conectar.Open();
 
-                using (OleDbCommand cmdSales = new OleDbCommand(query, conectar))
+                using (SqlCommand cmdSales = new SqlCommand(query, conectar))
                 {
-                    using (OleDbDataReader reader = cmdSales.ExecuteReader())
+                    using (SqlDataReader reader = cmdSales.ExecuteReader())
                     {
                         var tempDict = new Dictionary<string, (double mes, double anio)>(StringComparer.OrdinalIgnoreCase);
 

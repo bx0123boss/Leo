@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -44,7 +44,7 @@ namespace JaegerSoft
         {
             try
             {
-                using (OleDbConnection con = new OleDbConnection(Conexion.CadCon))
+                using (SqlConnection con = new SqlConnection(Conexion.CadSQL))
                 {
                     con.Open();
                     // Agregamos PrecioOriginal oculto para no perder la referencia en BD
@@ -57,12 +57,12 @@ namespace JaegerSoft
                             c.EnConsigna AS [En Consigna]
                         FROM ConsignaCliente c
                         INNER JOIN Inventario i ON c.ProductoId = i.Id
-                        WHERE c.ClienteId = ? AND c.EnConsigna > 0";
+                        WHERE c.ClienteId = @IdCliente AND c.EnConsigna > 0";
 
-                    using (OleDbCommand cmd = new OleDbCommand(query, con))
+                    using (SqlCommand cmd = new SqlCommand(query, con))
                     {
-                        cmd.Parameters.AddWithValue("?", _idCliente);
-                        OleDbDataAdapter da = new OleDbDataAdapter(cmd);
+                        cmd.Parameters.AddWithValue("@IdCliente", _idCliente);
+                        SqlDataAdapter da = new SqlDataAdapter(cmd);
                         DataTable dt = new DataTable();
                         da.Fill(dt);
 
@@ -530,18 +530,18 @@ namespace JaegerSoft
                 }
             }
 
-            using (OleDbConnection con = new OleDbConnection(Conexion.CadCon))
+            using (SqlConnection con = new SqlConnection(Conexion.CadSQL))
             {
                 con.Open();
-                using (OleDbTransaction transaccion = con.BeginTransaction())
+                using (SqlTransaction transaccion = con.BeginTransaction())
                 {
                     try
                     {
                         // 2. OBTENER EL FOLIO ACTUAL
                         int foli = 0;
-                        using (var cmd = new OleDbCommand("select Numero from Folios where Folio='FolioContado';", con, transaccion))
+                        using (var cmd = new SqlCommand("select Numero from Folios where Folio='FolioContado';", con, transaccion))
                         {
-                            using (OleDbDataReader reader = cmd.ExecuteReader())
+                            using (SqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.Read()) foli = Convert.ToInt32(reader[0].ToString());
                             }
@@ -571,7 +571,7 @@ namespace JaegerSoft
                                 string categoria = "";
                                 bool manejaInventario = true;
 
-                                using (var cmd = new OleDbCommand("select Existencia, Categoria, Especial, ManejaInventario from Inventario where Id='" + idProducto + "';", con, transaccion))
+                                using (var cmd = new SqlCommand("select Existencia, Categoria, Especial, ManejaInventario from Inventario where Id='" + idProducto + "';", con, transaccion))
                                 {
                                     using (var reader = cmd.ExecuteReader())
                                     {
@@ -589,34 +589,34 @@ namespace JaegerSoft
                                 }
 
                                 // B) Afectar la Consigna (Descuenta saldo, suma a Vendidos) -> USANDO PRECIO ORIGINAL
-                                string queryBalance = "UPDATE ConsignaCliente SET EnConsigna = EnConsigna - ?, Vendidos = Vendidos + ? WHERE ClienteId = ? AND ProductoId = ? AND PrecioCongelado = ?";
-                                using (OleDbCommand cmd = new OleDbCommand(queryBalance, con, transaccion))
+                                string queryBalance = "UPDATE ConsignaCliente SET EnConsigna = EnConsigna - @Cantidad, Vendidos = Vendidos + @CantidadVendida WHERE ClienteId = @IdCliente AND ProductoId = @IdProducto AND PrecioCongelado = @PrecioCongelado";
+                                using (SqlCommand cmd = new SqlCommand(queryBalance, con, transaccion))
                                 {
-                                    cmd.Parameters.AddWithValue("?", aPagar);
-                                    cmd.Parameters.AddWithValue("?", aPagar);
-                                    cmd.Parameters.AddWithValue("?", _idCliente);
-                                    cmd.Parameters.AddWithValue("?", idProducto);
-                                    cmd.Parameters.AddWithValue("?", precioOriginal);
+                                    cmd.Parameters.AddWithValue("@Cantidad", aPagar);
+                                    cmd.Parameters.AddWithValue("@CantidadVendida", aPagar);
+                                    cmd.Parameters.AddWithValue("@IdCliente", _idCliente);
+                                    cmd.Parameters.AddWithValue("@IdProducto", idProducto);
+                                    cmd.Parameters.AddWithValue("@PrecioCongelado", precioOriginal);
                                     cmd.ExecuteNonQuery();
                                 }
 
                                 // C) Rastro en Kardex de Consigna -> USANDO PRECIO COBRADO
-                                string queryKardexConsigna = "INSERT INTO ConsignaMovimientos (ClienteId, ProductoId, TipoMovimiento, Cantidad, PrecioVigente, Fecha, ReferenciaVentaId) VALUES (?, ?, 'VENTA', ?, ?, NOW(), ?)";
-                                using (OleDbCommand cmd = new OleDbCommand(queryKardexConsigna, con, transaccion))
+                                string queryKardexConsigna = "INSERT INTO ConsignaMovimientos (ClienteId, ProductoId, TipoMovimiento, Cantidad, PrecioVigente, Fecha, ReferenciaVentaId) VALUES (@IdCliente, @IdProducto, 'VENTA', @Cantidad, @PrecioVigente, GETDATE(), @FolioVenta)";
+                                using (SqlCommand cmd = new SqlCommand(queryKardexConsigna, con, transaccion))
                                 {
-                                    cmd.Parameters.AddWithValue("?", _idCliente);
-                                    cmd.Parameters.AddWithValue("?", idProducto);
-                                    cmd.Parameters.AddWithValue("?", aPagar);
-                                    cmd.Parameters.AddWithValue("?", precioCobrado);
-                                    cmd.Parameters.AddWithValue("?", folioVenta);
+                                    cmd.Parameters.AddWithValue("@IdCliente", _idCliente);
+                                    cmd.Parameters.AddWithValue("@IdProducto", idProducto);
+                                    cmd.Parameters.AddWithValue("@Cantidad", aPagar);
+                                    cmd.Parameters.AddWithValue("@PrecioVigente", precioCobrado);
+                                    cmd.Parameters.AddWithValue("@FolioVenta", folioVenta);
                                     cmd.ExecuteNonQuery();
                                 }
 
                                 // D) Kardex General de la tienda (Sin restar stock, existencia antes y después es igual)
                                 if (manejaInventario)
                                 {
-                                    string queryKardexGen = "insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + idProducto + "','VENTA','VENTA DE CONSIGNA FOLIO: " + folioVenta + "'," + exis + ",'" + exis + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');";
-                                    using (var cmd = new OleDbCommand(queryKardexGen, con, transaccion))
+                                    string queryKardexGen = "insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + idProducto + "','VENTA','VENTA DE CONSIGNA FOLIO: " + folioVenta + "'," + exis + ",'" + exis + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');";
+                                    using (var cmd = new SqlCommand(queryKardexGen, con, transaccion))
                                     {
                                         cmd.ExecuteNonQuery();
                                     }
@@ -624,8 +624,8 @@ namespace JaegerSoft
 
                                 // E) Guardar en VentasContado (Detalle de Venta)
                                 double utilidad = (Convert.ToDouble(precioCobrado) * aPagar) - (precioCompra * aPagar);
-                                string queryVentasContado = "insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad, Categoria) values('" + folioVenta + "','" + idProducto + "','" + aPagar + "','" + nombreProd + "','" + montoFila + "','" + _idCliente + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + utilidad + "','" + categoria + "');";
-                                using (var cmd = new OleDbCommand(queryVentasContado, con, transaccion))
+                                string queryVentasContado = "insert into VentasContado(FolioVenta,IdProducto,Cantidad,Producto,MontoTotal,idCliente,Fecha,Utilidad, Categoria) values('" + folioVenta + "','" + idProducto + "','" + aPagar + "','" + nombreProd + "','" + montoFila + "','" + _idCliente + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + utilidad + "','" + categoria + "');";
+                                using (var cmd = new SqlCommand(queryVentasContado, con, transaccion))
                                 {
                                     cmd.ExecuteNonQuery();
                                 }
@@ -633,8 +633,8 @@ namespace JaegerSoft
                                 // F) Actualizar FechaUltimaVenta en Inventario
                                 if (manejaInventario)
                                 {
-                                    string queryUpdInv = "UPDATE Inventario SET FechaUltimaVenta = NOW() WHERE Id = '" + idProducto + "' AND ManejaInventario = True;";
-                                    using (var cmd = new OleDbCommand(queryUpdInv, con, transaccion))
+                                    string queryUpdInv = "UPDATE Inventario SET FechaUltimaVenta = GETDATE() WHERE Id = '" + idProducto + "' AND ManejaInventario = 1;";
+                                    using (var cmd = new SqlCommand(queryUpdInv, con, transaccion))
                                     {
                                         cmd.ExecuteNonQuery();
                                     }
@@ -653,7 +653,7 @@ namespace JaegerSoft
 
                         // 4. CABECERA GENERAL DE VENTA
                         string tipoPagoVenta = pagosFinales.Count > 1 ? "MIXTO" : pagosFinales.First().Key;
-                        using (var cmd = new OleDbCommand("insert into Ventas(Monto,Fecha,Folio,Estatus, Descuento, Pago) values('" + totalVenta + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + folioVenta + "','COBRADO','0','" + tipoPagoVenta + "');", con, transaccion))
+                        using (var cmd = new SqlCommand("insert into Ventas(Monto,Fecha,Folio,Estatus, Descuento, Pago) values('" + totalVenta + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + folioVenta + "','COBRADO','0','" + tipoPagoVenta + "');", con, transaccion))
                         {
                             cmd.ExecuteNonQuery();
                         }
@@ -663,7 +663,7 @@ namespace JaegerSoft
                         {
                             if (pago.Value > 0)
                             {
-                                using (var cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cobro de consigna folio " + folioVenta + "','" + pago.Value + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + pago.Key + "');", con, transaccion))
+                                using (var cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cobro de consigna folio " + folioVenta + "','" + pago.Value + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + pago.Key + "');", con, transaccion))
                                 {
                                     cmd.ExecuteNonQuery();
                                 }
@@ -671,14 +671,14 @@ namespace JaegerSoft
                         }
 
                         // 6. REGISTRAR CAJERO
-                        using (var cmd = new OleDbCommand("insert into VentasCajero(IdUsuario,Usuario,FolioVenta,Total,Fecha,Cajero) values('1','Administrador','" + folioVenta + "','" + totalVenta + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','Cajero');", con, transaccion))
+                        using (var cmd = new SqlCommand("insert into VentasCajero(IdUsuario,Usuario,FolioVenta,Total,Fecha,Cajero) values('1','Administrador','" + folioVenta + "','" + totalVenta + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','Cajero');", con, transaccion))
                         {
                             cmd.ExecuteNonQuery();
                         }
 
                         // 7. INCREMENTAR FOLIO Y ACTUALIZAR
                         foli++;
-                        using (var cmd = new OleDbCommand("UPDATE Folios set Numero = " + foli + " where Folio = 'FolioContado'; ", con, transaccion))
+                        using (var cmd = new SqlCommand("UPDATE Folios set Numero = " + foli + " where Folio = 'FolioContado'; ", con, transaccion))
                         {
                             cmd.ExecuteNonQuery();
                         }

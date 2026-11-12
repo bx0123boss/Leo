@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,10 +14,10 @@ namespace JaegerSoft
     public partial class frmAgregarLinea : Form
     {
 
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbCommand cmd;
-        OleDbDataAdapter da;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL); 
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlCommand cmd;
+        SqlDataAdapter da;
         private DataSet ds;
         public string line;
         public double valor,Costo,Dolar,PrecioOro, Doble, Veinte, Utilidad;
@@ -32,7 +32,7 @@ namespace JaegerSoft
             if (this.Text == "Agregar")
             {
                 conectar.Open();
-                cmd = new OleDbCommand("insert into Linea values('" + txtLinea.Text+ "','" + txtNumero.Text + "');", conectar);
+                cmd = new SqlCommand("insert into Linea values('" + txtLinea.Text+ "','" + txtNumero.Text + "');", conectar);
                 cmd.ExecuteNonQuery();
                 MessageBox.Show("Se ha agregado la Linea con exito", "AGREGADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
@@ -69,10 +69,10 @@ namespace JaegerSoft
                     Doble = (Costo * 2);
                     Veinte = Math.Truncate(Doble * 1.12);
                     Utilidad = Doble - Veinte;
-                    cmd = new OleDbCommand("UPDATE Inventario Set PrecioCompra='" + Math.Truncate(Costo) + "', PrecioVenta='" + Math.Truncate(Veinte) + "', Utilidad='" + Math.Truncate(Utilidad) + "' where Id='" + id + "';", conectar);
+                    cmd = new SqlCommand("UPDATE Inventario Set PrecioCompra='" + Math.Truncate(Costo) + "', PrecioVenta='" + Math.Truncate(Veinte) + "', Utilidad='" + Math.Truncate(Utilidad) + "' where Id='" + id + "';", conectar);
                     cmd.ExecuteNonQuery();
                 }
-                cmd = new OleDbCommand("UPDATE Linea set Linea='" + txtLinea.Text + "', Cantidad='" + txtNumero.Text + "' where Linea='" + line + "';", conectar);
+                cmd = new SqlCommand("UPDATE Linea set Linea='" + txtLinea.Text + "', Cantidad='" + txtNumero.Text + "' where Linea='" + line + "';", conectar);
                 cmd.ExecuteNonQuery();
                 MessageBox.Show("Se ha actualizado la Linea con exito", "Editado", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
@@ -91,12 +91,12 @@ namespace JaegerSoft
             {
                 ds = new DataSet();
                 conectar.Open();
-                da = new OleDbDataAdapter("select * from Inventario where Maquila='"+line+"';", conectar);
+                da = new SqlDataAdapter("select * from Inventario where Maquila='"+line+"';", conectar);
                 da.Fill(ds, "Id");
                 dataGridView2.DataSource = ds.Tables["Id"];
 
-                cmd = new OleDbCommand("select * from Cambio where Id=1;", conectar);
-                OleDbDataReader reader = cmd.ExecuteReader();
+                cmd = new SqlCommand("select * from Cambio where Id=1;", conectar);
+                SqlDataReader reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
                     Dolar = Convert.ToDouble(reader[2].ToString());

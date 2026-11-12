@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,8 +14,8 @@ namespace JaegerSoft
     public partial class frmHistorialCortes : frmBase
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
 
         // --- NUEVO PARÁMETRO: Define si lee de histocortes o histocortesB ---
         public bool ConsultaB { get; set; } = false;
@@ -50,12 +50,12 @@ namespace JaegerSoft
                 // Elegimos la tabla según el parámetro
                 string tablaHistorial = ConsultaB ? "histocortesB" : "histocortes";
 
-                string fechaFiltro = dateTimePicker1.Value.ToString("MM/dd/yyyy");
+                string fechaFiltro = dateTimePicker1.Value.ToString("yyyy-MM-dd");
 
                 ds = new DataSet();
-                string sql = $"Select * from {tablaHistorial} where Fecha >= #{fechaFiltro} 00:00:00# and Fecha <= #{fechaFiltro} 23:59:59# ORDER BY Id DESC;";
+                string sql = $"Select * from {tablaHistorial} where Fecha >= '{fechaFiltro} 00:00:00' and Fecha <= '{fechaFiltro} 23:59:59' ORDER BY Id DESC;";
 
-                da = new OleDbDataAdapter(sql, conectar);
+                da = new SqlDataAdapter(sql, conectar);
                 da.Fill(ds, "Id");
                 dataGridView1.DataSource = ds.Tables["Id"];
 

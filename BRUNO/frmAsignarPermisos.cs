@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Windows.Forms;
 
 namespace JaegerSoft
@@ -16,7 +16,7 @@ namespace JaegerSoft
         // Lista de todos los módulos disponibles en el sistema
         private Dictionary<string, string> ModulosDisponibles = new Dictionary<string, string>
         {
-            { "ADMIN_TODO", "★ ACCESO TOTAL (Administrador) ★" },
+            { "ADMIN_TODO", "? ACCESO TOTAL (Administrador) ?" },
 
             { "VER_ANALITICO_INVENTARIO", "Analiticos de Inventario" },
             { "MOD_CORTES", "Cortes de Caja" },
@@ -70,12 +70,12 @@ namespace JaegerSoft
         {
             try
             {
-                using (OleDbConnection con = new OleDbConnection(Conexion.CadCon))
+                using (SqlConnection con = new SqlConnection(Conexion.CadSQL))
                 {
                     con.Open();
                     string query = "SELECT Permiso FROM PermisosUsuario WHERE IdUsuario = '" + IdUsuarioSeleccionado + "'";
-                    using (OleDbCommand cmd = new OleDbCommand(query, con))
-                    using (OleDbDataReader reader = cmd.ExecuteReader())
+                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         // Pausamos el evento ItemCheck temporalmente mientras leemos de la BD
                         _isUpdating = true;
@@ -140,15 +140,15 @@ namespace JaegerSoft
         {
             try
             {
-                using (OleDbConnection con = new OleDbConnection(Conexion.CadCon))
+                using (SqlConnection con = new SqlConnection(Conexion.CadSQL))
                 {
                     con.Open();
-                    OleDbTransaction trx = con.BeginTransaction();
+                    SqlTransaction trx = con.BeginTransaction();
 
                     try
                     {
                         // 1. Borramos todos los permisos viejos de este usuario
-                        using (OleDbCommand cmdDel = new OleDbCommand("DELETE FROM PermisosUsuario WHERE IdUsuario = '" + IdUsuarioSeleccionado + "'", con, trx))
+                        using (SqlCommand cmdDel = new SqlCommand("DELETE FROM PermisosUsuario WHERE IdUsuario = '" + IdUsuarioSeleccionado + "'", con, trx))
                         {
                             cmdDel.ExecuteNonQuery();
                         }
@@ -171,7 +171,7 @@ namespace JaegerSoft
                         {
                             // Si es Admin, guardamos SOLO un registro y nos ahorramos el resto
                             string queryInsert = "INSERT INTO PermisosUsuario (IdUsuario, Permiso) VALUES ('" + IdUsuarioSeleccionado + "', 'ADMIN_TODO')";
-                            using (OleDbCommand cmdIns = new OleDbCommand(queryInsert, con, trx))
+                            using (SqlCommand cmdIns = new SqlCommand(queryInsert, con, trx))
                             {
                                 cmdIns.ExecuteNonQuery();
                             }
@@ -194,7 +194,7 @@ namespace JaegerSoft
                                 if (!string.IsNullOrEmpty(clavePermiso))
                                 {
                                     string queryInsert = "INSERT INTO PermisosUsuario (IdUsuario, Permiso) VALUES ('" + IdUsuarioSeleccionado + "', '" + clavePermiso + "')";
-                                    using (OleDbCommand cmdIns = new OleDbCommand(queryInsert, con, trx))
+                                    using (SqlCommand cmdIns = new SqlCommand(queryInsert, con, trx))
                                     {
                                         cmdIns.ExecuteNonQuery();
                                     }

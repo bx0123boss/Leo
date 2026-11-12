@@ -1,4 +1,4 @@
-﻿using PuntoVentaWeb.Data;
+using PuntoVentaWeb.Data;
 using PuntoVentaWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);

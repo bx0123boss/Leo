@@ -25,7 +25,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>75</ApplicationRevision>
+    <ApplicationRevision>76</ApplicationRevision>
     <ApplicationVersion>2.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -138,11 +138,11 @@
     <Compile Include="frmAbonosFolio.Designer.cs">
       <DependentUpon>frmAbonosFolio.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmAdeudoProveedor.cs">
+    <Compile Include="frmAbrirCaja.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="frmAdeudoProveedor.Designer.cs">
-      <DependentUpon>frmAdeudoProveedor.cs</DependentUpon>
+    <Compile Include="frmAbrirCaja.Designer.cs">
+      <DependentUpon>frmAbrirCaja.cs</DependentUpon>
     </Compile>
     <Compile Include="frmAgregarCategoria.cs">
       <SubType>Form</SubType>
@@ -267,12 +267,6 @@
     <Compile Include="frmBuscarProveedor.Designer.cs">
       <DependentUpon>frmBuscarProveedor.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmCaptura.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmCaptura.Designer.cs">
-      <DependentUpon>frmCaptura.cs</DependentUpon>
-    </Compile>
     <Compile Include="frmCapturaInicial.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -369,29 +363,11 @@
     <Compile Include="frmCortePorFechas.Designer.cs">
       <DependentUpon>frmCortePorFechas.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmCredito.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmCredito.Designer.cs">
-      <DependentUpon>frmCredito.cs</DependentUpon>
-    </Compile>
     <Compile Include="frmDatos.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="frmDatos.Designer.cs">
       <DependentUpon>frmDatos.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmDescuentoCancelacion.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmDescuentoCancelacion.Designer.cs">
-      <DependentUpon>frmDescuentoCancelacion.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmDescuentoPorCategoria.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmDescuentoPorCategoria.Designer.cs">
-      <DependentUpon>frmDescuentoPorCategoria.cs</DependentUpon>
     </Compile>
     <Compile Include="frmDetalleCorte.cs">
       <SubType>Form</SubType>
@@ -524,12 +500,6 @@
     </Compile>
     <Compile Include="frmPrecio.Designer.cs">
       <DependentUpon>frmPrecio.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmPrecios.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmPrecios.Designer.cs">
-      <DependentUpon>frmPrecios.cs</DependentUpon>
     </Compile>
     <Compile Include="frmPrincipal.cs">
       <SubType>Form</SubType>
@@ -741,8 +711,8 @@
     <EmbeddedResource Include="frmAbonosFolio.resx">
       <DependentUpon>frmAbonosFolio.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmAdeudoProveedor.resx">
-      <DependentUpon>frmAdeudoProveedor.cs</DependentUpon>
+    <EmbeddedResource Include="frmAbrirCaja.resx">
+      <DependentUpon>frmAbrirCaja.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmAgregarCategoria.resx">
       <DependentUpon>frmAgregarCategoria.cs</DependentUpon>
@@ -802,9 +772,6 @@
     <EmbeddedResource Include="frmBuscarProveedor.resx">
       <DependentUpon>frmBuscarProveedor.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmCaptura.resx">
-      <DependentUpon>frmCaptura.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="frmCapturaInicial.resx">
       <DependentUpon>frmCapturaInicial.cs</DependentUpon>
     </EmbeddedResource>
@@ -850,17 +817,8 @@
     <EmbeddedResource Include="frmCortePorFechas.resx">
       <DependentUpon>frmCortePorFechas.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmCredito.resx">
-      <DependentUpon>frmCredito.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="frmDatos.resx">
       <DependentUpon>frmDatos.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmDescuentoCancelacion.resx">
-      <DependentUpon>frmDescuentoCancelacion.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmDescuentoPorCategoria.resx">
-      <DependentUpon>frmDescuentoPorCategoria.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmDetalleCorte.resx">
       <DependentUpon>frmDetalleCorte.cs</DependentUpon>
@@ -928,9 +886,6 @@
     <EmbeddedResource Include="frmPrecio.resx">
       <DependentUpon>frmPrecio.cs</DependentUpon>
       <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmPrecios.resx">
-      <DependentUpon>frmPrecios.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmPrincipal.resx">
       <DependentUpon>frmPrincipal.cs</DependentUpon>

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,10 +14,10 @@ namespace JaegerSoft
     public partial class frmAbonoProveedor : frmBase
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
         public string id;
-        OleDbCommand cmd;
+        SqlCommand cmd;
         public double pesos, dolar, oro;
 
         public frmAbonoProveedor()
@@ -54,7 +54,7 @@ namespace JaegerSoft
         {
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from AbonosProveedores where idProveedor='" + id + "' order by Id desc;", conectar);
+            da = new SqlDataAdapter("select * from AbonosProveedores where idProveedor='" + id + "' order by Id desc;", conectar);
             da.Fill(ds, "Id");
             dataGridView2.DataSource = ds.Tables["Id"];
             dataGridView2.Columns[0].Visible = false;
@@ -69,28 +69,28 @@ namespace JaegerSoft
             if (Convert.ToDouble(lblPesos.Text) != pesos)
             {
                 //PESOS
-                cmd = new OleDbCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,Unidad,ValorUnidad,ValorPesos,AdeudoActual) values('" + id + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + (pesos - Convert.ToDouble(lblPesos.Text)) + "','PESOS (MX)','1','-" + (pesos - Convert.ToDouble(lblPesos.Text)) + "','" + lblActual.Text + "');", conectar);
+                cmd = new SqlCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,AdeudoActual) values('" + id + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + (pesos - Convert.ToDouble(lblPesos.Text)) + "','" + lblActual.Text + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             if (Convert.ToDouble(lblDolares.Text) != dolar)
             {
                 //DOLAR
-                cmd = new OleDbCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,Unidad,ValorUnidad,ValorPesos,AdeudoActual) values('" + id + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + (dolar - Convert.ToDouble(lblDolares.Text)) + "','DOLAR (EU)','" + textBox1.Text + "','-" + ((dolar - Convert.ToDouble(lblDolares.Text))*Convert.ToDouble(textBox1.Text)) + "','" + lblActual.Text + "');", conectar);
+                cmd = new SqlCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,AdeudoActual) values('" + id + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + (dolar - Convert.ToDouble(lblDolares.Text)) + "','" + lblActual.Text + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             if (Convert.ToDouble(lblOro.Text) != oro)
             {
                 //ORO
-                cmd = new OleDbCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,Unidad,ValorUnidad,ValorPesos,AdeudoActual) values('" + id + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + (oro - Convert.ToDouble(lblOro.Text)) + "','ORO (GRAMOS)','" + textBox2.Text + "','-" + ((oro - Convert.ToDouble(lblOro.Text))*Convert.ToDouble(textBox2.Text)) + "','" + lblActual.Text + "');", conectar);
+                cmd = new SqlCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,AdeudoActual) values('" + id + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + (oro - Convert.ToDouble(lblOro.Text)) + "','" + lblActual.Text + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
-            cmd = new OleDbCommand("UPDATE Proveedores set AdeudoActual='" + lblActual.Text + "', AdeudoPesos='" + lblPesos.Text + "', AdeudoDolares='" + lblDolares.Text + "', AdeudoOro='" + lblOro.Text + "' where Id=" + id + ";", conectar);
+            cmd = new SqlCommand("UPDATE Proveedores set AdeudoActual='" + lblActual.Text + "', AdeudoPesos='" + lblPesos.Text + "', AdeudoDolares='" + lblDolares.Text + "', AdeudoOro='" + lblOro.Text + "' where Id=" + id + ";", conectar);
             cmd.ExecuteNonQuery();
             MessageBox.Show("Se ha agregado el adeudo con exito", "AGREGADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             conectar.Close();
             ds = new DataSet();
             conectar.Open();
-            da = new OleDbDataAdapter("select * from AbonosProveedores where idProveedor='" + id + "' order by Id desc;", conectar);
+            da = new SqlDataAdapter("select * from AbonosProveedores where idProveedor='" + id + "' order by Id desc;", conectar);
             da.Fill(ds, "Id");
             dataGridView2.DataSource = ds.Tables["Id"];
             dataGridView2.Columns[0].Visible = false;
@@ -144,9 +144,9 @@ namespace JaegerSoft
 
         private void button2_Click(object sender, EventArgs e)
         {
-            cmd = new OleDbCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,AdeudoActual) values('" + lblID.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','"+ txtAbono.Text+ "','" + txtRestante.Text + "');", conectar);
+            cmd = new SqlCommand("insert into AbonosProveedores(idProveedor,Fecha,Monto,AdeudoActual) values('" + lblID.Text + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','"+ txtAbono.Text+ "','" + txtRestante.Text + "');", conectar);
             cmd.ExecuteNonQuery();
-            cmd = new OleDbCommand("UPDATE Proveedores set Adeudo='" + txtRestante.Text + "' where Id=" + lblID.Text + ";", conectar);
+            cmd = new SqlCommand("UPDATE Proveedores set Adeudo='" + txtRestante.Text + "' where Id=" + lblID.Text + ";", conectar);
             cmd.ExecuteNonQuery();
             MessageBox.Show("Se ha abonado con exito", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();

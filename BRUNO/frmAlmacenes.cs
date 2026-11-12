@@ -1,6 +1,6 @@
 using System;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -8,7 +8,7 @@ namespace JaegerSoft
 {
     public partial class frmAlmacenes : frmBase
     {
-        private OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
+        private SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
         private DataTable dtStock;
 
         public frmAlmacenes()
@@ -44,7 +44,7 @@ namespace JaegerSoft
             bool almacenesExists = false;
             try
             {
-                using (var cmd = new OleDbCommand("SELECT COUNT(*) FROM Almacenes", conectar))
+                using (var cmd = new SqlCommand("SELECT COUNT(*) FROM Almacenes", conectar))
                 {
                     cmd.ExecuteScalar();
                     almacenesExists = true;
@@ -59,7 +59,7 @@ namespace JaegerSoft
             {
                 try
                 {
-                    using (var cmd = new OleDbCommand("CREATE TABLE Almacenes (Id COUNTER PRIMARY KEY, Nombre VARCHAR(100))", conectar))
+                    using (var cmd = new SqlCommand("CREATE TABLE Almacenes (Id INT IDENTITY(1,1) PRIMARY KEY, Nombre NVARCHAR(100))", conectar))
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -74,7 +74,7 @@ namespace JaegerSoft
             bool inventarioAlmacenesExists = false;
             try
             {
-                using (var cmd = new OleDbCommand("SELECT COUNT(*) FROM InventarioAlmacenes", conectar))
+                using (var cmd = new SqlCommand("SELECT COUNT(*) FROM InventarioAlmacenes", conectar))
                 {
                     cmd.ExecuteScalar();
                     inventarioAlmacenesExists = true;
@@ -89,7 +89,7 @@ namespace JaegerSoft
             {
                 try
                 {
-                    using (var cmd = new OleDbCommand("CREATE TABLE InventarioAlmacenes (IdAlmacen INT, IdProducto VARCHAR(255), Existencia DOUBLE, CONSTRAINT PK_InventarioAlmacenes PRIMARY KEY (IdAlmacen, IdProducto))", conectar))
+                    using (var cmd = new SqlCommand("CREATE TABLE InventarioAlmacenes (IdAlmacen INT, IdProducto NVARCHAR(255), Existencia FLOAT, CONSTRAINT PK_InventarioAlmacenes PRIMARY KEY (IdAlmacen, IdProducto))", conectar))
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -104,7 +104,7 @@ namespace JaegerSoft
             bool movimientosAlmacenesExists = false;
             try
             {
-                using (var cmd = new OleDbCommand("SELECT COUNT(*) FROM MovimientosAlmacenes", conectar))
+                using (var cmd = new SqlCommand("SELECT COUNT(*) FROM MovimientosAlmacenes", conectar))
                 {
                     cmd.ExecuteScalar();
                     movimientosAlmacenesExists = true;
@@ -119,7 +119,7 @@ namespace JaegerSoft
             {
                 try
                 {
-                    using (var cmd = new OleDbCommand("CREATE TABLE MovimientosAlmacenes (Id COUNTER PRIMARY KEY, IdOrigen INT, IdDestino INT, IdProducto VARCHAR(255), Cantidad DOUBLE, Fecha DATETIME, Usuario VARCHAR(100), Cancelado YESNO DEFAULT 0)", conectar))
+                    using (var cmd = new SqlCommand("CREATE TABLE MovimientosAlmacenes (Id INT IDENTITY(1,1) PRIMARY KEY, IdOrigen INT, IdDestino INT, IdProducto NVARCHAR(255), Cantidad FLOAT, Fecha DATETIME, Usuario NVARCHAR(100), Cancelado BIT DEFAULT 0)", conectar))
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -134,7 +134,7 @@ namespace JaegerSoft
                 // Verificar si existe la columna Cancelado en MovimientosAlmacenes
                 try
                 {
-                    using (var cmd = new OleDbCommand("SELECT Cancelado FROM MovimientosAlmacenes WHERE 1=0", conectar))
+                    using (var cmd = new SqlCommand("SELECT Cancelado FROM MovimientosAlmacenes WHERE 1=0", conectar))
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -143,7 +143,7 @@ namespace JaegerSoft
                 {
                     try
                     {
-                        using (var cmd = new OleDbCommand("ALTER TABLE MovimientosAlmacenes ADD COLUMN Cancelado YESNO", conectar))
+                        using (var cmd = new SqlCommand("ALTER TABLE MovimientosAlmacenes ADD Cancelado BIT DEFAULT 0", conectar))
                         {
                             cmd.ExecuteNonQuery();
                         }
@@ -158,7 +158,7 @@ namespace JaegerSoft
             // Verificar si existe la columna IdAlmacen en Poliza
             try
             {
-                using (var cmd = new OleDbCommand("SELECT IdAlmacen FROM Poliza WHERE 1=0", conectar))
+                using (var cmd = new SqlCommand("SELECT IdAlmacen FROM Poliza WHERE 1=0", conectar))
                 {
                     cmd.ExecuteNonQuery();
                 }
@@ -167,7 +167,7 @@ namespace JaegerSoft
             {
                 try
                 {
-                    using (var cmd = new OleDbCommand("ALTER TABLE Poliza ADD COLUMN IdAlmacen INT", conectar))
+                    using (var cmd = new SqlCommand("ALTER TABLE Poliza ADD IdAlmacen INT", conectar))
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -210,9 +210,9 @@ namespace JaegerSoft
             if (conectar.State != ConnectionState.Open) conectar.Open();
 
             string query = "SELECT Id, Nombre FROM Almacenes ORDER BY Nombre;";
-            using (var cmd = new OleDbCommand(query, conectar))
+            using (var cmd = new SqlCommand(query, conectar))
             {
-                using (var da = new OleDbDataAdapter(cmd))
+                using (var da = new SqlDataAdapter(cmd))
                 {
                     var dt = new DataTable();
                     da.Fill(dt);
@@ -253,7 +253,7 @@ namespace JaegerSoft
             var dtDestinoCmb = dtOrigenCmb.Copy();
 
             string query = "SELECT Id, Nombre FROM Almacenes ORDER BY Nombre;";
-            using (var cmd = new OleDbCommand(query, conectar))
+            using (var cmd = new SqlCommand(query, conectar))
             {
                 using (var reader = cmd.ExecuteReader())
                 {
@@ -310,9 +310,9 @@ namespace JaegerSoft
             {
                 // TODOS LOS ALMACENES DESGLOSADOS (Consulta Dinámica - Pivot)
                 DataTable dtAlms = new DataTable();
-                using (var cmdA = new OleDbCommand("SELECT Id, Nombre FROM Almacenes ORDER BY Id", conectar))
+                using (var cmdA = new SqlCommand("SELECT Id, Nombre FROM Almacenes ORDER BY Id", conectar))
                 {
-                    using (var daA = new OleDbDataAdapter(cmdA))
+                    using (var daA = new SqlDataAdapter(cmdA))
                     {
                         daA.Fill(dtAlms);
                     }
@@ -328,12 +328,12 @@ namespace JaegerSoft
                     // Evitar caracteres que rompan SQL
                     string aName = row["Nombre"].ToString().Replace("]", "").Replace("[", "");
 
-                    // MODIFICACIÓN: Ya no concatenamos la palabra "Stock ", solo el nombre del almacén
-                    selectCols += $"IIF(IsNull(P.A{aId}), 0, P.A{aId}) AS [{aName}], ";
-                    pivotSums += $"SUM(IIF(IdAlmacen = {aId}, Existencia, 0)) AS A{aId}, ";
+                    // ISNULL en SQL Server reemplaza directo el valor NULL por 0
+                    selectCols += $"ISNULL(P.A{aId}, 0) AS [{aName}], ";
+                    pivotSums += $"SUM(CASE WHEN IdAlmacen = {aId} THEN Existencia ELSE 0 END) AS A{aId}, ";
                 }
 
-                selectCols += "(I.Existencia + IIF(IsNull(P.TotalIA), 0, P.TotalIA)) AS [TOTAL EN EXISTENCIA] ";
+                selectCols += "(I.Existencia + ISNULL(P.TotalIA, 0)) AS [TOTAL EN EXISTENCIA] ";
                 pivotSums += "SUM(Existencia) AS TotalIA ";
 
                 query = $"SELECT {selectCols} " +
@@ -351,18 +351,18 @@ namespace JaegerSoft
             {
                 // Almacén Dinámico Individual
                 query = "SELECT I.Id, I.Nombre, I.Categoria, " +
-                        "IIF(IsNull(IA.Existencia), 0, IA.Existencia) AS Existencia, " +
+                        "ISNULL(IA.Existencia, 0) AS Existencia, " +
                         "I.Existencia AS ExistenciaPrincipal, " +
-                        "(I.Existencia + IIF(IsNull(Totales.TotalIA), 0, Totales.TotalIA)) AS [TOTAL EN EXISTENCIA] " +
+                        "(I.Existencia + ISNULL(Totales.TotalIA, 0)) AS [TOTAL EN EXISTENCIA] " +
                         "FROM (Inventario I " +
                         "LEFT JOIN (SELECT IdProducto, Existencia FROM InventarioAlmacenes WHERE IdAlmacen = " + idAlmacen + ") IA ON I.Id = IA.IdProducto) " +
                         "LEFT JOIN (SELECT IdProducto, SUM(Existencia) AS TotalIA FROM InventarioAlmacenes GROUP BY IdProducto) Totales ON I.Id = Totales.IdProducto " +
                         "ORDER BY I.Nombre;";
             }
 
-            using (var cmd = new OleDbCommand(query, conectar))
+            using (var cmd = new SqlCommand(query, conectar))
             {
-                using (var da = new OleDbDataAdapter(cmd))
+                using (var da = new SqlDataAdapter(cmd))
                 {
                     dtStock = new DataTable();
                     da.Fill(dtStock);
@@ -413,7 +413,6 @@ namespace JaegerSoft
                         }
 
                         // 6. Darle estilo a las N columnas dinámicas (NombreAlmacen directo)
-                        // Para detectarlas ahora, simplemente ignoramos las que ya sabemos que son fijas.
                         foreach (DataGridViewColumn col in dgvStock.Columns)
                         {
                             if (col.Name != "Id" &&
@@ -454,18 +453,19 @@ namespace JaegerSoft
         {
             if (conectar.State != ConnectionState.Open) conectar.Open();
 
-            string query = "SELECT M.Id, M.IdOrigen, M.IdDestino, M.Cancelado, IIF(M.Cancelado = True, 'Cancelado', 'Activo') AS Estado, " +
-                           "IIF(M.IdOrigen = 0, 'Almacén Principal (Bodega)', A1.Nombre) AS Origen, " +
-                           "IIF(M.IdDestino = 0, 'Almacén Principal (Bodega)', A2.Nombre) AS Destino, " +
-                           "M.IdProducto AS Código, P.Nombre AS Producto, M.Cantidad, M.Fecha, M.Usuario " +
-                           "FROM ((MovimientosAlmacenes M LEFT JOIN Almacenes A1 ON M.IdOrigen = A1.Id) " +
-                           "LEFT JOIN Almacenes A2 ON M.IdDestino = A2.Id) " +
-                           "LEFT JOIN Inventario P ON M.IdProducto = P.Id " +
-                           "ORDER BY M.Fecha DESC;";
+            string query = "SELECT M.Id, M.IdOrigen, M.IdDestino, M.Cancelado, " +
+                "CASE WHEN M.Cancelado = 1 THEN 'Cancelado' ELSE 'Activo' END AS Estado, " +
+                "CASE WHEN M.IdOrigen = 0 THEN 'Almacén Principal (Bodega)' ELSE A1.Nombre END AS Origen, " +
+                "CASE WHEN M.IdDestino = 0 THEN 'Almacén Principal (Bodega)' ELSE A2.Nombre END AS Destino, " +
+                "M.IdProducto AS Código, P.Nombre AS Producto, M.Cantidad, M.Fecha, M.Usuario " +
+                "FROM ((MovimientosAlmacenes M LEFT JOIN Almacenes A1 ON M.IdOrigen = A1.Id) " +
+                "LEFT JOIN Almacenes A2 ON M.IdDestino = A2.Id) " +
+                "LEFT JOIN Inventario P ON M.IdProducto = P.Id " +
+                "ORDER BY M.Fecha DESC;";
 
-            using (var cmd = new OleDbCommand(query, conectar))
+            using (var cmd = new SqlCommand(query, conectar))
             {
-                using (var da = new OleDbDataAdapter(cmd))
+                using (var da = new SqlDataAdapter(cmd))
                 {
                     var dt = new DataTable();
                     da.Fill(dt);
@@ -498,7 +498,7 @@ namespace JaegerSoft
 
                 // Verificar si ya existe
                 string checkQuery = "SELECT COUNT(*) FROM Almacenes WHERE Nombre = @nombre";
-                using (var cmdCheck = new OleDbCommand(checkQuery, conectar))
+                using (var cmdCheck = new SqlCommand(checkQuery, conectar))
                 {
                     cmdCheck.Parameters.AddWithValue("@nombre", nombre);
                     int count = Convert.ToInt32(cmdCheck.ExecuteScalar());
@@ -511,7 +511,7 @@ namespace JaegerSoft
 
                 // Insertar
                 string insertQuery = "INSERT INTO Almacenes (Nombre) VALUES (@nombre)";
-                using (var cmdInsert = new OleDbCommand(insertQuery, conectar))
+                using (var cmdInsert = new SqlCommand(insertQuery, conectar))
                 {
                     cmdInsert.Parameters.AddWithValue("@nombre", nombre);
                     cmdInsert.ExecuteNonQuery();
@@ -547,7 +547,7 @@ namespace JaegerSoft
                 if (conectar.State != ConnectionState.Open) conectar.Open();
 
                 string updateQuery = "UPDATE Almacenes SET Nombre = @nombre WHERE Id = @id";
-                using (var cmd = new OleDbCommand(updateQuery, conectar))
+                using (var cmd = new SqlCommand(updateQuery, conectar))
                 {
                     cmd.Parameters.AddWithValue("@nombre", nuevoNombre.Trim());
                     cmd.Parameters.AddWithValue("@id", id);
@@ -581,7 +581,7 @@ namespace JaegerSoft
                 if (conectar.State != ConnectionState.Open) conectar.Open();
 
                 string checkQuery = "SELECT SUM(Existencia) FROM InventarioAlmacenes WHERE IdAlmacen = " + id;
-                using (var cmd = new OleDbCommand(checkQuery, conectar))
+                using (var cmd = new SqlCommand(checkQuery, conectar))
                 {
                     object result = cmd.ExecuteScalar();
                     double stockTotal = result != DBNull.Value ? Convert.ToDouble(result) : 0;
@@ -596,13 +596,13 @@ namespace JaegerSoft
                 if (res == DialogResult.Yes)
                 {
                     // Eliminar registros de inventario de almacén (deberían ser cero/nulos, pero por seguridad limpiamos)
-                    using (var cmdClean = new OleDbCommand("DELETE FROM InventarioAlmacenes WHERE IdAlmacen = " + id, conectar))
+                    using (var cmdClean = new SqlCommand("DELETE FROM InventarioAlmacenes WHERE IdAlmacen = " + id, conectar))
                     {
                         cmdClean.ExecuteNonQuery();
                     }
 
                     // Eliminar almacén
-                    using (var cmdDel = new OleDbCommand("DELETE FROM Almacenes WHERE Id = " + id, conectar))
+                    using (var cmdDel = new SqlCommand("DELETE FROM Almacenes WHERE Id = " + id, conectar))
                     {
                         cmdDel.ExecuteNonQuery();
                     }
@@ -683,7 +683,7 @@ namespace JaegerSoft
                 string nombreProd = "";
                 double stockPrincipal = 0;
 
-                using (var cmd = new OleDbCommand(queryProd, conectar))
+                using (var cmd = new SqlCommand(queryProd, conectar))
                 {
                     cmd.Parameters.AddWithValue("@id", codigo);
                     using (var reader = cmd.ExecuteReader())
@@ -728,11 +728,11 @@ namespace JaegerSoft
                 else
                 {
                     string qStock = "SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = " + idOrigen + " AND IdProducto = @id";
-                    using (var cmd = new OleDbCommand(qStock, conectar))
+                    using (var cmd = new SqlCommand(qStock, conectar))
                     {
                         cmd.Parameters.AddWithValue("@id", codigo);
                         object res = cmd.ExecuteScalar();
-                        stockOrigen = res != null ? Convert.ToDouble(res) : 0;
+                        stockOrigen = res != null && res != DBNull.Value ? Convert.ToDouble(res) : 0;
                     }
                 }
                 lblStockOrigenVal.Text = stockOrigen.ToString();
@@ -746,11 +746,11 @@ namespace JaegerSoft
                 else
                 {
                     string qStock = "SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = " + idDestino + " AND IdProducto = @id";
-                    using (var cmd = new OleDbCommand(qStock, conectar))
+                    using (var cmd = new SqlCommand(qStock, conectar))
                     {
                         cmd.Parameters.AddWithValue("@id", codigo);
                         object res = cmd.ExecuteScalar();
-                        stockDestino = res != null ? Convert.ToDouble(res) : 0;
+                        stockDestino = res != null && res != DBNull.Value ? Convert.ToDouble(res) : 0;
                     }
                 }
                 lblStockDestinoVal.Text = stockDestino.ToString();
@@ -797,13 +797,13 @@ namespace JaegerSoft
                 return;
             }
 
-            OleDbTransaction trans = null;
+            SqlTransaction trans = null;
             try
             {
                 if (conectar.State != ConnectionState.Open) conectar.Open();
 
                 trans = conectar.BeginTransaction();
-                string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                string fechaActual = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
                 // 1. Descontar del origen
                 double stockOrigAntes = stockOrigen;
@@ -813,7 +813,7 @@ namespace JaegerSoft
                 {
                     // Almacén Principal: UPDATE Inventario
                     string query = "UPDATE Inventario SET Existencia = Existencia - @qty WHERE Id = @id";
-                    using (var cmd = new OleDbCommand(query, conectar, trans))
+                    using (var cmd = new SqlCommand(query, conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@qty", cantidad);
                         cmd.Parameters.AddWithValue("@id", codigo);
@@ -824,7 +824,7 @@ namespace JaegerSoft
                 {
                     // Almacén Dinámico: UPDATE InventarioAlmacenes
                     string query = "UPDATE InventarioAlmacenes SET Existencia = Existencia - @qty WHERE IdAlmacen = @org AND IdProducto = @id";
-                    using (var cmd = new OleDbCommand(query, conectar, trans))
+                    using (var cmd = new SqlCommand(query, conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@qty", cantidad);
                         cmd.Parameters.AddWithValue("@org", idOrigen);
@@ -841,7 +841,7 @@ namespace JaegerSoft
                 {
                     // Almacén Principal: UPDATE Inventario
                     string query = "UPDATE Inventario SET Existencia = Existencia + @qty WHERE Id = @id";
-                    using (var cmd = new OleDbCommand(query, conectar, trans))
+                    using (var cmd = new SqlCommand(query, conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@qty", cantidad);
                         cmd.Parameters.AddWithValue("@id", codigo);
@@ -853,7 +853,7 @@ namespace JaegerSoft
                     // Almacén Dinámico: Verificar si existe registro
                     string checkQuery = "SELECT COUNT(*) FROM InventarioAlmacenes WHERE IdAlmacen = @dst AND IdProducto = @id";
                     bool rowExists = false;
-                    using (var cmd = new OleDbCommand(checkQuery, conectar, trans))
+                    using (var cmd = new SqlCommand(checkQuery, conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@dst", idDestino);
                         cmd.Parameters.AddWithValue("@id", codigo);
@@ -863,7 +863,7 @@ namespace JaegerSoft
                     if (rowExists)
                     {
                         string query = "UPDATE InventarioAlmacenes SET Existencia = Existencia + @qty WHERE IdAlmacen = @dst AND IdProducto = @id";
-                        using (var cmd = new OleDbCommand(query, conectar, trans))
+                        using (var cmd = new SqlCommand(query, conectar, trans))
                         {
                             cmd.Parameters.AddWithValue("@qty", cantidad);
                             cmd.Parameters.AddWithValue("@dst", idDestino);
@@ -874,7 +874,7 @@ namespace JaegerSoft
                     else
                     {
                         string query = "INSERT INTO InventarioAlmacenes (IdAlmacen, IdProducto, Existencia) VALUES (@dst, @id, @qty)";
-                        using (var cmd = new OleDbCommand(query, conectar, trans))
+                        using (var cmd = new SqlCommand(query, conectar, trans))
                         {
                             cmd.Parameters.AddWithValue("@dst", idDestino);
                             cmd.Parameters.AddWithValue("@id", codigo);
@@ -887,7 +887,7 @@ namespace JaegerSoft
                 // 3. Registrar Movimiento en MovimientosAlmacenes
                 string queryLog = "INSERT INTO MovimientosAlmacenes (IdOrigen, IdDestino, IdProducto, Cantidad, Fecha, Usuario) " +
                                   "VALUES (@org, @dst, @id, @qty, @fecha, @usuario)";
-                using (var cmd = new OleDbCommand(queryLog, conectar, trans))
+                using (var cmd = new SqlCommand(queryLog, conectar, trans))
                 {
                     cmd.Parameters.AddWithValue("@org", idOrigen);
                     cmd.Parameters.AddWithValue("@dst", idDestino);
@@ -902,13 +902,12 @@ namespace JaegerSoft
                 if (idOrigen == 0)
                 {
                     // Origen Principal -> Destino Dinámico (Salida del Principal)
-                    // Buscamos el stock principal antes del movimiento
                     double stockPrincipalAntes = stockOrigAntes;
                     double stockPrincipalDespues = stockOrigDespues;
 
                     string queryKardex = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) " +
                                          "VALUES (@id, 'TRASPASO_SALIDA', @desc, @antes, @despues, @fecha, 'NA')";
-                    using (var cmd = new OleDbCommand(queryKardex, conectar, trans))
+                    using (var cmd = new SqlCommand(queryKardex, conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@id", codigo);
                         cmd.Parameters.AddWithValue("@desc", "TRASPASO A ALMACEN " + nombreDestinoText);
@@ -921,13 +920,12 @@ namespace JaegerSoft
                 else if (idDestino == 0)
                 {
                     // Origen Dinámico -> Destino Principal (Entrada al Principal)
-                    // Buscamos el stock principal antes del movimiento
                     double stockPrincipalAntes = stockDestAntes;
                     double stockPrincipalDespues = stockDestDespues;
 
                     string queryKardex = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) " +
                                          "VALUES (@id, 'TRASPASO_ENTRADA', @desc, @antes, @despues, @fecha, 'NA')";
-                    using (var cmd = new OleDbCommand(queryKardex, conectar, trans))
+                    using (var cmd = new SqlCommand(queryKardex, conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@id", codigo);
                         cmd.Parameters.AddWithValue("@desc", "TRASPASO DESDE ALMACEN " + nombreOrigenText);
@@ -940,10 +938,9 @@ namespace JaegerSoft
                 else
                 {
                     // Traspaso entre dos Almacenes Dinámicos
-                    // Loggeamos 2 registros detallados en Kardex: uno para el Origen y otro para el Destino
                     string queryKardexOrig = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) " +
                                              "VALUES (@id, 'TRASPASO_SALIDA', @desc, @antes, @despues, @fecha, 'NA')";
-                    using (var cmd = new OleDbCommand(queryKardexOrig, conectar, trans))
+                    using (var cmd = new SqlCommand(queryKardexOrig, conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@id", codigo);
                         cmd.Parameters.AddWithValue("@desc", "TRASPASO DE " + nombreOrigenText + " A " + nombreDestinoText + " (ORIGEN)");
@@ -955,7 +952,7 @@ namespace JaegerSoft
 
                     string queryKardexDest = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) " +
                                              "VALUES (@id, 'TRASPASO_ENTRADA', @desc, @antes, @despues, @fecha, 'NA')";
-                    using (var cmd = new OleDbCommand(queryKardexDest, conectar, trans))
+                    using (var cmd = new SqlCommand(queryKardexDest, conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@id", codigo);
                         cmd.Parameters.AddWithValue("@desc", "TRASPASO DE " + nombreOrigenText + " A " + nombreDestinoText + " (DESTINO)");
@@ -1024,22 +1021,22 @@ namespace JaegerSoft
             if (idDestino == 0)
             {
                 // Almacén Principal (Inventario)
-                using (var cmd = new OleDbCommand("SELECT Existencia FROM Inventario WHERE Id = @id", conectar))
+                using (var cmd = new SqlCommand("SELECT Existencia FROM Inventario WHERE Id = @id", conectar))
                 {
                     cmd.Parameters.AddWithValue("@id", codigo);
                     object val = cmd.ExecuteScalar();
-                    stockDestinoActual = val != null ? Convert.ToDouble(val) : 0;
+                    stockDestinoActual = val != null && val != DBNull.Value ? Convert.ToDouble(val) : 0;
                 }
             }
             else
             {
                 // Almacén Dinámico
-                using (var cmd = new OleDbCommand("SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = @dst AND IdProducto = @id", conectar))
+                using (var cmd = new SqlCommand("SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = @dst AND IdProducto = @id", conectar))
                 {
                     cmd.Parameters.AddWithValue("@dst", idDestino);
                     cmd.Parameters.AddWithValue("@id", codigo);
                     object val = cmd.ExecuteScalar();
-                    stockDestinoActual = val != null ? Convert.ToDouble(val) : 0;
+                    stockDestinoActual = val != null && val != DBNull.Value ? Convert.ToDouble(val) : 0;
                 }
             }
 
@@ -1052,18 +1049,18 @@ namespace JaegerSoft
             DialogResult confirm = MessageBox.Show("¿Está seguro que desea cancelar este movimiento de traspaso? Se retornarán " + cantidad + " unidades al almacén de origen.", "Confirmación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (confirm != DialogResult.Yes) return;
 
-            OleDbTransaction trans = null;
+            SqlTransaction trans = null;
             try
             {
                 if (conectar.State != ConnectionState.Open) conectar.Open();
                 trans = conectar.BeginTransaction();
-                string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                string fechaActual = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
                 // 1. Obtener stocks antes de la reversión (para Kardex)
                 double stockOrigAntes = 0;
                 if (idOrigen == 0)
                 {
-                    using (var cmd = new OleDbCommand("SELECT Existencia FROM Inventario WHERE Id = @id", conectar, trans))
+                    using (var cmd = new SqlCommand("SELECT Existencia FROM Inventario WHERE Id = @id", conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@id", codigo);
                         stockOrigAntes = Convert.ToDouble(cmd.ExecuteScalar());
@@ -1071,12 +1068,12 @@ namespace JaegerSoft
                 }
                 else
                 {
-                    using (var cmd = new OleDbCommand("SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = @org AND IdProducto = @id", conectar, trans))
+                    using (var cmd = new SqlCommand("SELECT Existencia FROM InventarioAlmacenes WHERE IdAlmacen = @org AND IdProducto = @id", conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@org", idOrigen);
                         cmd.Parameters.AddWithValue("@id", codigo);
                         object val = cmd.ExecuteScalar();
-                        stockOrigAntes = val != null ? Convert.ToDouble(val) : 0;
+                        stockOrigAntes = val != null && val != DBNull.Value ? Convert.ToDouble(val) : 0;
                     }
                 }
 
@@ -1085,7 +1082,7 @@ namespace JaegerSoft
                 // 2. Restar de la existencia en el almacén de destino (revertir entrega)
                 if (idDestino == 0)
                 {
-                    using (var cmd = new OleDbCommand("UPDATE Inventario SET Existencia = Existencia - @qty WHERE Id = @id", conectar, trans))
+                    using (var cmd = new SqlCommand("UPDATE Inventario SET Existencia = Existencia - @qty WHERE Id = @id", conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@qty", cantidad);
                         cmd.Parameters.AddWithValue("@id", codigo);
@@ -1094,7 +1091,7 @@ namespace JaegerSoft
                 }
                 else
                 {
-                    using (var cmd = new OleDbCommand("UPDATE InventarioAlmacenes SET Existencia = Existencia - @qty WHERE IdAlmacen = @dst AND IdProducto = @id", conectar, trans))
+                    using (var cmd = new SqlCommand("UPDATE InventarioAlmacenes SET Existencia = Existencia - @qty WHERE IdAlmacen = @dst AND IdProducto = @id", conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@qty", cantidad);
                         cmd.Parameters.AddWithValue("@dst", idDestino);
@@ -1106,7 +1103,7 @@ namespace JaegerSoft
                 // 3. Aumentar la existencia en el almacén de origen (revertir salida)
                 if (idOrigen == 0)
                 {
-                    using (var cmd = new OleDbCommand("UPDATE Inventario SET Existencia = Existencia + @qty WHERE Id = @id", conectar, trans))
+                    using (var cmd = new SqlCommand("UPDATE Inventario SET Existencia = Existencia + @qty WHERE Id = @id", conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@qty", cantidad);
                         cmd.Parameters.AddWithValue("@id", codigo);
@@ -1117,7 +1114,7 @@ namespace JaegerSoft
                 {
                     // Verificar si existe fila
                     bool rowExists = false;
-                    using (var cmd = new OleDbCommand("SELECT COUNT(*) FROM InventarioAlmacenes WHERE IdAlmacen = @org AND IdProducto = @id", conectar, trans))
+                    using (var cmd = new SqlCommand("SELECT COUNT(*) FROM InventarioAlmacenes WHERE IdAlmacen = @org AND IdProducto = @id", conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@org", idOrigen);
                         cmd.Parameters.AddWithValue("@id", codigo);
@@ -1126,7 +1123,7 @@ namespace JaegerSoft
 
                     if (rowExists)
                     {
-                        using (var cmd = new OleDbCommand("UPDATE InventarioAlmacenes SET Existencia = Existencia + @qty WHERE IdAlmacen = @org AND IdProducto = @id", conectar, trans))
+                        using (var cmd = new SqlCommand("UPDATE InventarioAlmacenes SET Existencia = Existencia + @qty WHERE IdAlmacen = @org AND IdProducto = @id", conectar, trans))
                         {
                             cmd.Parameters.AddWithValue("@qty", cantidad);
                             cmd.Parameters.AddWithValue("@org", idOrigen);
@@ -1136,7 +1133,7 @@ namespace JaegerSoft
                     }
                     else
                     {
-                        using (var cmd = new OleDbCommand("INSERT INTO InventarioAlmacenes (IdAlmacen, IdProducto, Existencia) VALUES (@org, @id, @qty)", conectar, trans))
+                        using (var cmd = new SqlCommand("INSERT INTO InventarioAlmacenes (IdAlmacen, IdProducto, Existencia) VALUES (@org, @id, @qty)", conectar, trans))
                         {
                             cmd.Parameters.AddWithValue("@org", idOrigen);
                             cmd.Parameters.AddWithValue("@id", codigo);
@@ -1146,8 +1143,8 @@ namespace JaegerSoft
                     }
                 }
 
-                // 4. Actualizar estado del movimiento a Cancelado = True
-                using (var cmd = new OleDbCommand("UPDATE MovimientosAlmacenes SET Cancelado = True WHERE Id = @id", conectar, trans))
+                // 4. Actualizar estado del movimiento a Cancelado = 1
+                using (var cmd = new SqlCommand("UPDATE MovimientosAlmacenes SET Cancelado = 1 WHERE Id = @id", conectar, trans))
                 {
                     cmd.Parameters.AddWithValue("@id", idMovimiento);
                     cmd.ExecuteNonQuery();
@@ -1165,7 +1162,7 @@ namespace JaegerSoft
                     // Retorno al principal (Entrada)
                     string queryKardex = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) " +
                                          "VALUES (@id, 'TRASPASO_ENTRADA', @desc, @antes, @despues, @fecha, 'NA')";
-                    using (var cmd = new OleDbCommand(queryKardex, conectar, trans))
+                    using (var cmd = new SqlCommand(queryKardex, conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@id", codigo);
                         cmd.Parameters.AddWithValue("@desc", "CANCELACION TRASPASO FOLIO: " + idMovimiento + " (RETORNO DESDE " + nombreDestinoText + ")");
@@ -1180,7 +1177,7 @@ namespace JaegerSoft
                     // Retorno desde el principal (Salida)
                     string queryKardex = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) " +
                                          "VALUES (@id, 'TRASPASO_SALIDA', @desc, @antes, @despues, @fecha, 'NA')";
-                    using (var cmd = new OleDbCommand(queryKardex, conectar, trans))
+                    using (var cmd = new SqlCommand(queryKardex, conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@id", codigo);
                         cmd.Parameters.AddWithValue("@desc", "CANCELACION TRASPASO FOLIO: " + idMovimiento + " (RETORNO A " + nombreOrigenText + ")");
@@ -1195,7 +1192,7 @@ namespace JaegerSoft
                     // Traspaso entre dinámicos (Registrar salida y entrada)
                     string queryKardexOrig = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) " +
                                              "VALUES (@id, 'TRASPASO_ENTRADA', @desc, @antes, @despues, @fecha, 'NA')";
-                    using (var cmd = new OleDbCommand(queryKardexOrig, conectar, trans))
+                    using (var cmd = new SqlCommand(queryKardexOrig, conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@id", codigo);
                         cmd.Parameters.AddWithValue("@desc", "CANCELACION TRASPASO FOLIO: " + idMovimiento + " (RETORNO A " + nombreOrigenText + ")");
@@ -1207,7 +1204,7 @@ namespace JaegerSoft
 
                     string queryKardexDest = "INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) " +
                                              "VALUES (@id, 'TRASPASO_SALIDA', @desc, @antes, @despues, @fecha, 'NA')";
-                    using (var cmd = new OleDbCommand(queryKardexDest, conectar, trans))
+                    using (var cmd = new SqlCommand(queryKardexDest, conectar, trans))
                     {
                         cmd.Parameters.AddWithValue("@id", codigo);
                         cmd.Parameters.AddWithValue("@desc", "CANCELACION TRASPASO FOLIO: " + idMovimiento + " (RETORNO DESDE " + nombreDestinoText + ")");
@@ -1232,10 +1229,10 @@ namespace JaegerSoft
             }
         }
 
-        private string GetNombreAlmacen(int id, OleDbTransaction trans)
+        private string GetNombreAlmacen(int id, SqlTransaction trans)
         {
             string nombre = "Almacén " + id;
-            using (var cmd = new OleDbCommand("SELECT Nombre FROM Almacenes WHERE Id = @id", conectar, trans))
+            using (var cmd = new SqlCommand("SELECT Nombre FROM Almacenes WHERE Id = @id", conectar, trans))
             {
                 cmd.Parameters.AddWithValue("@id", id);
                 object val = cmd.ExecuteScalar();

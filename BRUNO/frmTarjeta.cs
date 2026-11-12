@@ -1,14 +1,14 @@
-﻿using System;
-using System.Data.OleDb;
+using System;
+using System.Data.SqlClient;
 using System.Windows.Forms;
 
 namespace JaegerSoft
 {
     public partial class frmTarjeta : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
+        SqlCommand cmd;
         public frmTarjeta()
         {
             InitializeComponent();
@@ -17,8 +17,8 @@ namespace JaegerSoft
 
         private void frmTarjeta_Load(object sender, EventArgs e)
         {
-            cmd = new OleDbCommand("select Porcentaje from Tarjeta where Id=1;", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
+            cmd = new SqlCommand("select Porcentaje from Tarjeta where Id=1;", conectar);
+            SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 txtPorcentaje.Text =reader[0].ToString();
@@ -61,7 +61,7 @@ namespace JaegerSoft
             // --- AQUÍ VA TU CÓDIGO PARA ALMACENAR EN BASE DE DATOS ---
             try
             {
-                cmd = new OleDbCommand("UPDATE Tarjeta set Porcentaje=" + porcentaje + " where Id=1;", conectar);
+                cmd = new SqlCommand("UPDATE Tarjeta set Porcentaje=" + porcentaje + " where Id=1;", conectar);
                 cmd.ExecuteNonQuery();
 
                 MessageBox.Show($"Porcentaje {porcentaje}% almacenado correctamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);

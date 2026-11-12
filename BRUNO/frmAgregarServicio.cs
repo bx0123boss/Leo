@@ -1,9 +1,9 @@
-﻿using LibPrintTicket;
+using LibPrintTicket;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,9 +14,9 @@ namespace JaegerSoft
 {
     public partial class frmAgregarServicio : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL); 
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlCommand cmd;
         string idCliente = "0", lblFolio = "";
         int foli;
 
@@ -28,8 +28,8 @@ namespace JaegerSoft
         private void frmAgregarServicio_Load(object sender, EventArgs e)
         {
             conectar.Open();
-            cmd = new OleDbCommand("select Numero from Folios where Folio='FolioServicio';", conectar);
-            OleDbDataReader reader = cmd.ExecuteReader();
+            cmd = new SqlCommand("select Numero from Folios where Folio='FolioServicio';", conectar);
+            SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 foli = Convert.ToInt32(Convert.ToString(reader[0].ToString()));
@@ -55,12 +55,12 @@ namespace JaegerSoft
                 ticket.AddSubHeaderLine("PRODUCTO: " + txtProducto.Text);
                 ticket.AddItem("1", txtServicio.Text, "$" + txtPresupuesto.Text);
                 ticket.AddTotal("Abono", "$" + txtReal.Text);
-                cmd = new OleDbCommand("insert into Servicios(Producto,Peso, Descripcion, Servicio, Fecha,FechaEntrega, Presupuesto,idCliente,NombreCliente,Folio,CostoReal,Abono) values('" + txtProducto.Text + "','" + txtServicio.Text + "','" + txtConcepto.Text + "','" + txtServicio.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + dateTimePicker1.Value.ToString() + "','" + txtPresupuesto.Text + "','" + idCliente + "','" + lblCliente.Text + "','" + lblFolio + "','" + txtPresupuesto.Text + "','" + txtReal.Text + "');", conectar);
+                cmd = new SqlCommand("insert into Servicios(Producto,Peso, Descripcion, Servicio, Fecha,FechaEntrega, Presupuesto,idCliente,NombreCliente,Folio,CostoReal,Abono) values('" + txtProducto.Text + "','" + txtServicio.Text + "','" + txtConcepto.Text + "','" + txtServicio.Text + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + dateTimePicker1.Value.ToString() + "','" + txtPresupuesto.Text + "','" + idCliente + "','" + lblCliente.Text + "','" + lblFolio + "','" + txtPresupuesto.Text + "','" + txtReal.Text + "');", conectar);
                 cmd.ExecuteNonQuery();
-                cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora) Values('ANTICIPO DE SERVICIO FOLIO " + lblFolio + "','" + txtReal.Text + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora) Values('ANTICIPO DE SERVICIO FOLIO " + lblFolio + "','" + txtReal.Text + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');", conectar);
                 cmd.ExecuteNonQuery();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
                 foli++;
-                cmd = new OleDbCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioServicio';", conectar);
+                cmd = new SqlCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioServicio';", conectar);
                 cmd.ExecuteNonQuery();
                 ticket.AddFooterLine("1.-TODO SERVICIO DE REPARACION REQUIERE UN 50%.");
                 ticket.AddFooterLine("2.-NO SE ACEPTAN CANCELACIONES, NI SE HARAN DEVOLUCIONES DESPUES DE ESTAR PROCESADO EL TRABAJO SOLICITADO.");

@@ -1,4 +1,5 @@
-﻿using System;
+using System.Data.SqlClient;
+using System;
 using System.Data;
 using System.Data.OleDb;
 using System.Windows.Forms;
@@ -7,9 +8,9 @@ namespace JaegerSoft
 {
     public partial class frmCapturaInicial : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbConnection conn;
-        OleDbDataAdapter MyDataAdapter;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        System.Data.OleDb.OleDbConnection conn;
+        System.Data.OleDb.OleDbDataAdapter MyDataAdapter;
         DataTable dt;
 
         public frmCapturaInicial()
@@ -48,7 +49,7 @@ namespace JaegerSoft
             dt = new DataTable();
             MyDataAdapter.Fill(dt);
 
-            // 🔴 PASO 1: FILTRAR Y ELIMINAR FILAS VACÍAS (Traídas por el DataValidation de Excel)
+            // ?? PASO 1: FILTRAR Y ELIMINAR FILAS VACÍAS (Traídas por el DataValidation de Excel)
             for (int i = dt.Rows.Count - 1; i >= 0; i--)
             {
                 DataRow dr = dt.Rows[i];
@@ -59,7 +60,7 @@ namespace JaegerSoft
             }
             dt.AcceptChanges();
 
-            // 🔴 PASO 2: CONVERTIR COLUMNAS A BOOLEANO EN EL DATATABLE PARA QUE EL DATAGRIDVIEW
+            // ?? PASO 2: CONVERTIR COLUMNAS A BOOLEANO EN EL DATATABLE PARA QUE EL DATAGRIDVIEW
             // CREÉ LOS CHECKBOXES AUTOMÁTICAMENTE Y BIEN VINCULADOS
             DataTable dtClon = dt.Clone();
             dtClon.Columns["IVA"].DataType = typeof(bool);
@@ -133,7 +134,7 @@ namespace JaegerSoft
                     string unidad = row.Cells["Unidad"].Value?.ToString() ?? "";
                     string strIVA = tieneIVA ? "IVA(16)" : "NO INCLUYE IVA";
                     bool manejaInventario = Convert.ToBoolean(row.Cells["ManejaInventario"].Value ?? false);
-                    string fechaActual = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+                    string fechaActual = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
                     // -------------------------------------------------------------
                     // 1. INSERCIÓN EN LA TABLA INVENTARIO
@@ -142,7 +143,7 @@ namespace JaegerSoft
                         (Id, Nombre, PrecioVentaMayoreo, PrecioVenta, Existencia, Limite, Categoria, Especial, IVA, Unidad, ManejaInventario) 
                         VALUES (@Id, @Nombre, @PrecioMayoreo, @PrecioVenta, @Existencia, @Limite, @Categoria, @Especial, @IVA, @Unidad, @ManejaInv)";
 
-                    using (OleDbCommand cmdInventario = new OleDbCommand(sqlInventario, conectar))
+                    using (SqlCommand cmdInventario = new SqlCommand(sqlInventario, conectar))
                     {
                         cmdInventario.Parameters.AddWithValue("@Id", id);
                         cmdInventario.Parameters.AddWithValue("@Nombre", nombre);
@@ -166,7 +167,7 @@ namespace JaegerSoft
                         (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) 
                         VALUES (@IdProducto, @Tipo, @Descripcion, @ExistenciaAntes, @ExistenciaDespues, @Fecha, @Precio)";
 
-                    using (OleDbCommand cmdKardex = new OleDbCommand(sqlKardex, conectar))
+                    using (SqlCommand cmdKardex = new SqlCommand(sqlKardex, conectar))
                     {
                         cmdKardex.Parameters.AddWithValue("@IdProducto", id.ToString());
                         cmdKardex.Parameters.AddWithValue("@Tipo", "CREACION");

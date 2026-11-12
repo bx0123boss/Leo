@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -11,9 +11,9 @@ namespace JaegerSoft
     public partial class frmVentaDetallada : frmBase
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
+        SqlCommand cmd;
         double existenciasTotales = 0;
         public String usuario = "";
         public decimal monto;
@@ -41,14 +41,14 @@ namespace JaegerSoft
 
             try
             {
-                using (OleDbConnection con = new OleDbConnection(Conexion.CadCon))
+                using (SqlConnection con = new SqlConnection(Conexion.CadSQL))
                 {
                     con.Open();
-                    string query = "SELECT Monto, Fecha, Estatus, Descuento, Pago FROM Ventas WHERE Folio = ?";
-                    using (OleDbCommand cmdVenta = new OleDbCommand(query, con))
+                    string query = "SELECT Monto, Fecha, Estatus, Descuento, Pago FROM Ventas WHERE Folio = @folio";
+                    using (SqlCommand cmdVenta = new SqlCommand(query, con))
                     {
-                        cmdVenta.Parameters.AddWithValue("?", folio);
-                        using (OleDbDataReader reader = cmdVenta.ExecuteReader())
+                        cmdVenta.Parameters.AddWithValue("@folio", folio);
+                        using (SqlDataReader reader = cmdVenta.ExecuteReader())
                         {
                             if (reader.Read())
                             {
@@ -100,7 +100,7 @@ namespace JaegerSoft
             // --- LÓGICA PARA ELEGIR QUÉ FOLIO USAR PARA BUSCAR ---
             string folioBaseDatos = string.IsNullOrEmpty(folioRealConsulta) ? lblFolio.Text : folioRealConsulta;
 
-            da = new OleDbDataAdapter("select * from VentasContado where FolioVenta='" + folioBaseDatos + "';", conectar);
+            da = new SqlDataAdapter("select * from VentasContado where FolioVenta='" + folioBaseDatos + "';", conectar);
             da.Fill(ds, "Id");
             dataGridView1.DataSource = ds.Tables["Id"];
 
@@ -116,8 +116,8 @@ namespace JaegerSoft
 
             if (dataGridView1.Rows.Count > 0)
             {
-                cmd = new OleDbCommand("select * from Clientes where Id=" + dataGridView1[6, 0].Value.ToString() + ";", conectar);
-                OleDbDataReader reader = cmd.ExecuteReader();
+                cmd = new SqlCommand("select * from Clientes where Id=" + dataGridView1[6, 0].Value.ToString() + ";", conectar);
+                SqlDataReader reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
                     lblCliente.Text = Convert.ToString(reader[1].ToString());
@@ -209,7 +209,7 @@ namespace JaegerSoft
                 // 1. VERIFICAR SI ESTA VENTA FUE UNA LIQUIDACIÓN DE CONSIGNA
                 // =========================================================================
                 bool esVentaConsignaLocal = false;
-                cmd = new OleDbCommand("SELECT COUNT(*) FROM ConsignaMovimientos WHERE ReferenciaVentaId = '" + folioCancelar + "'", conectar);
+                cmd = new SqlCommand("SELECT COUNT(*) FROM ConsignaMovimientos WHERE ReferenciaVentaId = '" + folioCancelar + "'", conectar);
                 if (Convert.ToInt32(cmd.ExecuteScalar()) > 0)
                 {
                     esVentaConsignaLocal = true;
@@ -221,8 +221,8 @@ namespace JaegerSoft
 
                     // A) Leemos todos los movimientos que generó este folio
                     DataTable dtMovs = new DataTable();
-                    cmd = new OleDbCommand("SELECT ClienteId, ProductoId, Cantidad, PrecioVigente FROM ConsignaMovimientos WHERE ReferenciaVentaId = '" + folioCancelar + "'", conectar);
-                    OleDbDataAdapter daMovs = new OleDbDataAdapter(cmd);
+                    cmd = new SqlCommand("SELECT ClienteId, ProductoId, Cantidad, PrecioVigente FROM ConsignaMovimientos WHERE ReferenciaVentaId = '" + folioCancelar + "'", conectar);
+                    SqlDataAdapter daMovs = new SqlDataAdapter(cmd);
                     daMovs.Fill(dtMovs);
 
                     foreach (DataRow row in dtMovs.Rows)
@@ -233,28 +233,28 @@ namespace JaegerSoft
                         decimal precio = Convert.ToDecimal(row["PrecioVigente"]);
 
                         // B) Rebotamos los saldos al cliente (Regresan a EnConsigna, se restan de Vendidos)
-                        cmd = new OleDbCommand("UPDATE ConsignaCliente SET EnConsigna = EnConsigna + ?, Vendidos = Vendidos - ? WHERE ClienteId = ? AND ProductoId = ? AND PrecioCongelado = ?", conectar);
-                        cmd.Parameters.AddWithValue("?", cant);
-                        cmd.Parameters.AddWithValue("?", cant);
-                        cmd.Parameters.AddWithValue("?", cId);
-                        cmd.Parameters.AddWithValue("?", pId);
-                        cmd.Parameters.AddWithValue("?", precio);
+                        cmd = new SqlCommand("UPDATE ConsignaCliente SET EnConsigna = EnConsigna + @cant1, Vendidos = Vendidos - @cant2 WHERE ClienteId = @cId AND ProductoId = @pId AND PrecioCongelado = @precio", conectar);
+                        cmd.Parameters.AddWithValue("@cant1", cant);
+                        cmd.Parameters.AddWithValue("@cant2", cant);
+                        cmd.Parameters.AddWithValue("@cId", cId);
+                        cmd.Parameters.AddWithValue("@pId", pId);
+                        cmd.Parameters.AddWithValue("@precio", precio);
                         cmd.ExecuteNonQuery();
 
                         // C) Dejamos rastro en el Kardex de la Consigna
-                        cmd = new OleDbCommand("INSERT INTO ConsignaMovimientos (ClienteId, ProductoId, TipoMovimiento, Cantidad, PrecioVigente, Fecha, ReferenciaVentaId) VALUES (?, ?, 'CANCELACION', ?, ?, NOW(), ?)", conectar);
-                        cmd.Parameters.AddWithValue("?", cId);
-                        cmd.Parameters.AddWithValue("?", pId);
-                        cmd.Parameters.AddWithValue("?", cant);
-                        cmd.Parameters.AddWithValue("?", precio);
-                        cmd.Parameters.AddWithValue("?", folioCancelar);
+                        cmd = new SqlCommand("INSERT INTO ConsignaMovimientos (ClienteId, ProductoId, TipoMovimiento, Cantidad, PrecioVigente, Fecha, ReferenciaVentaId) VALUES (@cId, @pId, 'CANCELACION', @cant, @precio, GETDATE(), @folioCan)", conectar);
+                        cmd.Parameters.AddWithValue("@cId", cId);
+                        cmd.Parameters.AddWithValue("@pId", pId);
+                        cmd.Parameters.AddWithValue("@cant", cant);
+                        cmd.Parameters.AddWithValue("@precio", precio);
+                        cmd.Parameters.AddWithValue("@folioCan", folioCancelar);
                         cmd.ExecuteNonQuery();
                     }
 
                     // D) Borramos los totales en VentasContado
                     for (int i = 0; i < dataGridView1.RowCount; i++)
                     {
-                        cmd = new OleDbCommand("UPDATE VentasContado set MontoTotal='0', Utilidad='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
+                        cmd = new SqlCommand("UPDATE VentasContado set MontoTotal='0', Utilidad='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -263,8 +263,8 @@ namespace JaegerSoft
                     // ---> LÓGICA ORIGINAL PARA VENTA NORMAL (Rebota a inventario tienda) <---
                     for (int i = 0; i < dataGridView1.RowCount; i++)
                     {
-                        cmd = new OleDbCommand("select * from Inventario where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
-                        OleDbDataReader reader = cmd.ExecuteReader();
+                        cmd = new SqlCommand("select * from Inventario where Id='" + dataGridView1[2, i].Value.ToString() + "';", conectar);
+                        SqlDataReader reader = cmd.ExecuteReader();
                         if (reader.Read())
                         {
                             existenciasTotales = Convert.ToDouble(dataGridView1[3, i].Value.ToString()) + Convert.ToDouble(Convert.ToString(reader[4].ToString()));
@@ -277,16 +277,16 @@ namespace JaegerSoft
 
                             if (manejaInventario)
                             {
-                                cmd = new OleDbCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[2, i].Value.ToString() + "' AND ManejaInventario = True;", conectar);
+                                cmd = new SqlCommand("UPDATE Inventario set Existencia='" + existenciasTotales + "' Where Id='" + dataGridView1[2, i].Value.ToString() + "' AND ManejaInventario = 1;", conectar);
                                 cmd.ExecuteNonQuery();
                             }
 
-                            cmd = new OleDbCommand("UPDATE VentasContado set MontoTotal='0', Utilidad='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
+                            cmd = new SqlCommand("UPDATE VentasContado set MontoTotal='0', Utilidad='0' Where Id=" + dataGridView1[0, i].Value.ToString() + ";", conectar);
                             cmd.ExecuteNonQuery();
 
                             if (manejaInventario)
                             {
-                                cmd = new OleDbCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','ENTRADA','CANCELACION DE VENTA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "');", conectar);
+                                cmd = new SqlCommand("insert into Kardex (IdProducto,Tipo,Descripcion,ExistenciaAntes,ExistenciaDespues,Fecha) values('" + dataGridView1[2, i].Value.ToString() + "','ENTRADA','CANCELACION DE VENTA FOLIO: " + lblFolio.Text + "'," + Convert.ToString(reader[4].ToString()) + ",'" + existenciasTotales + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');", conectar);
                                 cmd.ExecuteNonQuery();
                             }
                         }
@@ -297,12 +297,12 @@ namespace JaegerSoft
                 // =========================================================================
                 // 2. ACTUALIZAR ESTADO A 'CANCELADO' Y REVERTIR CORTES (COMÚN PARA AMBOS)
                 // =========================================================================
-                cmd = new OleDbCommand("update Ventas set Estatus='CANCELADO' where Folio='" + folioCancelar + "';", conectar);
+                cmd = new SqlCommand("update Ventas set Estatus='CANCELADO' where Folio='" + folioCancelar + "';", conectar);
                 cmd.ExecuteNonQuery();
 
                 // Buscamos si existen los pagos originales de este ticket en el Corte de hoy
-                cmd = new OleDbCommand("SELECT Monto, Pago FROM Corte WHERE Concepto = 'Venta a contado folio " + folioCancelar + "';", conectar);
-                OleDbDataReader readerCorte = cmd.ExecuteReader();
+                cmd = new SqlCommand("SELECT Monto, Pago FROM Corte WHERE Concepto = 'Venta a contado folio " + folioCancelar + "';", conectar);
+                SqlDataReader readerCorte = cmd.ExecuteReader();
 
                 bool encontroPagosEnCorte = false;
                 List<Tuple<double, string>> pagosARevertir = new List<Tuple<double, string>>();
@@ -320,7 +320,7 @@ namespace JaegerSoft
                 {
                     foreach (var pago in pagosARevertir)
                     {
-                        cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "'," + (pago.Item1 * -1) + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "','" + pago.Item2 + "');", conectar);
+                        cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "'," + (pago.Item1 * -1) + ",'" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + pago.Item2 + "');", conectar);
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -332,7 +332,7 @@ namespace JaegerSoft
                         metodoReembolso = "01=EFECTIVO";
                     }
 
-                    cmd = new OleDbCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "',-" + monto + ",'" + (DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()) + "' ,'" + metodoReembolso + "');", conectar);
+                    cmd = new SqlCommand("insert into Corte(Concepto,Monto,FechaHora,Pago) Values('Cancelacion de la venta a contado folio " + folioCancelar + "',-" + monto + ",'" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "' ,'" + metodoReembolso + "');", conectar);
                     cmd.ExecuteNonQuery();
                 }
 

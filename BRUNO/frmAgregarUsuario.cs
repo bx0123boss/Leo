@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,9 +14,9 @@ namespace JaegerSoft
     public partial class frmAgregarUsuario : Form
     {
         public string idUsuario;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlCommand cmd;
         public frmAgregarUsuario()
         {
             InitializeComponent();
@@ -30,11 +30,11 @@ namespace JaegerSoft
                 {
                     if (cmbTipo.Text != "" && txtUsuario.Text != "" && txtPass.Text != "")
                     {
-                        cmd = new OleDbCommand("select count(*) from Usuarios where Usuario='" + txtUsuario.Text + "';", conectar);
+                        cmd = new SqlCommand("select count(*) from Usuarios where Usuario='" + txtUsuario.Text + "';", conectar);
                         int valor = int.Parse(cmd.ExecuteScalar().ToString());
                         if (valor == 0)
                         {
-                            cmd = new OleDbCommand("insert into Usuarios(Usuario, Contraseña, Tipo) values('" + txtUsuario.Text + "','" + txtPass.Text + "','" + cmbTipo.Text + "');", conectar);
+                            cmd = new SqlCommand("insert into Usuarios(Usuario, Contraseña, Tipo) values('" + txtUsuario.Text + "','" + txtPass.Text + "','" + cmbTipo.Text + "');", conectar);
                             cmd.ExecuteNonQuery();
                             MessageBox.Show("Se ha agregado el usuario con exito", "Agregar Usuario", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             frmUsuarios user = new frmUsuarios();
@@ -50,7 +50,7 @@ namespace JaegerSoft
                         }
                         else
                         {
-                            cmd = new OleDbCommand("UPDATE Usuarios set Contraseña='" + txtPass.Text + "' Where Id=" + idUsuario+ " and Usuario = '"+ txtUsuario.Text+"';", conectar);
+                            cmd = new SqlCommand("UPDATE Usuarios set Contraseña='" + txtPass.Text + "' Where Id=" + idUsuario+ " and Usuario = '"+ txtUsuario.Text+"';", conectar);
                             cmd.ExecuteNonQuery();
                             MessageBox.Show("Se ha editado el usuario con exito", "Editar", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             frmUsuarios user = new frmUsuarios();

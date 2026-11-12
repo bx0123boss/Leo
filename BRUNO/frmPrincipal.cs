@@ -1,6 +1,6 @@
 using System;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -18,7 +18,7 @@ namespace JaegerSoft
         public string NombreUsuario = "";
         public string idUsuario = "";
         public bool IsPuntoB { get; set; } =  false;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
         public frmPrincipal()
         {
             InitializeComponent();
@@ -386,8 +386,8 @@ namespace JaegerSoft
                 // Obtener todos los clientes
                 string sqlClientes = "SELECT Id FROM Clientes";
 
-                using (OleDbCommand cmdClientes = new OleDbCommand(sqlClientes, conectar))
-                using (OleDbDataReader reader = cmdClientes.ExecuteReader())
+                using (SqlCommand cmdClientes = new SqlCommand(sqlClientes, conectar))
+                using (SqlDataReader reader = cmdClientes.ExecuteReader())
                 {
                     while (reader.Read())
                     {
@@ -397,11 +397,11 @@ namespace JaegerSoft
                         string sqlSaldo =
                             "SELECT Sum(Saldo) " +
                             "FROM Ventas2 " +
-                            "WHERE IdCliente = ?";
+                            "WHERE IdCliente = @IdCliente";
 
                         double totalSaldo = 0;
 
-                        using (OleDbCommand cmdSaldo = new OleDbCommand(sqlSaldo, conectar))
+                        using (SqlCommand cmdSaldo = new SqlCommand(sqlSaldo, conectar))
                         {
                             cmdSaldo.Parameters.AddWithValue("@IdCliente", idCliente);
 
@@ -414,10 +414,10 @@ namespace JaegerSoft
                         // Actualizar Clientes.Adeudo
                         string sqlUpdate =
                             "UPDATE Clientes " +
-                            "SET Adeudo = ? " +
-                            "WHERE Id = ?";
+                            "SET Adeudo = @Adeudo " +
+                            "WHERE Id = @Id";
 
-                        using (OleDbCommand cmdUpdate = new OleDbCommand(sqlUpdate, conectar))
+                        using (SqlCommand cmdUpdate = new SqlCommand(sqlUpdate, conectar))
                         {
                             cmdUpdate.Parameters.AddWithValue("@Adeudo", totalSaldo);
                             cmdUpdate.Parameters.AddWithValue("@Id", idCliente);

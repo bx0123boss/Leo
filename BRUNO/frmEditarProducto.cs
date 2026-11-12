@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -16,9 +16,9 @@ namespace JaegerSoft
 {
     public partial class frmEditarProducto : Form
     {
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon); 
-        //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
-        OleDbCommand cmd;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL); 
+        //SqlConnection conectar = new SqlConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
+        SqlCommand cmd;
         public string usuario = "";
         public string inventario = "";
         double precio;
@@ -240,44 +240,44 @@ namespace JaegerSoft
                 }
 
                 string sql = "UPDATE Inventario SET " +
-                             "Nombre = ?, " +
-                             "PrecioVenta = ?, " +
-                             "PrecioVentaMayoreo = ?, " +
-                             "Categoria = ?, " +
-                             "Especial = ?, " +
-                             "IVA = ?, " +
-                             "Unidad = ?, " +
-                             "Uni = ?, " +
-                             "ProveedorPrincipal = ?, " +
-                             "StockMaximo = ?, " +
-                             "DiasReposicion = ?, " +
-                             "Limite = ?, " +
-                             "ManejaInventario = ?, " +
-                             "EsInsumo = ?, " +
-                             "EsReceta = ? ," +
-                             "ImagenUrl = ? " +
-                             "WHERE Id = ?;";
+                             "Nombre = @Nombre, " +
+                             "PrecioVenta = @PrecioVenta, " +
+                             "PrecioVentaMayoreo = @PrecioVentaMayoreo, " +
+                             "Categoria = @Categoria, " +
+                             "Especial = @Especial, " +
+                             "IVA = @IVA, " +
+                             "Unidad = @Unidad, " +
+                             "Uni = @Uni, " +
+                             "ProveedorPrincipal = @ProveedorPrincipal, " +
+                             "StockMaximo = @StockMaximo, " +
+                             "DiasReposicion = @DiasReposicion, " +
+                             "Limite = @Limite, " +
+                             "ManejaInventario = @ManejaInventario, " +
+                             "EsInsumo = @EsInsumo, " +
+                             "EsReceta = @EsReceta ," +
+                             "ImagenUrl = @ImagenUrl " +
+                             "WHERE Id = @Id;";
 
-                using (OleDbCommand cmdUpdate = new OleDbCommand(sql, conectar))
+                using (SqlCommand cmdUpdate = new SqlCommand(sql, conectar))
                 {
-                    cmdUpdate.Parameters.AddWithValue("?", txtProducto.Text);
-                    cmdUpdate.Parameters.AddWithValue("?", ParseDecimal(txtVenta.Text));         // PrecioVenta
-                    cmdUpdate.Parameters.AddWithValue("?", ParseDecimal(txtCompra.Text));        // PrecioVentaMayoreo
-                    cmdUpdate.Parameters.AddWithValue("?", comboBox1.Text);                      // Categoria
-                    cmdUpdate.Parameters.AddWithValue("?", ParseDouble(txtLimite.Text));         // Especial (Precio Compra)
-                    cmdUpdate.Parameters.AddWithValue("?", cmbCategoria.Text);                   // IVA (Impuesto)
-                    cmdUpdate.Parameters.AddWithValue("?", cmbUnidad.SelectedValue != null ? cmbUnidad.SelectedValue.ToString() : "");
-                    cmdUpdate.Parameters.AddWithValue("?", cmbUnidad.Text);
-                    cmdUpdate.Parameters.AddWithValue("?", cmbProveedor.Text);                   // ProveedorPrincipal
-                    cmdUpdate.Parameters.AddWithValue("?", ParseDouble(txtStockMaximo.Text));    // StockMaximo
-                    cmdUpdate.Parameters.AddWithValue("?", ParseInt(txtDiasReposicion.Text));    // DiasReposicion
-                    cmdUpdate.Parameters.AddWithValue("?", ParseInt(txtLimiteReal.Text));        // Limite (Stock Minimo)
-                    cmdUpdate.Parameters.AddWithValue("?", chkManejaInventario.Checked);         // ManejaInventario
-                    cmdUpdate.Parameters.AddWithValue("?", chkEsInsumo.Checked);                 // EsInsumo
-                    cmdUpdate.Parameters.AddWithValue("?", chkEsReceta.Checked);
+                    cmdUpdate.Parameters.AddWithValue("@Nombre", txtProducto.Text);
+                    cmdUpdate.Parameters.AddWithValue("@PrecioVenta", ParseDecimal(txtVenta.Text));         // PrecioVenta
+                    cmdUpdate.Parameters.AddWithValue("@PrecioVentaMayoreo", ParseDecimal(txtCompra.Text));        // PrecioVentaMayoreo
+                    cmdUpdate.Parameters.AddWithValue("@Categoria", comboBox1.Text);                      // Categoria
+                    cmdUpdate.Parameters.AddWithValue("@Especial", ParseDouble(txtLimite.Text));         // Especial (Precio Compra)
+                    cmdUpdate.Parameters.AddWithValue("@IVA", cmbCategoria.Text);                   // IVA (Impuesto)
+                    cmdUpdate.Parameters.AddWithValue("@Unidad", cmbUnidad.SelectedValue != null ? cmbUnidad.SelectedValue.ToString() : "");
+                    cmdUpdate.Parameters.AddWithValue("@Uni", cmbUnidad.Text);
+                    cmdUpdate.Parameters.AddWithValue("@ProveedorPrincipal", cmbProveedor.Text);                   // ProveedorPrincipal
+                    cmdUpdate.Parameters.AddWithValue("@StockMaximo", ParseDouble(txtStockMaximo.Text));    // StockMaximo
+                    cmdUpdate.Parameters.AddWithValue("@DiasReposicion", ParseInt(txtDiasReposicion.Text));    // DiasReposicion
+                    cmdUpdate.Parameters.AddWithValue("@Limite", ParseInt(txtLimiteReal.Text));        // Limite (Stock Minimo)
+                    cmdUpdate.Parameters.AddWithValue("@ManejaInventario", chkManejaInventario.Checked);         // ManejaInventario
+                    cmdUpdate.Parameters.AddWithValue("@EsInsumo", chkEsInsumo.Checked);                 // EsInsumo
+                    cmdUpdate.Parameters.AddWithValue("@EsReceta", chkEsReceta.Checked);
                     string imagenUrl = GuardarImagenProducto(txtID.Text);
-                    cmdUpdate.Parameters.AddWithValue("?", (object)imagenUrl ?? DBNull.Value);
-                    cmdUpdate.Parameters.AddWithValue("?", txtID.Text);                          // WHERE Id
+                    cmdUpdate.Parameters.AddWithValue("@ImagenUrl", (object)imagenUrl ?? DBNull.Value);
+                    cmdUpdate.Parameters.AddWithValue("@Id", txtID.Text);                          // WHERE Id
 
                     cmdUpdate.ExecuteNonQuery();
                 }
@@ -285,12 +285,12 @@ namespace JaegerSoft
                 if (precio != venta)
                 {
                     string sqlKardex = "insert into Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha, Precio) " +
-                                       "values (?, 'PRECIO', 'MODIFICACION DE PRECIO', 0, '0', ?, ?);";
-                    using (OleDbCommand cmdKardex = new OleDbCommand(sqlKardex, conectar))
+                                       "values (@IdProducto, 'PRECIO', 'MODIFICACION DE PRECIO', 0, '0', @Fecha, @Precio);";
+                    using (SqlCommand cmdKardex = new SqlCommand(sqlKardex, conectar))
                     {
-                        cmdKardex.Parameters.AddWithValue("?", txtID.Text);
-                        cmdKardex.Parameters.AddWithValue("?", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
-                        cmdKardex.Parameters.AddWithValue("?", txtVenta.Text);
+                        cmdKardex.Parameters.AddWithValue("@IdProducto", txtID.Text);
+                        cmdKardex.Parameters.AddWithValue("@Fecha", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                        cmdKardex.Parameters.AddWithValue("@Precio", txtVenta.Text);
                         cmdKardex.ExecuteNonQuery();
                     }
                 }
@@ -382,9 +382,9 @@ namespace JaegerSoft
             
             // Populate Categorias
             DataTable dtCat = new DataTable();
-            using (cmd = new OleDbCommand("Select Id,Nombre from Categorias;", conectar))
+            using (cmd = new SqlCommand("Select Id,Nombre from Categorias;", conectar))
             {
-                using (OleDbDataAdapter da = new OleDbDataAdapter(cmd))
+                using (SqlDataAdapter da = new SqlDataAdapter(cmd))
                 {
                     da.Fill(dtCat);
                 }
@@ -398,9 +398,9 @@ namespace JaegerSoft
                 comboBox1.Text = categoriaSeleccionada;
             // Populate Proveedores
             DataTable dtProv = new DataTable();
-            using (cmd = new OleDbCommand("Select Id,Nombre from Proveedores ORDER BY Nombre;", conectar))
+            using (cmd = new SqlCommand("Select Id,Nombre from Proveedores ORDER BY Nombre;", conectar))
             {
-                using (OleDbDataAdapter da = new OleDbDataAdapter(cmd))
+                using (SqlDataAdapter da = new SqlDataAdapter(cmd))
                 {
                     da.Fill(dtProv);
                 }
@@ -415,12 +415,12 @@ namespace JaegerSoft
             try
             {
                 precio = Convert.ToDouble(txtVenta.Text);
-                using (OleDbCommand cmdFlags = new OleDbCommand(
-                    "SELECT ManejaInventario, EsInsumo, EsReceta, ImagenUrl FROM Inventario WHERE Id = ?", conectar))
+                using (SqlCommand cmdFlags = new SqlCommand(
+                    "SELECT ManejaInventario, EsInsumo, EsReceta, ImagenUrl FROM Inventario WHERE Id = @Id", conectar))
                 {
-                    cmdFlags.Parameters.AddWithValue("?", txtID.Text);
+                    cmdFlags.Parameters.AddWithValue("@Id", txtID.Text);
 
-                    using (OleDbDataReader dr = cmdFlags.ExecuteReader())
+                    using (SqlDataReader dr = cmdFlags.ExecuteReader())
                     {
                         if (dr.Read())
                         {
@@ -433,7 +433,7 @@ namespace JaegerSoft
                             if (dr["EsReceta"] != DBNull.Value)
                                 chkEsReceta.Checked = Convert.ToBoolean(dr["EsReceta"]);
 
-                            // ✅ Cargar la imagen si existe
+                            // âœ… Cargar la imagen si existe
                             if (dr["ImagenUrl"] != DBNull.Value)
                             {
                                 string imagenUrl = dr["ImagenUrl"].ToString();
@@ -547,3 +547,4 @@ namespace JaegerSoft
         }
     }
 }
+

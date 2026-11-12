@@ -1,4 +1,4 @@
-﻿namespace JaegerSoft
+namespace JaegerSoft
 {
     partial class frmLogin
     {
@@ -77,7 +77,6 @@
             this.label1.Size = new System.Drawing.Size(71, 20);
             this.label1.TabIndex = 29;
             this.label1.Text = "Usuario";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // button1
             // 
@@ -103,7 +102,6 @@
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox2.TabIndex = 32;
             this.pictureBox2.TabStop = false;
-            this.pictureBox2.Click += new System.EventHandler(this.pictureBox2_Click);
             // 
             // pictureBox1
             // 

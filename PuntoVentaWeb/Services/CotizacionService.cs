@@ -1,22 +1,18 @@
-﻿namespace PuntoVentaWeb.Services;
+namespace PuntoVentaWeb.Services;
 
 using PuntoVentaWeb.Models;
 using System.Data;
-using System.Data.Odbc;
-using System.Data.OleDb;
 using Microsoft.Data.SqlClient;
 using System.Text.Json;
 
 public class CotizacionService
 {
     private readonly string _sqlString;
-    private readonly string _accessString;
-    private readonly ILogger<CotizacionService> _logger;
+        private readonly ILogger<CotizacionService> _logger;
     public CotizacionService(IConfiguration configuracion, ILogger<CotizacionService> logger)
     {
         _sqlString = configuracion.GetConnectionString("SQL");
-        _accessString = configuracion.GetConnectionString("Access");
-        _logger = logger;
+                _logger = logger;
     }
     public async Task<List<Cotizacion>> ObtenerHistorial()
     {
@@ -71,14 +67,14 @@ public class CotizacionService
         var categorias = new List<string>();
 
         // Cambiamos a OdbcConnection y usamos tu variable _accessString
-        using (var conexion = new OdbcConnection(_accessString))
+        using (var conexion = new SqlConnection(_sqlString))
         {
             await conexion.OpenAsync();
 
             // SELECT DISTINCT para no traer categorías repetidas
             string query = "SELECT DISTINCT Categoria FROM Inventario WHERE Categoria IS NOT NULL AND Categoria <> '' ORDER BY Categoria";
 
-            using (var cmd = new OdbcCommand(query, conexion))
+            using (var cmd = new SqlCommand(query, conexion))
             using (var reader = await cmd.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
@@ -155,7 +151,7 @@ public class CotizacionService
     {
         var lista = new List<Producto>();
 
-        using (var con = new OdbcConnection(_accessString))
+        using (var con = new SqlConnection(_sqlString))
         {
             await con.OpenAsync();
 
@@ -169,29 +165,29 @@ public class CotizacionService
             // 2. Evaluamos si el usuario escribió algo en la búsqueda
             if (!string.IsNullOrWhiteSpace(busqueda))
             {
-                query += " AND (Nombre LIKE ? OR Id LIKE ?) ";
+                query += " AND (Nombre LIKE @busq OR Id LIKE @busq) ";
             }
 
             // 3. Evaluamos si el usuario seleccionó una categoría
             if (!string.IsNullOrWhiteSpace(categoria))
             {
-                query += " AND Categoria = ? ";
+                query += " AND Categoria = @cat ";
             }
 
-            using (var cmd = new OdbcCommand(query, con))
+            using (var cmd = new SqlCommand(query, con))
             {
                 // 4. IMPORTANTE: En ODBC, el orden en que agregas los parámetros 
                 // DEBE ser el mismo en el que aparecen los '?' en el string query.
 
                 if (!string.IsNullOrWhiteSpace(busqueda))
                 {
-                    cmd.Parameters.AddWithValue("?", "%" + busqueda + "%"); // Para Nombre LIKE ?
-                    cmd.Parameters.AddWithValue("?", "%" + busqueda + "%"); // Para Id LIKE ?
+                    cmd.Parameters.AddWithValue("@busq", "%" + busqueda + "%");
+                    
                 }
 
                 if (!string.IsNullOrWhiteSpace(categoria))
                 {
-                    cmd.Parameters.AddWithValue("?", categoria); // Para Categoria = ?
+                    cmd.Parameters.AddWithValue("@cat", categoria);
                 }
 
                 // Cambié a ExecuteReaderAsync y ReadAsync() para mejor rendimiento en la Web
@@ -218,17 +214,17 @@ public class CotizacionService
     {
         var lista = new List<Cliente>();
 
-        using (var con = new OdbcConnection(_accessString))
+        using (var con = new SqlConnection(_sqlString))
         {
             await con.OpenAsync();
             string query = @"SELECT TOP 20 Id, Nombre, RFC, Direccion, Telefono , Correo
                                  FROM Clientes 
-                                 WHERE Nombre LIKE ? OR RFC LIKE ?";
+                                 WHERE Nombre LIKE @busq OR RFC LIKE @busq";
 
-            using (var cmd = new OdbcCommand(query, con))
+            using (var cmd = new SqlCommand(query, con))
             {
-                cmd.Parameters.AddWithValue("?", "%" + busqueda + "%");
-                cmd.Parameters.AddWithValue("?", "%" + busqueda + "%");
+                cmd.Parameters.AddWithValue("@busq", "%" + busqueda + "%");
+                cmd.Parameters.AddWithValue("@busq", "%" + busqueda + "%");
 
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
@@ -497,13 +493,13 @@ public class CotizacionService
 
         try
         {
-            using (var con = new OdbcConnection(_accessString))
+            using (var con = new SqlConnection(_sqlString))
             {
                 await con.OpenAsync();
 
                 string query = "SELECT TOP 1 * FROM Configuracion";
 
-                using (var cmd = new OdbcCommand(query, con))
+                using (var cmd = new SqlCommand(query, con))
                 {
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {

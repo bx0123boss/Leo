@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -15,8 +15,8 @@ namespace JaegerSoft
     public partial class frmReporteVentas : frmBase
     {
         private DataSet ds;
-        OleDbConnection conectar = new OleDbConnection(Conexion.CadCon);
-        OleDbDataAdapter da;
+        SqlConnection conectar = new SqlConnection(Conexion.CadSQL);
+        SqlDataAdapter da;
         public String usuario = "";
 
         public bool ConsultaVentasB { get; set; } = false;
@@ -45,8 +45,8 @@ namespace JaegerSoft
         // =========================================================================
         private void CargarDatos(string filtro = "")
         {
-            string fechaInicio = dateTimePicker1.Value.ToString("MM/dd/yyyy 00:00:00");
-            string fechaFin = dateTimePicker1.Value.ToString("MM/dd/yyyy 23:59:59");
+            string fechaInicio = dateTimePicker1.Value.ToString("yyyy-MM-dd 00:00:00");
+            string fechaFin = dateTimePicker1.Value.ToString("yyyy-MM-dd 23:59:59");
 
             string query;
 
@@ -55,7 +55,7 @@ namespace JaegerSoft
                 query = $@"
                     SELECT Id, Monto, Fecha, FolioB AS Folio, Estatus, Descuento, Pago, FolioA 
                     FROM VentasB 
-                    WHERE Fecha >= #{fechaInicio}# AND Fecha <= #{fechaFin}#";
+                    WHERE Fecha >= '{fechaInicio}' AND Fecha <= '{fechaFin}'";
 
                 if (!string.IsNullOrEmpty(filtro))
                 {
@@ -73,11 +73,11 @@ namespace JaegerSoft
                 V.Estatus, 
                 V.Descuento, 
                 V.Pago AS [Tipo Pago],
-                (SELECT IIF(SUM(Monto) IS NULL, 0, SUM(Monto)) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago = '01=EFECTIVO') AS Efectivo,
-                (SELECT IIF(SUM(Monto) IS NULL, 0, SUM(Monto)) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago LIKE '*TARJETA*') AS Tarjeta,
-                (SELECT IIF(SUM(Monto) IS NULL, 0, SUM(Monto)) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago = '03=TRANFERENCIA ELECTRONICA DE FONDOS') AS Transferencia
+                (SELECT IIF(SUM(TRY_CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2))) IS NULL, 0, SUM(TRY_CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2)))) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago = '01=EFECTIVO') AS Efectivo,
+                (SELECT IIF(SUM(TRY_CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2))) IS NULL, 0, SUM(TRY_CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2)))) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago LIKE '%TARJETA%') AS Tarjeta,
+                (SELECT IIF(SUM(TRY_CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2))) IS NULL, 0, SUM(TRY_CAST(REPLACE(Monto,'$','') AS DECIMAL(18,2)))) FROM VentasPagos WHERE FolioVenta = V.Folio AND MetodoPago = '03=TRANFERENCIA ELECTRONICA DE FONDOS') AS Transferencia
             FROM Ventas V 
-            WHERE Fecha >= #{fechaInicio}# AND Fecha <= #{fechaFin}#";
+            WHERE Fecha >= '{fechaInicio}' AND Fecha <= '{fechaFin}'";
 
                 if (!string.IsNullOrEmpty(filtro))
                 {
@@ -88,7 +88,7 @@ namespace JaegerSoft
             query += " ORDER BY Fecha DESC";
 
             ds = new DataSet();
-            da = new OleDbDataAdapter(query, conectar);
+            da = new SqlDataAdapter(query, conectar);
             da.Fill(ds, "Tabla");
 
             dataGridView1.DataSource = ds.Tables["Tabla"];
