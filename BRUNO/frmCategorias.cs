@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace JaegerSoft
 {
-    public partial class frmCategorias : Form
+    public partial class frmCategorias : frmBase
     {
         private DataSet ds;
         //OleDbConnection conectar = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=\\192.168.9.101\Jaeger Soft\Joyeria.accdb");
@@ -22,22 +22,33 @@ namespace JaegerSoft
         {
             InitializeComponent();
         }
-
         private void frmCategorias_Load(object sender, EventArgs e)
         {
-            ds = new DataSet();
-            conectar.Open();
-            da = new OleDbDataAdapter("select * from Categorias;", conectar);
-            da.Fill(ds, "Id");
-            dataGridView1.DataSource = ds.Tables["Id"];
-            dataGridView1.Columns[0].Visible = false;
+            CargarCategorias();
+
+            EstilizarBotonPrimario(button1);
+            EstilizarBotonAdvertencia(button2);
+            EstilizarBotonAdvertencia(button3);
+            EstilizarDataGridView(dataGridView1);
+
+            dataGridView1.ReadOnly = true;
+            dataGridView1.AllowUserToAddRows = false;
+            dataGridView1.AllowUserToDeleteRows = false;
         }
 
-        private void label2_Click(object sender, EventArgs e)
+        private void CargarCategorias()
         {
+            ds = new DataSet();
+            if (conectar.State == ConnectionState.Closed)
+                conectar.Open();
 
+            da = new OleDbDataAdapter("SELECT * FROM Categorias ORDER BY Nombre", conectar);
+            da.Fill(ds, "Id");
+
+            dataGridView1.DataSource = ds.Tables["Id"];
+            if (dataGridView1.Columns.Count > 0)
+                dataGridView1.Columns[0].Visible = false;
         }
-
         private void button1_Click(object sender, EventArgs e)
         {
             frmAgregarCategoria CAT = new frmAgregarCategoria();
@@ -48,18 +59,62 @@ namespace JaegerSoft
 
         private void button3_Click(object sender, EventArgs e)
         {
-            DialogResult dialogResult = MessageBox.Show("¿Estas seguro de elimiar la categoria?", "Alto!", MessageBoxButtons.YesNo);
-            if (dialogResult == DialogResult.Yes)
+            if (dataGridView1.CurrentRow == null) return;
+
+            DialogResult dialogResult = MessageBox.Show(
+                "¿Estás seguro de eliminar la categoría?",
+                "¡Alto!", MessageBoxButtons.YesNo);
+
+            if (dialogResult != DialogResult.Yes) return;
+
+            try
             {
-                cmd = new OleDbCommand("delete from Categorias where Id=" + dataGridView1[0, dataGridView1.CurrentRow.Index].Value.ToString() + ";", conectar);
+                if (conectar.State == ConnectionState.Closed)
+                    conectar.Open();
+
+                string nombreCat = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+                int idCat = Convert.ToInt32(dataGridView1[0, dataGridView1.CurrentRow.Index].Value);
+
+                // 1) Reasignar inventario a SIN CATEGORIA
+                cmd = new OleDbCommand(
+                    "UPDATE Inventario SET Categoria = ? WHERE Categoria = ?", conectar);
+                cmd.Parameters.AddWithValue("@p1", "SIN CATEGORIA");
+                cmd.Parameters.AddWithValue("@p2", nombreCat);
                 cmd.ExecuteNonQuery();
-                MessageBox.Show("Se ha eliminado la categoria con exito", "ELIMINADO", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                ds = new DataSet();
-                da = new OleDbDataAdapter("select * from Categorias;", conectar);
-                da.Fill(ds, "Id");
-                dataGridView1.DataSource = ds.Tables["Id"];
-                dataGridView1.Columns[0].Visible = false;
+
+                // 2) Borrar la categoría
+                cmd = new OleDbCommand(
+                    "DELETE FROM Categorias WHERE Id = ?", conectar);
+                cmd.Parameters.AddWithValue("@p1", idCat);
+                cmd.ExecuteNonQuery();
+
+                MessageBox.Show("Se ha eliminado la categoría con éxito", "ELIMINADO",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                CargarCategorias();
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al eliminar: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (conectar.State == ConnectionState.Open)
+                    conectar.Close();
+            }
+        }
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (dataGridView1.CurrentRow == null) return;
+
+            frmAgregarCategoria CAT = new frmAgregarCategoria();
+            CAT.Editar = true;
+            CAT.Id = Convert.ToInt32(dataGridView1[0, dataGridView1.CurrentRow.Index].Value);
+            CAT.txtNombre.Text = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+            CAT.Nombre = dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString();
+            CAT.ShowDialog();
+            CargarCategorias();
         }
     }
 }
