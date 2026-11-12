@@ -52,7 +52,7 @@ namespace JaegerSoft
         private void button1_Click(object sender, EventArgs e)
         {
             frmAgregarCategoria CAT = new frmAgregarCategoria();
-            CAT.Show();
+            CAT.ShowDialog();
             this.Close();
 
         }
