@@ -42,10 +42,10 @@ namespace JaegerSoft
                 return;
             }
 
-            // Validar rango (0.01 a 99.99)
-            if (porcentaje < 0.01m || porcentaje > 99.99m)
+            // Validar rango (0.0 a 99.99)
+            if (porcentaje < 0.0m || porcentaje > 99.99m)
             {
-                MessageBox.Show("El porcentaje debe estar entre 0.01 y 99.99", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("El porcentaje debe estar entre 0.00 y 99.99", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 txtPorcentaje.Focus();
                 return;
             }

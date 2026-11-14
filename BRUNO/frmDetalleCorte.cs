@@ -167,8 +167,8 @@ namespace JaegerSoft
                     Convert.ToDouble(granTotal),
                     true,
                     totalesTicket);
-
-                ticketPrinter.ImprimirTicket();
+                if (Conexion.Ticket)
+                    ticketPrinter.ImprimirTicket();
                 MessageBox.Show("Corte reimpreso con éxito.", "Impresión", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)

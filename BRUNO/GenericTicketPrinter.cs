@@ -105,7 +105,8 @@ namespace JaegerSoft
                 pd.PrinterSettings.PrinterName = printerName;
             }
             pd.PrintPage += RenderPage;
-            pd.Print();
+            if(Conexion.Ticket)
+                pd.Print();
         }
 
         private void RenderPage(object sender, PrintPageEventArgs e)

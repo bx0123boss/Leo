@@ -1,14 +1,14 @@
 namespace PuntoVentaWeb.Services;
 
+using JaegerSoft;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PuntoVentaWeb.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using Microsoft.Data.SqlClient;
 using System.Threading.Tasks;
-
 using ProductoTicket = global::Producto;
 
 public class ImpresionPosService
@@ -87,15 +87,17 @@ public class ImpresionPosService
                     totales,
                     req.MetodoPago
                 );
-
+            if (Conexion.Ticket)
+            {
                 if (!string.IsNullOrWhiteSpace(config.Impresora))
                 {
                     ticket.ImprimirTicket(config.Impresora);
                 }
-                else
+                else if (Conexion.Ticket)
                 {
                     ticket.ImprimirTicket();
                 }
+            }
             
         }
         catch (Exception ex)

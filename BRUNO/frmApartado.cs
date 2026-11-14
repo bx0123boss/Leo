@@ -969,11 +969,11 @@ namespace JaegerSoft
                     MessageBox.Show("Error al imprimir PDF Media Carta: " + ex.Message);
                 }
             }
-            else
-            {
-                TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", lblCliente.Text, granTotal, false, totales, cmbPago.Text);
-                ticketPrinter.ImprimirTicket();
-            }
+            else if (Conexion.Ticket)
+                {
+                    TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, lblFolio.Text, "", lblCliente.Text, granTotal, false, totales, cmbPago.Text);
+                    ticketPrinter.ImprimirTicket();
+                }
 
             foli = foli + 1;
             cmd = new SqlCommand("UPDATE Folios set Numero=" + foli + " where Folio='FolioApartado';", conectar);

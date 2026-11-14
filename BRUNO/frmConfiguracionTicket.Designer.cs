@@ -41,6 +41,7 @@ namespace JaegerSoft
             this.txtWhatsapp = new System.Windows.Forms.TextBox();
             this.ckbMediaCarta = new System.Windows.Forms.CheckBox();
             this.ckbBascula = new System.Windows.Forms.CheckBox();
+            this.ckbTicket = new System.Windows.Forms.CheckBox();
             this.grpEncabezado.SuspendLayout();
             this.grpPie.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
@@ -192,6 +193,7 @@ namespace JaegerSoft
             this.ckbMediaCarta.TabIndex = 58;
             this.ckbMediaCarta.Text = "Ticket Media Carta";
             this.ckbMediaCarta.UseVisualStyleBackColor = true;
+            this.ckbMediaCarta.CheckedChanged += new System.EventHandler(this.ckbMediaCarta_CheckedChanged);
             // 
             // ckbBascula
             // 
@@ -205,12 +207,25 @@ namespace JaegerSoft
             this.ckbBascula.Text = "Bascula";
             this.ckbBascula.UseVisualStyleBackColor = true;
             // 
+            // ckbTicket
+            // 
+            this.ckbTicket.AutoSize = true;
+            this.ckbTicket.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ckbTicket.ForeColor = System.Drawing.Color.White;
+            this.ckbTicket.Location = new System.Drawing.Point(150, 384);
+            this.ckbTicket.Name = "ckbTicket";
+            this.ckbTicket.Size = new System.Drawing.Size(185, 29);
+            this.ckbTicket.TabIndex = 60;
+            this.ckbTicket.Text = "Imprimir Ticket";
+            this.ckbTicket.UseVisualStyleBackColor = true;
+            // 
             // frmConfiguracionTicket
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
             this.ClientSize = new System.Drawing.Size(800, 425);
+            this.Controls.Add(this.ckbTicket);
             this.Controls.Add(this.ckbBascula);
             this.Controls.Add(this.ckbMediaCarta);
             this.Controls.Add(this.label1);
@@ -245,5 +260,6 @@ namespace JaegerSoft
         private System.Windows.Forms.TextBox txtWhatsapp;
         private System.Windows.Forms.CheckBox ckbMediaCarta;
         private System.Windows.Forms.CheckBox ckbBascula;
+        private System.Windows.Forms.CheckBox ckbTicket;
     }
 }

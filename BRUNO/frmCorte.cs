@@ -612,7 +612,8 @@ namespace JaegerSoft
                 totales.Add("Total", Convert.ToDouble(GetNumericValue(lblTotal.Text)));
                 string[] pieDePagina = new string[] { "" };
                 TicketPrinter ticketPrinter = new TicketPrinter(encabezados, Conexion.pieDeTicket, Conexion.logoPath, productos, "", "", "", total, true, totales);
-                ticketPrinter.ImprimirTicket();
+                if (Conexion.Ticket)
+                    ticketPrinter.ImprimirTicket();
             }
             MessageBox.Show("CORTE REALIZADO CON EXITO", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             foreach (Form form in Application.OpenForms)

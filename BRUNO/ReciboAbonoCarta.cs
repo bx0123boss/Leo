@@ -336,7 +336,8 @@ namespace JaegerSoft
                         e.HasMorePages = (pag < imagenes.Count);
                     }
                 };
-                pd.Print();
+                if(Conexion.Ticket)
+                    pd.Print();
             }
             catch (Exception ex)
             {

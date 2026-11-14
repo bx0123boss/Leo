@@ -418,8 +418,8 @@ namespace JaegerSoft
                     false,
                     totales,
                     lblPago.Text);
-
-                ticketPrinter.ImprimirTicket();
+                if (Conexion.Ticket)
+                    ticketPrinter.ImprimirTicket();
             }
         }
 

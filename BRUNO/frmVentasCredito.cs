@@ -321,7 +321,7 @@ namespace JaegerSoft
                         MessageBox.Show("Error al imprimir PDF Media Carta: " + ex.Message);
                     }
                 }
-                else
+                else if (Conexion.Ticket)
                 {
                     TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productos, folioVenta, "", "", subTotalImpresion, false, totales, cmbPago.Text);
                     ticketPrinter.ImprimirTicket();

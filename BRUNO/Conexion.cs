@@ -25,6 +25,7 @@ namespace JaegerSoft
         public static bool impresionMediaCarta;
         public static string Whatsapp;
         public static bool Bascula;
+        public static bool Ticket;
         public static bool PuntoB;
         public static bool AbrirTeclado { get; internal set; } = false;
 
@@ -55,6 +56,7 @@ namespace JaegerSoft
                             Whatsapp = reader["Whatsapp"].ToString();
                             Bascula = Convert.ToBoolean(reader["Bascula"].ToString());
                             PuntoB = Convert.ToBoolean(reader["PuntoB"].ToString());
+                            Ticket = Convert.ToBoolean(reader["Ticket"].ToString());
                             AbrirTeclado = Convert.ToBoolean(reader["AbrirTeclado"].ToString());
                         }
                     }

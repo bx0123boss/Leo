@@ -417,7 +417,8 @@ namespace JaegerSoft
                         e.HasMorePages = (pag < imagenes.Count);
                     }
                 };
-                pd.Print();
+                if (Conexion.Ticket)
+                    pd.Print();
             }
             catch (Exception ex) { MessageBox.Show("Error al imprimir: " + ex.Message); }
         }

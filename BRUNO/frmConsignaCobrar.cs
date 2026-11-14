@@ -705,7 +705,7 @@ namespace JaegerSoft
                                 pdfTicket.ImprimirDirectamente(Conexion.impresora);
                             }
                         }
-                        else
+                        else if (Conexion.Ticket)
                         {
                             TicketPrinter ticketPrinter = new TicketPrinter(Conexion.datosTicket, Conexion.pieDeTicket, Conexion.logoPath, productosTicket, folioVenta, "", "", totalVenta, false, totalesTicket, tipoPagoVenta);
                             ticketPrinter.ImprimirTicket();
