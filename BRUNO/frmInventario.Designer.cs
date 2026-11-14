@@ -1,4 +1,4 @@
-namespace JaegerSoft
+﻿namespace JaegerSoft
 {
     partial class frmInventario
     {
@@ -44,7 +44,8 @@ namespace JaegerSoft
             this.button6 = new System.Windows.Forms.Button();
             this.button18 = new System.Windows.Forms.Button();
             this.button16 = new System.Windows.Forms.Button(); // Botón Carga Inicial
-            this.btnRecetas = new System.Windows.Forms.Button(); 
+            this.btnRecetas = new System.Windows.Forms.Button();
+            this.btnProduccion = new System.Windows.Forms.Button(); 
             this.button17 = new System.Windows.Forms.Button();
             this.button15 = new System.Windows.Forms.Button();
             this.button19 = new System.Windows.Forms.Button();
@@ -492,6 +493,10 @@ namespace JaegerSoft
             btnRecetas.Visible = true;
             btnRecetas.Click += new System.EventHandler(this.btnRecetas_Click);
 
+            SideBtn(btnProduccion, "btnProduccion", "PRODUCCIÓN", cDark, cHovD, true);
+            btnProduccion.Visible = true;
+            btnProduccion.Click += new System.EventHandler(this.btnProduccion_Click);
+
             btnY += 6; // Separador visual
                        // — PARÁMETROS / CATÁLOGOS —
             lblCatalogos.AutoSize = true;
@@ -559,6 +564,7 @@ namespace JaegerSoft
             this.panel6.Controls.Add(button1);
             this.panel6.Controls.Add(button16);
             this.panel6.Controls.Add(btnRecetas);
+            this.panel6.Controls.Add(btnProduccion);
             this.panel6.Controls.Add(lblCatalogos);
             this.panel6.Controls.Add(button11);
             this.panel6.Controls.Add(button10);
@@ -694,6 +700,7 @@ namespace JaegerSoft
         private System.Windows.Forms.Button button14;
         private System.Windows.Forms.Button button16;
         private System.Windows.Forms.Button btnRecetas;
+        private System.Windows.Forms.Button btnProduccion;
         private System.Windows.Forms.Button button17;
         private System.Windows.Forms.Button button18;
         private System.Windows.Forms.Button button19;

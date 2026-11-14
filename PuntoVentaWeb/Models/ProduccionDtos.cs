@@ -27,4 +27,19 @@ namespace PuntoVentaWeb.Models
         public string Mensaje { get; set; } = string.Empty;
         public string FolioLote { get; set; } = string.Empty;
     }
+
+    public class ProduccionLoteConsultaDto
+    {
+        public int Id { get; set; }
+        public string Folio { get; set; } = string.Empty;
+        public string IdProductoFinal { get; set; } = string.Empty;
+        public string ProductoFinal { get; set; } = string.Empty;
+        public double CantidadProducida { get; set; }
+        public DateTime? Fecha { get; set; }
+        public string Usuario { get; set; } = string.Empty;
+        public bool Cancelado { get; set; }
+        public string Estado => Cancelado ? "CANCELADO" : "ACTIVO";
+        public DateTime? FechaCancelado { get; set; }
+        public string UsuarioCancelado { get; set; } = string.Empty;
+    }
 }

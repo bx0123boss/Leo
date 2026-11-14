@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -555,6 +555,18 @@
     <Compile Include="frmRecetas.Designer.cs">
       <DependentUpon>frmRecetas.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmHistorialProduccion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmHistorialProduccion.Designer.cs">
+      <DependentUpon>frmHistorialProduccion.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmDetalleProduccion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmDetalleProduccion.Designer.cs">
+      <DependentUpon>frmDetalleProduccion.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmRelojeria.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -1078,7 +1090,7 @@
   <Import Project="..\packages\QuestPDF.2025.12.3\build\net4\QuestPDF.targets" Condition="Exists('..\packages\QuestPDF.2025.12.3\build\net4\QuestPDF.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
-      <ErrorText>Este proyecto hace referencia a los paquetes NuGet que faltan en este equipo. Use la restauración de paquetes NuGet para descargarlos. Para obtener más información, consulte http://go.microsoft.com/fwlink/?LinkID=322105. El archivo que falta es {0}.</ErrorText>
+      <ErrorText>Este proyecto hace referencia a los paquetes NuGet que faltan en este equipo. Use la restauraciÃ³n de paquetes NuGet para descargarlos. Para obtener mÃ¡s informaciÃ³n, consulte http://go.microsoft.com/fwlink/?LinkID=322105. El archivo que falta es {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\QuestPDF.2025.12.3\build\net4\QuestPDF.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\QuestPDF.2025.12.3\build\net4\QuestPDF.targets'))" />
     <Error Condition="!Exists('..\packages\SkiaSharp.NativeAssets.macOS.3.119.1\build\net462\SkiaSharp.NativeAssets.macOS.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SkiaSharp.NativeAssets.macOS.3.119.1\build\net462\SkiaSharp.NativeAssets.macOS.targets'))" />

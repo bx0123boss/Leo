@@ -1,4 +1,4 @@
-using iTextSharp.text;
+﻿using iTextSharp.text;
 using iTextSharp.text.pdf;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -262,7 +262,7 @@ namespace JaegerSoft
             }
         }
 
-        private void ExportarGridAPDF(DataGridView dgv, string titulo)
+        public void ExportarGridAPDF(DataGridView dgv, string titulo)
         {
             if (dgv.Rows.Count == 0)
             {
@@ -388,7 +388,7 @@ namespace JaegerSoft
         /// <summary>
         /// Lógica para recorrer el Grid y pasarlo a Excel usando Interop.
         /// </summary>
-        private void ExportarGridAExcel(DataGridView dgv)
+        public void ExportarGridAExcel(DataGridView dgv)
         {
             if (dgv.Rows.Count == 0)
             {

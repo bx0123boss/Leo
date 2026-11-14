@@ -1,4 +1,4 @@
-using Microsoft.Office.Interop.Excel;
+﻿using Microsoft.Office.Interop.Excel;
 using Org.BouncyCastle.Asn1.X509;
 using SkiaSharp;
 using System;
@@ -1298,6 +1298,21 @@ namespace JaegerSoft
             else
             {
                 MessageBox.Show("Por favor, seleccione un producto final para gestionar su receta.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+        private void btnProduccion_Click(object sender, EventArgs e)
+        {
+            using (frmHistorialProduccion frm = new frmHistorialProduccion())
+            {
+                if (dataGridView2.CurrentRow != null && dataGridView2.CurrentRow.DataBoundItem is ProductoInventario prod)
+                {
+                    if (prod.EsReceta)
+                    {
+                        frm.IdProductoSeleccionado = prod.Nombre;
+                    }
+                }
+                frm.ShowDialog();
+                CargarPagina();
             }
         }
         private void button16_Click(object sender, EventArgs e)

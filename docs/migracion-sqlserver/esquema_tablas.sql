@@ -539,6 +539,9 @@ CREATE TABLE dbo.[ProduccionLotes] (
     [IdProductoFinal] NVARCHAR(255) NULL,
     [CantidadProducida] INT NULL,
     [Fecha] DATETIME NULL,
+    [Cancelado] BIT DEFAULT 0,
+    [FechaCancelado] DATETIME NULL,
+    [UsuarioCancelado] NVARCHAR(255) NULL,
     [Usuario] NVARCHAR(255) NULL,
     CONSTRAINT [PK_ProduccionLotes] PRIMARY KEY CLUSTERED ([Id])
 );

@@ -1,4 +1,4 @@
-namespace PuntoVentaWeb.Services;
+﻿namespace PuntoVentaWeb.Services;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -276,6 +276,292 @@ public class ProduccionService
         {
             _logger.LogError(exCon, "Error de conexión al procesar producción");
             return (false, $"Error de conexión con la base de datos: {exCon.Message}", "");
+        }
+    }
+
+    /// <summary>
+    /// Consulta el historial de lotes de producciÃ³n con filtros
+    /// </summary>
+    public async Task<List<ProduccionLoteConsultaDto>> ConsultarProduccionesAsync(DateTime? fDesde, DateTime? fHasta, string filtroTexto, string usuario, string estado)
+    {
+        var lista = new List<ProduccionLoteConsultaDto>();
+        try
+        {
+            using var con = new SqlConnection(_sqlConn);
+            await con.OpenAsync();
+
+            string query = @"SELECT L.Id, L.Folio, L.Fecha, L.IdProductoFinal, 
+                                   ISNULL(I.Nombre, 'Desconocido') AS ProductoFinal, 
+                                   ISNULL(L.CantidadProducida, 0) AS CantidadProducida, 
+                                   L.Usuario, 
+                                   ISNULL(L.Cancelado, 0) AS Cancelado,
+                                   L.FechaCancelado, 
+                                   L.UsuarioCancelado
+                            FROM ProduccionLotes L
+                            LEFT JOIN Inventario I ON L.IdProductoFinal = I.Id
+                            WHERE 1=1 ";
+
+            if (fDesde.HasValue && fHasta.HasValue)
+            {
+                query += " AND L.Fecha >= @FechaDesde AND L.Fecha <= @FechaHasta ";
+            }
+
+            if (!string.IsNullOrWhiteSpace(filtroTexto))
+            {
+                query += " AND (L.Folio LIKE @Filtro OR L.IdProductoFinal LIKE @Filtro OR I.Nombre LIKE @Filtro) ";
+            }
+
+            if (!string.IsNullOrWhiteSpace(usuario) && usuario != "Todos")
+            {
+                query += " AND L.Usuario = @Usuario ";
+            }
+
+            if (estado == "Activos")
+            {
+                query += " AND ISNULL(L.Cancelado, 0) = 0 ";
+            }
+            else if (estado == "Cancelados")
+            {
+                query += " AND ISNULL(L.Cancelado, 0) = 1 ";
+            }
+
+            query += " ORDER BY L.Fecha DESC, L.Id DESC";
+
+            using var cmd = new SqlCommand(query, con);
+            if (fDesde.HasValue && fHasta.HasValue)
+            {
+                cmd.Parameters.AddWithValue("@FechaDesde", fDesde.Value);
+                cmd.Parameters.AddWithValue("@FechaHasta", fHasta.Value);
+            }
+            if (!string.IsNullOrWhiteSpace(filtroTexto))
+            {
+                cmd.Parameters.AddWithValue("@Filtro", "%" + filtroTexto.Trim() + "%");
+            }
+            if (!string.IsNullOrWhiteSpace(usuario) && usuario != "Todos")
+            {
+                cmd.Parameters.AddWithValue("@Usuario", usuario);
+            }
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                double cant = 0;
+                if (reader["CantidadProducida"] != DBNull.Value)
+                    double.TryParse(reader["CantidadProducida"].ToString(), out cant);
+
+                DateTime? fecha = null;
+                if (reader["Fecha"] != DBNull.Value)
+                    fecha = Convert.ToDateTime(reader["Fecha"]);
+
+                DateTime? fechaCanc = null;
+                if (reader["FechaCancelado"] != DBNull.Value)
+                    fechaCanc = Convert.ToDateTime(reader["FechaCancelado"]);
+
+                lista.Add(new ProduccionLoteConsultaDto
+                {
+                    Id = Convert.ToInt32(reader["Id"]),
+                    Folio = reader["Folio"]?.ToString() ?? "",
+                    IdProductoFinal = reader["IdProductoFinal"]?.ToString() ?? "",
+                    ProductoFinal = reader["ProductoFinal"]?.ToString() ?? "",
+                    CantidadProducida = cant,
+                    Fecha = fecha,
+                    Usuario = reader["Usuario"]?.ToString() ?? "",
+                    Cancelado = reader["Cancelado"] != DBNull.Value && Convert.ToBoolean(reader["Cancelado"]),
+                    FechaCancelado = fechaCanc,
+                    UsuarioCancelado = reader["UsuarioCancelado"]?.ToString() ?? ""
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al consultar historial de producciÃ³n");
+            throw;
+        }
+        return lista;
+    }
+
+    /// <summary>
+    /// Cancela un lote de producciÃ³n: revierte existencias de pan y materias primas, registra Kardex y marca el lote como Cancelado.
+    /// </summary>
+    public async Task<(bool Exito, string Mensaje)> CancelarProduccionLoteAsync(int idLote, string usuarioCancelacion)
+    {
+        try
+        {
+            using var con = new SqlConnection(_sqlConn);
+            await con.OpenAsync();
+
+            using var trans = con.BeginTransaction();
+            try
+            {
+                string qCheck = "SELECT Cancelado, Folio, IdProductoFinal, CantidadProducida FROM ProduccionLotes WHERE Id = @Id";
+                string folio = "";
+                string idProd = "";
+                double cantProd = 0;
+                bool cancelado = false;
+
+                using (var cmdChk = new SqlCommand(qCheck, con, trans))
+                {
+                    cmdChk.Parameters.AddWithValue("@Id", idLote);
+                    using var rdr = await cmdChk.ExecuteReaderAsync();
+                    if (await rdr.ReadAsync())
+                    {
+                        cancelado = rdr["Cancelado"] != DBNull.Value && Convert.ToBoolean(rdr["Cancelado"]);
+                        folio = rdr["Folio"]?.ToString() ?? "";
+                        idProd = rdr["IdProductoFinal"]?.ToString() ?? "";
+                        if (rdr["CantidadProducida"] != DBNull.Value)
+                            double.TryParse(rdr["CantidadProducida"].ToString(), out cantProd);
+                    }
+                    else
+                    {
+                        trans.Rollback();
+                        return (false, "No se encontrÃ³ el lote especificado.");
+                    }
+                }
+
+                if (cancelado)
+                {
+                    trans.Rollback();
+                    return (false, "El lote ya se encuentra cancelado.");
+                }
+
+                string fechaStr = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                string nombreProd = "";
+                double stockPanActual = 0;
+                string qPan = "SELECT Nombre, Existencia FROM Inventario WHERE Id = @Id";
+                using (var cmdPan = new SqlCommand(qPan, con, trans))
+                {
+                    cmdPan.Parameters.AddWithValue("@Id", idProd);
+                    using var rdrPan = await cmdPan.ExecuteReaderAsync();
+                    if (await rdrPan.ReadAsync())
+                    {
+                        nombreProd = rdrPan["Nombre"]?.ToString() ?? "";
+                        if (rdrPan["Existencia"] != DBNull.Value)
+                            double.TryParse(rdrPan["Existencia"].ToString(), out stockPanActual);
+                    }
+                }
+
+                double nuevoStockPan = stockPanActual - cantProd;
+
+                string qUpdPan = "UPDATE Inventario SET Existencia = @Existencia WHERE Id = @Id";
+                using (var cmdUpdPan = new SqlCommand(qUpdPan, con, trans))
+                {
+                    cmdUpdPan.Parameters.AddWithValue("@Existencia", nuevoStockPan);
+                    cmdUpdPan.Parameters.AddWithValue("@Id", idProd);
+                    await cmdUpdPan.ExecuteNonQueryAsync();
+                }
+
+                string qKPan = @"INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) 
+                                VALUES (@IdProducto, 'SALIDA', @Descripcion, @ExistenciaAntes, @ExistenciaDespues, @Fecha)";
+                using (var cmdK = new SqlCommand(qKPan, con, trans))
+                {
+                    cmdK.Parameters.AddWithValue("@IdProducto", idProd);
+                    cmdK.Parameters.AddWithValue("@Descripcion", $"CANCELACION PRODUCCION LOTE: {folio} ({nombreProd})");
+                    cmdK.Parameters.AddWithValue("@ExistenciaAntes", stockPanActual);
+                    cmdK.Parameters.AddWithValue("@ExistenciaDespues", nuevoStockPan);
+                    cmdK.Parameters.AddWithValue("@Fecha", fechaStr);
+                    await cmdK.ExecuteNonQueryAsync();
+                }
+
+                var insumosAReintegrar = new List<(string IdInsumo, double Consumo, string Nombre)>();
+
+                string qKInsumos = @"SELECT K.IdProducto, (K.ExistenciaAntes - K.ExistenciaDespues) AS Consumo, I.Nombre 
+                                     FROM Kardex K 
+                                     INNER JOIN Inventario I ON K.IdProducto = I.Id
+                                     WHERE K.Descripcion LIKE @DescLote AND K.Tipo = 'SALIDA'";
+                using (var cmdKI = new SqlCommand(qKInsumos, con, trans))
+                {
+                    cmdKI.Parameters.AddWithValue("@DescLote", $"CONSUMO PRODUCCION LOTE: {folio}%");
+                    using var rdrKI = await cmdKI.ExecuteReaderAsync();
+                    while (await rdrKI.ReadAsync())
+                    {
+                        string idIn = rdrKI["IdProducto"].ToString();
+                        double cant = Convert.ToDouble(rdrKI["Consumo"]);
+                        string nom = rdrKI["Nombre"].ToString();
+                        insumosAReintegrar.Add((idIn, cant, nom));
+                    }
+                }
+
+                if (insumosAReintegrar.Count == 0)
+                {
+                    string qReceta = @"SELECT R.IdInsumo, (R.CantidadRequerida * @CantProd) AS Consumo, I.Nombre 
+                                       FROM ProductoReceta R
+                                       INNER JOIN Inventario I ON R.IdInsumo = I.Id
+                                       WHERE R.IdProductoFinal = @IdPan";
+                    using (var cmdR = new SqlCommand(qReceta, con, trans))
+                    {
+                        cmdR.Parameters.AddWithValue("@CantProd", cantProd);
+                        cmdR.Parameters.AddWithValue("@IdPan", idProd);
+                        using var rdrR = await cmdR.ExecuteReaderAsync();
+                        while (await rdrR.ReadAsync())
+                        {
+                            string idIn = rdrR["IdInsumo"].ToString();
+                            double cant = Convert.ToDouble(rdrR["Consumo"]);
+                            string nom = rdrR["Nombre"].ToString();
+                            insumosAReintegrar.Add((idIn, cant, nom));
+                        }
+                    }
+                }
+
+                foreach (var ins in insumosAReintegrar)
+                {
+                    double stockInsActual = 0;
+                    string qStk = "SELECT Existencia FROM Inventario WHERE Id = @Id";
+                    using (var cmdS = new SqlCommand(qStk, con, trans))
+                    {
+                        cmdS.Parameters.AddWithValue("@Id", ins.IdInsumo);
+                        var objS = await cmdS.ExecuteScalarAsync();
+                        if (objS != null && objS != DBNull.Value)
+                            double.TryParse(objS.ToString(), out stockInsActual);
+                    }
+
+                    double nuevoStockIns = stockInsActual + ins.Consumo;
+
+                    string qUpdIn = "UPDATE Inventario SET Existencia = @Existencia WHERE Id = @Id";
+                    using (var cmdUpdIn = new SqlCommand(qUpdIn, con, trans))
+                    {
+                        cmdUpdIn.Parameters.AddWithValue("@Existencia", nuevoStockIns);
+                        cmdUpdIn.Parameters.AddWithValue("@Id", ins.IdInsumo);
+                        await cmdUpdIn.ExecuteNonQueryAsync();
+                    }
+
+                    string qKIn = @"INSERT INTO Kardex (IdProducto, Tipo, Descripcion, ExistenciaAntes, ExistenciaDespues, Fecha) 
+                                   VALUES (@IdProducto, 'ENTRADA', @Descripcion, @ExistenciaAntes, @ExistenciaDespues, @Fecha)";
+                    using (var cmdKIn = new SqlCommand(qKIn, con, trans))
+                    {
+                        cmdKIn.Parameters.AddWithValue("@IdProducto", ins.IdInsumo);
+                        cmdKIn.Parameters.AddWithValue("@Descripcion", $"CANCELACION CONSUMO PRODUCCION LOTE: {folio} ({nombreProd})");
+                        cmdKIn.Parameters.AddWithValue("@ExistenciaAntes", stockInsActual);
+                        cmdKIn.Parameters.AddWithValue("@ExistenciaDespues", nuevoStockIns);
+                        cmdKIn.Parameters.AddWithValue("@Fecha", fechaStr);
+                        await cmdKIn.ExecuteNonQueryAsync();
+                    }
+                }
+
+                string qUpdLote = @"UPDATE ProduccionLotes 
+                                    SET Cancelado = 1, FechaCancelado = GETDATE(), UsuarioCancelado = @Usuario 
+                                    WHERE Id = @Id";
+                using (var cmdCanc = new SqlCommand(qUpdLote, con, trans))
+                {
+                    cmdCanc.Parameters.AddWithValue("@Usuario", string.IsNullOrEmpty(usuarioCancelacion) ? "SISTEMA" : usuarioCancelacion);
+                    cmdCanc.Parameters.AddWithValue("@Id", idLote);
+                    await cmdCanc.ExecuteNonQueryAsync();
+                }
+
+                trans.Commit();
+                return (true, "Lote cancelado correctamente y existencias revertidas.");
+            }
+            catch (Exception ex)
+            {
+                trans.Rollback();
+                _logger.LogError(ex, "Error al cancelar lote de producciÃ³n");
+                return (false, $"Error al cancelar lote: {ex.Message}");
+            }
+        }
+        catch (Exception exCon)
+        {
+            _logger.LogError(exCon, "Error de conexiÃ³n al cancelar producciÃ³n");
+            return (false, $"Error de conexiÃ³n con la base de datos: {exCon.Message}");
         }
     }
 }
