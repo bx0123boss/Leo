@@ -403,10 +403,12 @@ class EscritorSQL:
             self.cursor.execute(f"DELETE FROM {cotizar(tabla)}")
 
     def insertar(self, tabla: TablaSQL, filas: List[Sequence[Any]],
-                 identidad: bool) -> None:
-        columnas = tabla.insertables
-        lista = ", ".join(cotizar(c.nombre) for c in columnas)
-        marcas = ", ".join("?" for _ in columnas)
+                 identidad: bool, columnas: Optional[Sequence[str]] = None) -> None:
+        # Solo se insertan las columnas que existen en Access: SQL puede tener
+        # columnas extra (agregadas por la version web) que se dejan en NULL.
+        nombres = list(columnas) if columnas else [c.nombre for c in tabla.insertables]
+        lista = ", ".join(cotizar(c) for c in nombres)
+        marcas = ", ".join("?" for _ in nombres)
         sentencia = (
             f"INSERT INTO {cotizar(tabla.nombre)} ({lista}) VALUES ({marcas})"
         )
@@ -435,9 +437,11 @@ class EscritorSQL:
     def reseed(self, tabla: str) -> None:
         self.cursor.execute(f"DBCC CHECKIDENT ('{tabla}', RESEED) WITH NO_INFOMSGS")
 
-    def leer_todo(self, tabla: TablaSQL) -> List[Tuple[Any, ...]]:
-        columnas = ", ".join(cotizar(c.nombre) for c in tabla.columnas)
-        self.cursor.execute(f"SELECT {columnas} FROM {cotizar(tabla.nombre)}")
+    def leer_todo(self, tabla: TablaSQL,
+                  columnas: Optional[Sequence[str]] = None) -> List[Tuple[Any, ...]]:
+        nombres = list(columnas) if columnas else [c.nombre for c in tabla.columnas]
+        lista = ", ".join(cotizar(c) for c in nombres)
+        self.cursor.execute(f"SELECT {lista} FROM {cotizar(tabla.nombre)}")
         return self.cursor.fetchall()
 
 
@@ -446,7 +450,9 @@ class EscritorSQL:
 # ---------------------------------------------------------------------------
 def comparar_tabla(lector: LectorAccess, escritor: EscritorSQL,
                    tabla_sql: TablaSQL, tamano_lote: int,
-                   profundo: bool) -> Tuple[bool, List[str]]:
+                   profundo: bool,
+                   columnas: Optional[Sequence[str]] = None,
+                   tipos: Optional[Sequence[str]] = None) -> Tuple[bool, List[str]]:
     problemas: List[str] = []
     origen = lector.contar(tabla_sql.nombre)
     destino = escritor.contar(tabla_sql.nombre)
@@ -454,13 +460,14 @@ def comparar_tabla(lector: LectorAccess, escritor: EscritorSQL,
         problemas.append(f"conteo Access={origen} vs SQL={destino}")
 
     if profundo and origen == destino:
-        tipos = tabla_sql.tipos
+        # Se comparan solo las columnas que vienen de Access.
+        tipos = list(tipos) if tipos else tabla_sql.tipos
         multiset_origen: Dict[Tuple[str, ...], int] = {}
         for lote in lector.leer(tabla_sql.nombre, tamano_lote):
             for fila in lote:
                 clave = clave_normalizada(fila, tipos)
                 multiset_origen[clave] = multiset_origen.get(clave, 0) + 1
-        for fila in escritor.leer_todo(tabla_sql):
+        for fila in escritor.leer_todo(tabla_sql, columnas):
             clave = clave_normalizada(fila, tipos)
             if multiset_origen.get(clave, 0) <= 0:
                 problemas.append(f"fila de SQL no encontrada en Access: {str(clave)[:120]}")
@@ -495,8 +502,8 @@ def parsear_argumentos(argv: Optional[Sequence[str]] = None) -> argparse.Namespa
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="Ejemplo: python migrar_access_a_sql.py --mode verify --deep-check",
     )
-    p.add_argument("--mode", choices=["verify", "dry-run", "load"], default="dry-run",
-                   help="verify: solo compara | dry-run: simula | load: migra")
+    p.add_argument("--mode", choices=["verify", "dry-run", "truncate", "load"], default="dry-run",
+                   help="verify: solo compara | dry-run: simula | truncate: vacia las tablas | load: migra")
     p.add_argument("--access", default=RUTA_ACCESS, help="ruta del archivo .accdb")
     p.add_argument("--access-password", default=os.environ.get("JAEGER_ACCESS_PWD", PASSWORD_ACCESS),
                    help="contrasena del .accdb")
@@ -592,9 +599,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     seleccion = seleccionar_tablas(tablas_access, args.tables, args.skip)
     log.info("Tablas a procesar: %d", len(seleccion))
 
-    if args.mode == "load" and not args.yes:
+    if args.mode in ("load", "truncate") and not args.yes:
         log.warning("")
-        log.warning("MODO LOAD: se VACIARAN las tablas destino %s.", args.database)
+        log.warning("MODO %s: se VACIARAN las tablas destino %s.",
+                    args.mode.upper(), args.database)
         log.warning("Cierre el POS y respalde el .accdb antes de continuar.")
         log.warning("")
         if not confirmar("¿Continuar con la migracion real?"):
@@ -603,6 +611,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     if args.mode == "load" and not args.backup:
         log.warning("Sin --backup: las tablas destino se vaciaran sin copia previa.")
+
+    if args.mode == "truncate":
+        log.warning("Modo truncate: solo se vacian las tablas, NO se carga nada.")
 
     inicio = time.time()
     errores: List[str] = []
@@ -622,8 +633,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         cols_access = lector.columnas(nombre)
         nombres_access = [c[0] for c in cols_access]
         nombres_sql = tabla_sql.nombres
-        faltan_en_sql = [c for c in nombres_access if c not in nombres_sql]
-        faltan_en_access = [c for c in nombres_sql if c not in nombres_access]
+        mapa_sql = {c.nombre.lower(): c for c in tabla_sql.columnas}
+        faltan_en_sql = [c for c in nombres_access if c.lower() not in mapa_sql]
+        faltan_en_access = [c for c in nombres_sql if c.lower() not in
+                            {n.lower() for n in nombres_access}]
         if faltan_en_sql:
             errores.append(f"{nombre}: columnas en Access sin equivalente en SQL: {faltan_en_sql}")
             log.error("    columnas sin equivalente en SQL: %s", faltan_en_sql)
@@ -635,10 +648,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             avisos.append(f"{nombre}: el orden ordinal de columnas difiere entre Access y SQL")
             log.warning("    el orden ordinal de columnas difiere entre Access y SQL")
 
+        # Solo se escriben/comparan las columnas que existen en Access, con el
+        # nombre y el tipo reales que tienen en SQL Server.
+        cols_destino = [mapa_sql[c.lower()].nombre for c in nombres_access]
+        tipos_destino = [mapa_sql[c.lower()].tipo for c in nombres_access]
+
         try:
             if args.mode == "verify":
                 ok, problemas = comparar_tabla(lector, escritor, tabla_sql,
-                                               args.batch, args.deep_check)
+                                               args.batch, args.deep_check,
+                                               cols_destino, tipos_destino)
                 if ok:
                     tablas_ok += 1
                     log.info("    OK  (%d filas)", escritor.contar(nombre))
@@ -654,6 +673,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 tablas_ok += 1
                 continue
 
+            if args.mode == "truncate":
+                antes = escritor.contar(nombre)
+                escritor.vaciar(nombre)
+                escritor.conexion.commit()
+                if tabla_sql.tiene_identidad:
+                    escritor.cursor.execute(
+                        f"DBCC CHECKIDENT ('{nombre}', RESEED, 0) WITH NO_INFOMSGS")
+                    escritor.conexion.commit()
+                despues = escritor.contar(nombre)
+                tablas_ok += 1
+                log.info("    vaciada: %d -> %d filas", antes, despues)
+                continue
+
             # ------------------------- modo load -------------------------
             respaldo = None
             if args.backup:
@@ -665,10 +697,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             escritor.conexion.commit()
 
             insertadas = 0
-            tipos = tabla_sql.tipos
+            tipos = tipos_destino
             for lote in lector.leer(nombre, args.batch):
                 convertidas = [convertir_fila(fila, tipos) for fila in lote]
-                escritor.insertar(tabla_sql, convertidas, tabla_sql.tiene_identidad)
+                escritor.insertar(tabla_sql, convertidas, tabla_sql.tiene_identidad,
+                                  cols_destino)
                 insertadas += len(convertidas)
             escritor.conexion.commit()
 
@@ -689,7 +722,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
             if args.deep_check:
                 ok, problemas = comparar_tabla(lector, escritor, tabla_sql,
-                                               args.batch, True)
+                                               args.batch, True,
+                                               cols_destino, tipos_destino)
                 if not ok:
                     errores.append(f"{nombre} (contenido): " + "; ".join(problemas))
                     log.error("    contenido distinto: %s", "; ".join(problemas))

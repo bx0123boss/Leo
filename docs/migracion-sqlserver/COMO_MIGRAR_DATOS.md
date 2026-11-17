@@ -50,34 +50,50 @@ Si el ensayo sale `Tablas OK: 57/57`, el script está listo para producción.
 
 1. Cerrar el POS en todas las terminales (si alguien escribe mientras se recarga una tabla, se pierden esos movimientos).
 2. Respaldar `C:\Jaeger Soft\Jaeger.accdb` (copiar el archivo).
-3. Respaldar la base: `BACKUP DATABASE PuntoDeVenta TO DISK='C:\Jaeger Soft\PuntoDeVenta_antes_de_ETL.bak'`
+3. Respaldar la base: `BACKUP DATABASE PuntoDeVenta TO DISK='...\PuntoDeVenta_antes_de_ETL.bak'`
+   (en Express no sirve `WITH COMPRESSION`; usar la carpeta `...\MSSQL\Backup` del servicio).
 4. Si hay varias terminales, avisar que el sistema estará detenido unos minutos.
 
 **Paso 1 — simular (no escribe):**
 
 ```powershell
-python docs\migracion-sqlserver\herramientas\migrar_access_a_sql.py --mode dry-run
+python docs\migracion-sqlserver\herramientas\migrar_access_a_sql.py `
+    --access "C:\ruta\al\Jaeger.accdb" --mode dry-run
 ```
 
 Muestra tabla por tabla: filas en Access, filas en SQL, columnas detectadas y avisos (columnas
-faltantes, diferencias de orden ordinal, etc.).
+faltantes, diferencias de orden ordinal, columnas nuevas que SQL tiene y Access no).
 
-**Paso 2 — migrar con respaldo de cada tabla:**
+**Paso 2 (opcional) — dejar las tablas vacías antes de cargar:**
 
 ```powershell
 python docs\migracion-sqlserver\herramientas\migrar_access_a_sql.py `
-    --mode load --backup --yes --deep-check
+    --access "C:\ruta\al\Jaeger.accdb" --mode truncate --yes
+```
+
+Vacía las 57 tablas de la migración y reinicia sus `IDENTITY` a 0, **sin cargar nada**. Las tablas
+de la versión web (`Consignaciones`, `Cotizaciones`, `GruposCategorias`, …) no se tocan.
+`--mode load` ya vacía cada tabla antes de cargarla; este modo sirve cuando se quiere asegurar
+que no quede ningún dato viejo si la carga se interrumpe.
+
+**Paso 3 — migrar con respaldo de cada tabla:**
+
+```powershell
+python docs\migracion-sqlserver\herramientas\migrar_access_a_sql.py `
+    --access "C:\ruta\al\Jaeger.accdb" --mode load --backup --yes --deep-check
 ```
 
 * `--backup` copia cada tabla destino a `<tabla>_bkp_AAAAMMDD_HHMM` **antes** de vaciarla.
   Para volver atrás: `INSERT INTO Ventas SELECT * FROM Ventas_bkp_20261104_1731` (con `IDENTITY_INSERT`).
+  No usar `--backup` después de un `--mode truncate`: las copias saldrían vacías.
 * `--deep-check` compara el contenido completo, no solo los conteos.
 * El script se detiene con código de salida ≠ 0 si alguna tabla no cuadra, y deja el detalle en el log.
 
-**Paso 3 — verificar:**
+**Paso 4 — verificar:**
 
 ```powershell
-python docs\migracion-sqlserver\herramientas\migrar_access_a_sql.py --mode verify --deep-check
+python docs\migracion-sqlserver\herramientas\migrar_access_a_sql.py `
+    --access "C:\ruta\al\Jaeger.accdb" --mode verify --deep-check
 ```
 
 Debe terminar con `Tablas OK: 57/57 ... Migracion completada sin errores`.
@@ -129,4 +145,43 @@ Debe terminar con `Tablas OK: 57/57 ... Migracion completada sin errores`.
 
 > **Cuándo se vuelve a correr:** en la Fase 6 (retiro de Access) hay que repetir el ETL
 > completo para capturar cualquier movimiento generado en Access después de esta migración.
+
+---
+
+## 7. Casos especiales (ya resueltos, para tenerlos presentes)
+
+### Columnas que existen en SQL pero no en Access
+
+La versión web fue agregando columnas a tablas heredadas:
+
+| Tabla | Columnas solo en SQL |
+| :--- | :--- |
+| `Configuracion` | `Ticket` |
+| `ProduccionLotes` | `Cancelado`, `FechaCancelado`, `UsuarioCancelado` |
+
+El ETL inserta **solo las columnas que existen en Access**, así que esas quedan en `NULL`
+(o con su valor por defecto) y la carga no falla. Aparecen como aviso en `dry-run`.
+
+### Llaves foráneas de la app web que apuntan a tablas migradas
+
+`GruposCategoriasDetalle.IdCategoria` tiene FK contra `Categorias`, así que `TRUNCATE`/`DELETE`
+sobre `Categorias` falla con *"The DELETE statement conflicted with the REFERENCE constraint"*.
+
+Si pasa, la secuencia segura es:
+
+```sql
+-- 1. Comparar los IdCategoria del detalle web contra los Id del Access nuevo
+--    y borrar los que ya no existan (ejemplo real: 2, 4 y 6 no venían en el .accdb)
+DELETE FROM GruposCategoriasDetalle WHERE IdCategoria IN (2, 4, 6);
+
+-- 2. deshabilitar la FK mientras dura el vaciado/carga
+ALTER TABLE GruposCategoriasDetalle NOCHECK CONSTRAINT FK_GrupoDetalle_Categoria;
+
+-- 3. vaciar / cargar (--mode truncate y luego --mode load)
+
+-- 4. revalidar la FK al terminar
+ALTER TABLE GruposCategoriasDetalle WITH CHECK CHECK CONSTRAINT FK_GrupoDetalle_Categoria;
+```
+
+Al terminar, `sys.foreign_keys.is_disabled` y `is_not_trusted` deben quedar en `0`.
 > Mientras Access siga en uso, la base de SQL no es la fuente de la verdad.
