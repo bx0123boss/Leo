@@ -546,6 +546,9 @@ public class CotizacionService
 
                             if (reader["AbrirTeclado"] != DBNull.Value)
                                 config.AbrirTeclado = Convert.ToBoolean(reader["AbrirTeclado"]);
+
+                            if (reader["Ticket"] != DBNull.Value)
+                                config.Ticket = Convert.ToBoolean(reader["Ticket"]);
                         }
                     }
                 }

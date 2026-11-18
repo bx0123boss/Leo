@@ -62,6 +62,7 @@ public class VentaGuardarRequest
     public string IdUsuario { get; set; } = "1";
     public List<ItemCarritoVenta> Items { get; set; } = new();
     public Dictionary<string, double> PagosDetalle { get; set; } = new();
+    public DateTime FechaEntrega { get; set; } = DateTime.Now;
 }
 
 public class ClienteVentaDto

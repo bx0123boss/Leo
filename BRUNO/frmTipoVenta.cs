@@ -74,12 +74,22 @@ namespace JaegerSoft
             }
 
         }
-
         private void frmTipoVenta_Load(object sender, EventArgs e)
         {
-            EstilizarBotonPrimario(this.button1);
-            EstilizarBotonAdvertencia(this.button2);
-            EstilizarBotonAdvertencia(this.button3);
+            ConfigurarBotonPermiso(this.button1, "MOD_VENTAS", EstilizarBotonPrimario);
+            ConfigurarBotonPermiso(this.button2, "MOD_VENTAS_CREDITO", EstilizarBotonAdvertencia);
+            ConfigurarBotonPermiso(this.button3, "MOD_VENTASWEB", EstilizarBotonAdvertencia);
+        }
+
+        private void ConfigurarBotonPermiso(Button boton, string permiso, Action<Button> aplicarEstilo)
+        {
+            bool tienePermiso = Sesion.TienePermiso(permiso);
+            boton.Visible = tienePermiso;
+
+            if (tienePermiso)
+            {
+                aplicarEstilo(boton);
+            }
         }
 
         private void button3_Click(object sender, EventArgs e)

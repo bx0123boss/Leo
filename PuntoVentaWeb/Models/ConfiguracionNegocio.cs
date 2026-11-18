@@ -15,4 +15,5 @@ public class ConfiguracionNegocio
     public string WhatsAppAccessToken { get; set; }
     public string WhatsAppApiVersion { get; set; }
     public bool AbrirTeclado { get; set; } = false;
+    public bool Ticket { get; set; } = true;
 }

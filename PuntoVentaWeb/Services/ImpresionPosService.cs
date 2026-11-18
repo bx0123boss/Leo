@@ -87,17 +87,15 @@ public class ImpresionPosService
                     totales,
                     req.MetodoPago
                 );
-            if (Conexion.Ticket)
-            {
                 if (!string.IsNullOrWhiteSpace(config.Impresora))
                 {
                     ticket.ImprimirTicket(config.Impresora);
                 }
-                else if (Conexion.Ticket)
+                else 
                 {
                     ticket.ImprimirTicket();
                 }
-            }
+            
             
         }
         catch (Exception ex)

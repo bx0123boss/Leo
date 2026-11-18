@@ -738,6 +738,11 @@ namespace JaegerSoft
             frmCategorias es = new frmCategorias();
             es.ShowDialog();
         }
+        private void button20_Click(object sender, EventArgs e)
+        {
+            frmGruposCategorias es = new frmGruposCategorias();
+            es.ShowDialog();
+        }
 
         private void button12_Click(object sender, EventArgs e)
         {

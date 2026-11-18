@@ -749,6 +749,7 @@ public class VentaService
                 cmdDet.Parameters.AddWithValue("@IdCliente", req.IdCliente);
                 cmdDet.Parameters.AddWithValue("@Fecha", fechaStr);
                 cmdDet.Parameters.AddWithValue("@Estatus", estatusApartado);
+                
                 await cmdDet.ExecuteNonQueryAsync();
             }
         }
@@ -757,8 +758,8 @@ public class VentaService
         double granTotal = req.Total;
         double restanteGuardar = Math.Max(0, granTotal - abonoGuardar);
 
-        string insertApartado = @"INSERT INTO Apartados (MontoTotal, Fecha, Folio, IdCliente, NombreCliente, Abono, Restante) 
-                                  VALUES (@MontoTotal, @Fecha, @Folio, @IdCliente, @NombreCliente, @Abono, @Restante)";
+        string insertApartado = @"INSERT INTO Apartados (MontoTotal, Fecha, Folio, IdCliente, NombreCliente, Abono, Restante, FechaEntrega) 
+                                  VALUES (@MontoTotal, @Fecha, @Folio, @IdCliente, @NombreCliente, @Abono, @Restante, @FechaEntrega)";
         using (var cmdAp = new SqlCommand(insertApartado, con, trans))
         {
             cmdAp.Parameters.AddWithValue("@MontoTotal", granTotal.ToString());
@@ -768,6 +769,7 @@ public class VentaService
             cmdAp.Parameters.AddWithValue("@NombreCliente", req.NombreCliente ?? "");
             cmdAp.Parameters.AddWithValue("@Abono", abonoGuardar.ToString());
             cmdAp.Parameters.AddWithValue("@Restante", restanteGuardar.ToString());
+            cmdAp.Parameters.AddWithValue("@FechaEntrega", req.FechaEntrega);
             await cmdAp.ExecuteNonQueryAsync();
         }
 

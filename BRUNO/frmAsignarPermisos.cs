@@ -20,7 +20,7 @@ namespace JaegerSoft
 
             { "VER_ANALITICO_INVENTARIO", "Analiticos de Inventario" },
             { "MOD_CORTES", "Cortes de Caja" },
-            {"UTILIDAD_CORTE", "Ver utilidad en corte de caja" },
+            { "UTILIDAD_CORTE", "Ver utilidad en corte de caja" },
             { "MOD_CONFIGURACION", "Configuración General y Ticket" },
             { "MOD_ENTRADAS", "Entradas / Depósitos" },
             { "EXISTENCIAS", "Ver existencias actuales" },
@@ -37,6 +37,7 @@ namespace JaegerSoft
             { "MOD_REPORTES", "Reportes y Estadísticas" },
             { "MOD_SALIDAS", "Salidas / Retiros" },
             { "MOD_VENTAS", "Módulo de Ventas / Cobro" },
+            { "MOD_VENTASWEB", "Módulo de Ventas Web" },
             { "MOD_VENTAS_CREDITO", "Módulo de Ventas Credito" },
             { "MOD_WEB", "Módulo Web (Cotizador)" }
         };

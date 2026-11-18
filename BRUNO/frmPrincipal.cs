@@ -79,7 +79,10 @@ namespace JaegerSoft
             catch (Exception) { }
             if (IsPuntoB) return;
             BtnInventario.Visible = Sesion.TienePermiso("MOD_INVENTARIO");
-            BtnCobrar.Visible = Sesion.TienePermiso("MOD_VENTAS");
+            BtnCobrar.Visible = Sesion.TienePermiso("MOD_VENTAS") ||
+                        Sesion.TienePermiso("MOD_VENTAS_CREDITO") ||
+                        Sesion.TienePermiso("MOD_VENTASWEB");
+
             BtnDevoluciones.Visible = Sesion.TienePermiso("MOD_REPORTES");
             BtnClientes.Visible = Sesion.TienePermiso("MOD_CLIENTES");
             BtnDeposito.Visible = Sesion.TienePermiso("MOD_ENTRADAS");
@@ -129,27 +132,12 @@ namespace JaegerSoft
         {
             if (!FormularioEstaAbierto(typeof(frmTipoVenta)))
             {
-                if (Sesion.TienePermiso("MOD_VENTAS_CREDITO"))
-                {
                     frmTipoVenta vent = new frmTipoVenta();
                     vent.usuario = usuario;
                     vent.NombreUsuario = NombreUsuario;
                     vent.idUsuario = idUsuario;
                     vent.IsServidorActivo = IsServidorActivo;
                     vent.Show();
-                }
-                else
-                {
-                    frmVentas vent = new frmVentas();
-                    vent.MinimizeBox = false;  // Elimina el botón de minimizar
-                    vent.ControlBox = true;
-                    vent.usuario = usuario;
-                    vent.lblUsuario.Text = NombreUsuario;
-                    vent.idUsuario = idUsuario;
-                    vent.lblCajero.Text = NombreUsuario;
-                    vent.ShowDialog();
-                    this.Close();
-                }
             }
         }
 

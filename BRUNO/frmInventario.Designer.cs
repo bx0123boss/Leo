@@ -49,6 +49,7 @@
             this.button17 = new System.Windows.Forms.Button();
             this.button15 = new System.Windows.Forms.Button();
             this.button19 = new System.Windows.Forms.Button();
+            this.button20 = new System.Windows.Forms.Button();
             this.lblEstado = new System.Windows.Forms.Label();
             this.btnPrimero = new System.Windows.Forms.Button();
             this.btnAnterior = new System.Windows.Forms.Button();
@@ -517,6 +518,8 @@
             button12.Click += new System.EventHandler(this.button12_Click);
             SideBtn(btnAlmacenes, "btnAlmacenes", "ALMACENES", cDark, cHovD, true);
             btnAlmacenes.Click += new System.EventHandler(this.btnAlmacenes_Click);
+            SideBtn(button20, "button20", "GRUPOS CATEGORIA", cDark, cHovD, true);
+            button20.Click += new System.EventHandler(this.button20_Click);
 
             btnY += 6;
             // — REPORTES / CONSULTAS —
@@ -540,6 +543,7 @@
             button6.Click += new System.EventHandler(this.button6_Click);
             SideBtn(button18, "button18", "AJUSTES TARJETA", cDark, cHovD, true);
             button18.Click += new System.EventHandler(this.button18_Click);
+            
 
             // Botones ocultos
             button17.Location = new System.Drawing.Point(10, btnY + 40); button17.Size = new System.Drawing.Size(btnW, btnH);
@@ -571,6 +575,7 @@
             this.panel6.Controls.Add(button13);
             this.panel6.Controls.Add(button12);
             this.panel6.Controls.Add(btnAlmacenes);
+            this.panel6.Controls.Add(button20);
             this.panel6.Controls.Add(lblReportes);
             this.panel6.Controls.Add(button7);
             this.panel6.Controls.Add(button8);
@@ -704,6 +709,7 @@
         private System.Windows.Forms.Button button17;
         private System.Windows.Forms.Button button18;
         private System.Windows.Forms.Button button19;
+        private System.Windows.Forms.Button button20;
         private System.Windows.Forms.Button btnAlmacenes;
         private System.Windows.Forms.Label lblOperaciones;
         private System.Windows.Forms.Label lblCatalogos;

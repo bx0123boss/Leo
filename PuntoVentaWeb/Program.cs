@@ -16,6 +16,7 @@ builder.Services.AddScoped<PuntoVentaWeb.Services.EmailService>();
 builder.Services.AddScoped<PuntoVentaWeb.Services.ClienteService>();
 builder.Services.AddScoped<PuntoVentaWeb.Services.ConfiguracionService>();
 builder.Services.AddScoped<PuntoVentaWeb.Services.ProduccionService>();
+builder.Services.AddScoped<AgendaService>();
 builder.Services.AddBootstrapBlazor();
 builder.Services.AddHttpClient<WhatsAppService>();
 builder.Services.AddSingleton<WeatherForecastService>();
