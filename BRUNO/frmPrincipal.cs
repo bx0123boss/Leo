@@ -221,9 +221,13 @@ namespace JaegerSoft
 
         private void BtnApartados_Click(object sender, EventArgs e)
         {
-            frmElegirApartado apartado = new frmElegirApartado();
-            apartado.usuario = usuario;
-            apartado.Show();
+            if (!FormularioEstaAbierto(typeof(frmConfiguracionTicket)))
+            {
+                frmElegirApartado apartado = new frmElegirApartado();
+                apartado.usuario = usuario;
+                apartado.IsServidorActivo = IsServidorActivo;
+                apartado.Show();
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)

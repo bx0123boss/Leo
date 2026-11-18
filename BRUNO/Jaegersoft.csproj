@@ -723,7 +723,6 @@
     <Compile Include="ReciboAbonoCarta.cs" />
     <Compile Include="Sesion.cs" />
     <Compile Include="TicketMediaCarta.cs" />
-    <Compile Include="TicketPrinter.cs" />
     <EmbeddedResource Include="frmAbonoApartado.resx">
       <DependentUpon>frmAbonoApartado.cs</DependentUpon>
     </EmbeddedResource>

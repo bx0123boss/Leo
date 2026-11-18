@@ -33,6 +33,7 @@ namespace JaegerSoft
             EstilizarBotonPrimario(this.button1);     // Abono
             EstilizarBotonPrimario(this.button2);     // Detalles
             EstilizarBotonAdvertencia(this.button3);  // Pendientes
+            EstilizarBotonAdvertencia(this.button3);  // Agenda
 
             // TextBoxes
             EstilizarTextBox(this.textBox1);

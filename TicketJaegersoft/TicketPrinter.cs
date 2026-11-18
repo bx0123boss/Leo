@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-
 using System.Drawing.Printing;
 using System.Globalization;
 
@@ -18,7 +17,27 @@ public class TicketPrinter
     private Dictionary<string, double> _totales = new Dictionary<string, double>();
     private bool _corte;
     private string formaPago;
-    public TicketPrinter(string[] encabezados, string[] pieDePagina, string logoPath, List<Producto> productos, string folio, string mesa, string mesero, double total, bool corte, Dictionary<string, double> totales, string formaPago = null)
+    private string _tituloTicket;
+
+    // Variables para impresión dividida de corte
+    private string _tituloSeccionCorte;
+    private List<ItemCorteCategoria> _itemsCategoriasCorte;
+    private List<ItemCorteSalida> _itemsSalidasCorte;
+    private double _totalSalidasCorte;
+
+    public TicketPrinter(
+        string[] encabezados,
+        string[] pieDePagina,
+        string logoPath,
+        List<Producto> productos,
+        string folio,
+        string mesa,
+        string mesero,
+        double total,
+        bool corte,
+        Dictionary<string, double> totales,
+        string formaPago = null,
+        string tituloTicket = "NOTA DE VENTA")
     {
         _encabezados = encabezados;
         _pieDePagina = pieDePagina;
@@ -33,11 +52,10 @@ public class TicketPrinter
         _corte = corte;
         _totales = totales;
         this.formaPago = formaPago;
-        if (formaPago != null)
-            this.formaPago = formaPago;
-
+        _tituloTicket = string.IsNullOrWhiteSpace(tituloTicket) ? "NOTA DE VENTA" : tituloTicket;
     }
-    public TicketPrinter(List<Producto> productos,  string mesa, string mesero)
+
+    public TicketPrinter(List<Producto> productos, string mesa, string mesero)
     {
         _productos = productos;
         if (mesa != "")
@@ -45,6 +63,7 @@ public class TicketPrinter
         if (mesero != "")
             _mesero = mesero;
     }
+
     public void ImprimirComanda(string printerName = null)
     {
         PrintDocument pd = new PrintDocument();
@@ -55,6 +74,7 @@ public class TicketPrinter
         pd.PrintPage += new PrintPageEventHandler(ImprimirPaginaComanda);
         pd.Print();
     }
+
     public void ImprimirTicket(string printerName = null)
     {
         PrintDocument pd = new PrintDocument();
@@ -63,18 +83,58 @@ public class TicketPrinter
             pd.PrinterSettings.PrinterName = printerName;
         }
         pd.PrintPage += new PrintPageEventHandler(ImprimirPagina);
-         pd.Print();
+        pd.Print();
     }
+
+    public void ImprimirCategoriasCorte(string tituloSeccion, string fechaApertura, List<ItemCorteCategoria> items, string printerName = null)
+    {
+        _tituloSeccionCorte = tituloSeccion;
+        _encabezados = new string[]
+        {
+            "******* DESGLOSE DE CORTE *******",
+            tituloSeccion,
+            "Apertura: " + fechaApertura,
+            "Corte: " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()
+        };
+        _itemsCategoriasCorte = items;
+
+        PrintDocument pd = new PrintDocument();
+        if (!string.IsNullOrEmpty(printerName))
+        {
+            pd.PrinterSettings.PrinterName = printerName;
+        }
+        pd.PrintPage += new PrintPageEventHandler(ImprimirPaginaCategoriasCorte);
+        pd.Print();
+    }
+
+    public void ImprimirSalidasCorte(string fechaApertura, List<ItemCorteSalida> salidas, double totalSalidas, string printerName = null)
+    {
+        _encabezados = new string[]
+        {
+            "******* DETALLE DE SALIDAS *******",
+            "Apertura: " + fechaApertura,
+            "Corte: " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString()
+        };
+        _itemsSalidasCorte = salidas;
+        _totalSalidasCorte = totalSalidas;
+
+        PrintDocument pd = new PrintDocument();
+        if (!string.IsNullOrEmpty(printerName))
+        {
+            pd.PrinterSettings.PrinterName = printerName;
+        }
+        pd.PrintPage += new PrintPageEventHandler(ImprimirPaginaSalidasCorte);
+        pd.Print();
+    }
+
     private void ImprimirPaginaComanda(object sender, PrintPageEventArgs e)
     {
         int posicion = 10;
-        // Configuración de márgenes y anchos de columna
         int leftMargin = 10;
-        int cantidadWidth = 60;    // Ancho columna cantidad
-        int productoWidth = 150;   // Ancho columna producto
-        int comentarioWidth = 150; // Ancho columna comentario
+        int cantidadWidth = 60;
+        int productoWidth = 150;
+        int comentarioWidth = 150;
 
-        // Encabezado
         e.Graphics.DrawString("   ********  COMANDA  ********",
                              new Font("Arial", 12, FontStyle.Bold),
                              Brushes.Black, leftMargin, posicion);
@@ -87,7 +147,7 @@ public class TicketPrinter
                             new Font("Arial", 10),
                             Brushes.Black, leftMargin, posicion);
         posicion += 20;
-        // Encabezados de columnas
+
         e.Graphics.DrawString("Cant", new Font("Arial", 10, FontStyle.Bold),
                              Brushes.Black, leftMargin, posicion);
         e.Graphics.DrawString("Producto", new Font("Arial", 10, FontStyle.Bold),
@@ -100,99 +160,81 @@ public class TicketPrinter
                            leftMargin + cantidadWidth + productoWidth + comentarioWidth, posicion);
         posicion += 10;
 
-        // Fuente para los productos
         Font productFont = new Font("Arial", 9);
 
         foreach (var producto in _productos)
         {
-            // Dividir texto para producto y comentario
             List<string> lineasProducto = DivideTexto(e.Graphics, producto.Nombre, productFont, productoWidth);
             List<string> lineasComentario = DivideTexto(e.Graphics, producto.Comentario ?? "", productFont, comentarioWidth);
 
-            // Determinar cuántas líneas necesitamos para este producto
             int lineasNecesarias = Math.Max(lineasProducto.Count, lineasComentario.Count);
 
             for (int i = 0; i < lineasNecesarias; i++)
             {
-                // Imprimir cantidad solo en la primera línea
                 if (i == 0)
                 {
                     e.Graphics.DrawString(producto.Cantidad.ToString("0.00"), productFont,
                                         Brushes.Black, leftMargin, posicion);
                 }
 
-                // Imprimir línea de producto (si existe)
                 if (i < lineasProducto.Count)
                 {
                     e.Graphics.DrawString(lineasProducto[i], productFont,
                                         Brushes.Black, leftMargin + cantidadWidth, posicion);
                 }
 
-                // Imprimir línea de comentario (si existe)
                 if (i < lineasComentario.Count)
                 {
                     e.Graphics.DrawString(lineasComentario[i], productFont,
                                         Brushes.Black, leftMargin + cantidadWidth + productoWidth, posicion);
                 }
 
-                posicion += 15; // Espacio entre líneas
+                posicion += 15;
             }
 
-            posicion += 5; // Espacio adicional entre productos
+            posicion += 5;
         }
     }
+
     private void ImprimirPagina(object sender, PrintPageEventArgs e)
     {
         int posicion = 10;
         float ticketWidth = 280;
-        if (!_corte)
-        {
 
-            // Dibujar el logo
-            if (System.IO.File.Exists(_logoPath))
-            {
-                // Dibujar el logo
-                if (System.IO.File.Exists(_logoPath))
-                {
-                    Image logo = Image.FromFile(_logoPath);
-
-                    int origWidth = logo.Width;
-                    int origHeight = logo.Height;
-                    int targetWidth = origWidth;
-                    int targetHeight = origHeight;
-
-                    // 2. Re-escalar SI Y SOLO SI la imagen es más ancha que el ticket
-                    if (origWidth > ticketWidth)
-                    {
-                        // Calcular el ratio para mantener la proporción
-                        double ratio = (double)ticketWidth / origWidth;
-                        targetWidth = (int)ticketWidth; // El nuevo ancho será el máximo del ticket
-                        targetHeight = (int)(origHeight * ratio); // El nuevo alto se ajusta por el ratio
-                    }
-
-                    // 3. Calcular la posición X para centrarla
-                    // (Ancho total del ticket - Ancho de la imagen) / 2
-                    int xPos = (int)((ticketWidth - targetWidth) / 2);
-
-                    // 4. Dibujar la imagen usando un Rectángulo (posición X, posición Y, ancho, alto)
-                    e.Graphics.DrawImage(logo, new Rectangle(xPos, posicion, targetWidth, targetHeight));
-
-                    // 5. Actualizar la 'posicion' Y basado en la altura REAL de la imagen dibujada
-                    // Se suma un pequeño margen de 10px
-                    posicion += targetHeight + 10;
-
-                    // Se elimina la línea original que sumaba 150 fijos:
-                    // posicion += 150; 
-                }
-            }
-            e.Graphics.DrawString("   ********  NOTA DE VENTA  ********", new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
-            posicion += 20;
-        }
-        //encabezado de 80mm
         StringFormat centerFormat = new StringFormat();
         centerFormat.Alignment = StringAlignment.Center;
 
-        // Dibujar encabezados centrados
+        if (!_corte)
+        {
+            if (System.IO.File.Exists(_logoPath))
+            {
+                Image logo = Image.FromFile(_logoPath);
+
+                int origWidth = logo.Width;
+                int origHeight = logo.Height;
+                int targetWidth = origWidth;
+                int targetHeight = origHeight;
+
+                if (origWidth > ticketWidth)
+                {
+                    double ratio = (double)ticketWidth / origWidth;
+                    targetWidth = (int)ticketWidth;
+                    targetHeight = (int)(origHeight * ratio);
+                }
+
+                int xPos = (int)((ticketWidth - targetWidth) / 2);
+                e.Graphics.DrawImage(logo, new Rectangle(xPos, posicion, targetWidth, targetHeight));
+                posicion += targetHeight + 10;
+            }
+
+            e.Graphics.DrawString($"*** {_tituloTicket} ***",
+                                  new Font("Arial", 11, FontStyle.Bold),
+                                  Brushes.Black,
+                                  new RectangleF(0, posicion, ticketWidth, 22),
+                                  centerFormat);
+            posicion += 22;
+        }
+
         foreach (var encabezado in _encabezados)
         {
             e.Graphics.DrawString(encabezado, new Font("Arial", 10, FontStyle.Bold),
@@ -204,7 +246,6 @@ public class TicketPrinter
 
         if (!_corte)
         {
-            // Dibujar la información del ticket
             e.Graphics.DrawString("FOLIO DE VENTA: " + _folio, new Font("Arial", 10, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
             posicion += 18;
             if (formaPago != null)
@@ -224,7 +265,6 @@ public class TicketPrinter
         e.Graphics.DrawString("FECHA: " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString(), new Font("Arial", 12, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
         posicion += 30;
 
-        // Dibujar la lista de productos
         if (_productos.Count > 0)
         {
             if (!_corte)
@@ -239,7 +279,6 @@ public class TicketPrinter
             e.Graphics.DrawLine(new Pen(Color.Black), 1, posicion, 420, posicion);
             posicion += 10;
         }
-       
 
         StringFormat sf = new StringFormat();
         sf.Alignment = StringAlignment.Far;
@@ -248,32 +287,27 @@ public class TicketPrinter
             foreach (var producto in _productos)
             {
                 Font productFont = new Font("Arial", 8, FontStyle.Regular);
-                float maxWidth = 145; // Ancho máximo para la columna de f
+                float maxWidth = 145;
                 List<string> lineasProducto = DivideTexto(e.Graphics, producto.Nombre, productFont, maxWidth);
 
-                // Imprimir cantidad en primera línea
                 e.Graphics.DrawString(producto.Cantidad.ToString("0.00", CultureInfo.InvariantCulture), productFont, Brushes.Black, new Point(1, posicion));
-                // Imprimir cada línea del producto
                 for (int j = 0; j < lineasProducto.Count; j++)
                 {
-                    if (j > 0) // Para líneas adicionales, no repetir cantidad
+                    if (j > 0)
                     {
                         e.Graphics.DrawString("", productFont, Brushes.Black, new Point(1, posicion));
                     }
 
                     e.Graphics.DrawString(lineasProducto[j], productFont, Brushes.Black, new Point(40, posicion));
 
-                    // Solo mostrar precio y unidad en la última línea
                     if (j == lineasProducto.Count - 1)
                     {
                         e.Graphics.DrawString($"{producto.PrecioUnitario:C}", productFont, Brushes.Black, new Point(215, posicion), sf);
                         e.Graphics.DrawString($"{producto.Total:C}", productFont, Brushes.Black, new Point(280, posicion), sf);
                     }
 
-                    posicion += (j == lineasProducto.Count - 1) ? 20 : 15; // Más espacio después de la última línea
+                    posicion += (j == lineasProducto.Count - 1) ? 20 : 15;
                 }
-
-                //e.Graphics.DrawString(producto.Nombre, new Font("Arial", 8, FontStyle.Regular), Brushes.Black, new Point(40, posicion));
             }
 
             if (_totales.Count > 0)
@@ -287,7 +321,6 @@ public class TicketPrinter
                 }
             }
 
-            // Dibujar el pie de página
             foreach (var pie in _pieDePagina)
             {
                 e.Graphics.DrawString(pie, new Font("Arial", 10, FontStyle.Bold), Brushes.Black, new Point(1, posicion));
@@ -314,10 +347,134 @@ public class TicketPrinter
                 }
             }
         }
-
     }
 
-    // Función para dividir texto en múltiples líneas
+    private void ImprimirPaginaCategoriasCorte(object sender, PrintPageEventArgs e)
+    {
+        int posicion = 10;
+        float ticketWidth = 280;
+
+        StringFormat centerFormat = new StringFormat { Alignment = StringAlignment.Center };
+        StringFormat rightFormat = new StringFormat { Alignment = StringAlignment.Far };
+
+        foreach (var encabezado in _encabezados)
+        {
+            e.Graphics.DrawString(encabezado, new Font("Arial", 9, FontStyle.Bold),
+                                  Brushes.Black, new RectangleF(0, posicion, ticketWidth, 18), centerFormat);
+            posicion += 17;
+        }
+
+        posicion += 8;
+
+        Font headerFont = new Font("Arial", 9, FontStyle.Bold);
+        e.Graphics.DrawString("Categoría / Grupo", headerFont, Brushes.Black, new Point(1, posicion));
+        e.Graphics.DrawString("Pzs", headerFont, Brushes.Black, new Point(195, posicion), rightFormat);
+        e.Graphics.DrawString("Total", headerFont, Brushes.Black, new Point(280, posicion), rightFormat);
+        posicion += 18;
+
+        e.Graphics.DrawLine(new Pen(Color.Black), 1, posicion, ticketWidth, posicion);
+        posicion += 8;
+
+        Font rowFont = new Font("Arial", 8, FontStyle.Regular);
+        Font totalFont = new Font("Arial", 9, FontStyle.Bold);
+
+        foreach (var item in _itemsCategoriasCorte)
+        {
+            bool esTotalGeneral = item.Nombre.Equals("TOTAL GENERAL", StringComparison.OrdinalIgnoreCase);
+
+            if (esTotalGeneral)
+            {
+                posicion += 4;
+                e.Graphics.DrawLine(new Pen(Color.Black), 1, posicion, ticketWidth, posicion);
+                posicion += 8;
+            }
+
+            Font currentFont = esTotalGeneral ? totalFont : rowFont;
+            List<string> lineasNombre = DivideTexto(e.Graphics, item.Nombre, currentFont, 150);
+
+            for (int j = 0; j < lineasNombre.Count; j++)
+            {
+                e.Graphics.DrawString(lineasNombre[j], currentFont, Brushes.Black, new Point(1, posicion));
+
+                if (j == lineasNombre.Count - 1)
+                {
+                    e.Graphics.DrawString(item.Piezas.ToString("N0"), currentFont, Brushes.Black, new Point(195, posicion), rightFormat);
+                    e.Graphics.DrawString($"{item.Total:C2}", currentFont, Brushes.Black, new Point(280, posicion), rightFormat);
+                }
+
+                posicion += 15;
+            }
+            posicion += 3;
+        }
+    }
+
+    private void ImprimirPaginaSalidasCorte(object sender, PrintPageEventArgs e)
+    {
+        int posicion = 10;
+        float ticketWidth = 280;
+
+        StringFormat centerFormat = new StringFormat { Alignment = StringAlignment.Center };
+        StringFormat rightFormat = new StringFormat { Alignment = StringAlignment.Far };
+
+        foreach (var encabezado in _encabezados)
+        {
+            e.Graphics.DrawString(encabezado, new Font("Arial", 9, FontStyle.Bold),
+                                  Brushes.Black, new RectangleF(0, posicion, ticketWidth, 18), centerFormat);
+            posicion += 17;
+        }
+
+        posicion += 8;
+
+        Font headerFont = new Font("Arial", 9, FontStyle.Bold);
+        e.Graphics.DrawString("Concepto", headerFont, Brushes.Black, new Point(1, posicion));
+        e.Graphics.DrawString("Monto", headerFont, Brushes.Black, new Point(280, posicion), rightFormat);
+        posicion += 18;
+
+        e.Graphics.DrawLine(new Pen(Color.Black), 1, posicion, ticketWidth, posicion);
+        posicion += 8;
+
+        Font rowFont = new Font("Arial", 8, FontStyle.Regular);
+
+        if (_itemsSalidasCorte.Count == 0)
+        {
+            e.Graphics.DrawString("Sin salidas registradas en este turno.", rowFont, Brushes.Black, new Point(1, posicion));
+            posicion += 20;
+        }
+        else
+        {
+            foreach (var salida in _itemsSalidasCorte)
+            {
+                List<string> lineasConcepto = DivideTexto(e.Graphics, salida.Concepto, rowFont, 195);
+
+                for (int j = 0; j < lineasConcepto.Count; j++)
+                {
+                    e.Graphics.DrawString(lineasConcepto[j], rowFont, Brushes.Black, new Point(1, posicion));
+
+                    if (j == lineasConcepto.Count - 1)
+                    {
+                        e.Graphics.DrawString($"{salida.Monto:C2}", rowFont, Brushes.Black, new Point(280, posicion), rightFormat);
+                    }
+
+                    posicion += 15;
+                }
+                posicion += 4;
+            }
+        }
+
+        posicion += 5;
+        e.Graphics.DrawLine(new Pen(Color.Black), 1, posicion, ticketWidth, posicion);
+        posicion += 10;
+
+        e.Graphics.DrawString($"TOTAL SALIDAS: {_totalSalidasCorte:C2}", new Font("Arial", 10, FontStyle.Bold),
+                              Brushes.Black, new Point(280, posicion), rightFormat);
+        posicion += 35;
+
+        e.Graphics.DrawLine(new Pen(Color.Black), 40, posicion, 240, posicion);
+        posicion += 5;
+        e.Graphics.DrawString("Firma Cajero / Supervisor", new Font("Arial", 8, FontStyle.Regular),
+                              Brushes.Black, new RectangleF(0, posicion, ticketWidth, 16), centerFormat);
+    }
+
     private List<string> DivideTexto(Graphics g, string texto, Font font, float maxWidth)
     {
         List<string> lineas = new List<string>();
@@ -340,7 +497,6 @@ public class TicketPrinter
                 }
                 else
                 {
-                    // Palabra demasiado larga, partirla
                     for (int i = 0; i < palabra.Length; i++)
                     {
                         prueba = lineaActual + palabra[i];
@@ -348,7 +504,7 @@ public class TicketPrinter
                         {
                             lineas.Add(lineaActual);
                             lineaActual = "";
-                            i--; // Reintentar este carácter
+                            i--;
                         }
                         else
                         {
@@ -364,24 +520,23 @@ public class TicketPrinter
 
         return lineas;
     }
+
     public void AbrirCajon(string printerName)
     {
         if (string.IsNullOrEmpty(printerName)) return;
 
         try
         {
-            // Secuencia ESC/POS para abrir cajón en la mayoría de miniprinters (Epson, Bixolon, EC Line, Star, etc.)
-            // ESC p m t1 t2 -> 27, 112, 0, 25, 250
             byte[] drawerPulse = new byte[] { 27, 112, 0, 25, 250 };
             RawPrinterHelper.SendBytesToPrinter(printerName, drawerPulse);
         }
         catch (Exception ex)
         {
-            // Opcional: Manejar o registrar error en caso de que la impresora no responda
             Console.WriteLine($"Error al intentar abrir el cajón: {ex.Message}");
         }
     }
 }
+
 public class Producto
 {
     public string Nombre { get; set; }
@@ -389,4 +544,17 @@ public class Producto
     public double PrecioUnitario { get; set; }
     public double Total { get; set; }
     public string Comentario { get; set; }
+}
+
+public class ItemCorteCategoria
+{
+    public string Nombre { get; set; }
+    public double Piezas { get; set; }
+    public double Total { get; set; }
+}
+
+public class ItemCorteSalida
+{
+    public string Concepto { get; set; }
+    public double Monto { get; set; }
 }

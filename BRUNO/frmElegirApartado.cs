@@ -13,6 +13,7 @@ namespace JaegerSoft
     public partial class frmElegirApartado : frmBase
     {
         public String usuario = "";
+        public bool IsServidorActivo { get; set; } = false;
         public frmElegirApartado()
         {
             InitializeComponent();
@@ -71,6 +72,33 @@ namespace JaegerSoft
         {
             EstilizarBotonPrimario(button1);
             EstilizarBotonAdvertencia(button2);
+            EstilizarBotonPeligro(button3);
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+
+            string url = "http://localhost:5000/agenda";
+            if (IsServidorActivo)
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = url,
+                        UseShellExecute = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("No se pudo abrir el navegador: " + ex.Message);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Servidor inactivo.\n\nContacte a soporte técnico para actualizar su sistema o verificar la instalación.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
     }
 }

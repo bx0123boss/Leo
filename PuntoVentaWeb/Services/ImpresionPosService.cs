@@ -57,21 +57,24 @@ public class ImpresionPosService
             }
 
             totales.Add("Total", req.Total);
-
+            string tipoVenta = "";
             if (req.TipoVenta.Equals("CONTADO", StringComparison.OrdinalIgnoreCase))
             {
                 totales.Add("Recibido", req.MontoRecibido > 0 ? req.MontoRecibido : req.Total);
                 totales.Add("Cambio", req.Cambio);
+                tipoVenta = "NOTA DE VENTA";
             }
             else if (req.TipoVenta.Equals("CREDITO", StringComparison.OrdinalIgnoreCase))
             {
                 totales.Add("Abono", req.AbonoInicial);
                 totales.Add("Saldo Insoluto", req.Restante);
+                tipoVenta = "NOTA DE VENTA A CRÉDITO";
             }
             else if (req.TipoVenta.Equals("APARTADO", StringComparison.OrdinalIgnoreCase))
             {
                 totales.Add("Abono", req.AbonoInicial);
                 totales.Add("Restante", req.Restante);
+                tipoVenta = "NOTA DE APARTADO";
             }
 
                 global::TicketPrinter ticket = new global::TicketPrinter(
@@ -85,7 +88,8 @@ public class ImpresionPosService
                     req.Total,
                     false,
                     totales,
-                    req.MetodoPago
+                    req.MetodoPago,
+                    tipoVenta
                 );
                 if (!string.IsNullOrWhiteSpace(config.Impresora))
                 {
