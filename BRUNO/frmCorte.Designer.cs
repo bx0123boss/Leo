@@ -63,6 +63,10 @@ namespace JaegerSoft
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPageEfectivo = new System.Windows.Forms.TabPage();
             this.dgvCorte = new System.Windows.Forms.DataGridView();
+            this.tabPageEntradas = new System.Windows.Forms.TabPage();
+            this.dgvEntradas = new System.Windows.Forms.DataGridView();
+            this.tabPageSalidas = new System.Windows.Forms.TabPage();
+            this.dgvSalidas = new System.Windows.Forms.DataGridView();
             this.tabPageTarjeta = new System.Windows.Forms.TabPage();
             this.dataGridView3 = new System.Windows.Forms.DataGridView();
             this.tabPageTrans = new System.Windows.Forms.TabPage();
@@ -93,6 +97,10 @@ namespace JaegerSoft
             this.tabControl1.SuspendLayout();
             this.tabPageEfectivo.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvCorte)).BeginInit();
+            this.tabPageEntradas.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvEntradas)).BeginInit();
+            this.tabPageSalidas.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvSalidas)).BeginInit();
             this.tabPageTarjeta.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView3)).BeginInit();
             this.tabPageTrans.SuspendLayout();
@@ -562,6 +570,8 @@ namespace JaegerSoft
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabPageEfectivo);
+            this.tabControl1.Controls.Add(this.tabPageEntradas);
+            this.tabControl1.Controls.Add(this.tabPageSalidas);
             this.tabControl1.Controls.Add(this.tabPageTarjeta);
             this.tabControl1.Controls.Add(this.tabPageTrans);
             this.tabControl1.Controls.Add(this.tabPageOtros);
@@ -607,6 +617,54 @@ namespace JaegerSoft
             this.dgvCorte.Size = new System.Drawing.Size(812, 842);
             this.dgvCorte.TabIndex = 0;
             this.dgvCorte.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dgvCorte_CellFormatting);
+            // 
+            // tabPageEntradas
+            // 
+            this.tabPageEntradas.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.tabPageEntradas.Controls.Add(this.dgvEntradas);
+            this.tabPageEntradas.Location = new System.Drawing.Point(4, 44);
+            this.tabPageEntradas.Name = "tabPageEntradas";
+            this.tabPageEntradas.Size = new System.Drawing.Size(812, 842);
+            this.tabPageEntradas.TabIndex = 8;
+            this.tabPageEntradas.Text = "Entradas";
+            // 
+            // dgvEntradas
+            // 
+            this.dgvEntradas.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            this.dgvEntradas.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvEntradas.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.dgvEntradas.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.dgvEntradas.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvEntradas.Location = new System.Drawing.Point(0, 0);
+            this.dgvEntradas.Name = "dgvEntradas";
+            this.dgvEntradas.RowsDefaultCellStyle = dataGridViewCellStyle2;
+            this.dgvEntradas.Size = new System.Drawing.Size(812, 842);
+            this.dgvEntradas.TabIndex = 0;
+            this.dgvEntradas.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dgvEntradas_CellFormatting);
+            // 
+            // tabPageSalidas
+            // 
+            this.tabPageSalidas.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.tabPageSalidas.Controls.Add(this.dgvSalidas);
+            this.tabPageSalidas.Location = new System.Drawing.Point(4, 44);
+            this.tabPageSalidas.Name = "tabPageSalidas";
+            this.tabPageSalidas.Size = new System.Drawing.Size(812, 842);
+            this.tabPageSalidas.TabIndex = 9;
+            this.tabPageSalidas.Text = "Salidas";
+            // 
+            // dgvSalidas
+            // 
+            this.dgvSalidas.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            this.dgvSalidas.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvSalidas.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.dgvSalidas.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.dgvSalidas.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvSalidas.Location = new System.Drawing.Point(0, 0);
+            this.dgvSalidas.Name = "dgvSalidas";
+            this.dgvSalidas.RowsDefaultCellStyle = dataGridViewCellStyle2;
+            this.dgvSalidas.Size = new System.Drawing.Size(812, 842);
+            this.dgvSalidas.TabIndex = 0;
+            this.dgvSalidas.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dgvSalidas_CellFormatting);
             // 
             // tabPageTarjeta
             // 
@@ -884,6 +942,10 @@ namespace JaegerSoft
             this.tabControl1.ResumeLayout(false);
             this.tabPageEfectivo.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvCorte)).EndInit();
+            this.tabPageEntradas.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvEntradas)).EndInit();
+            this.tabPageSalidas.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvSalidas)).EndInit();
             this.tabPageTarjeta.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView3)).EndInit();
             this.tabPageTrans.SuspendLayout();
@@ -891,6 +953,7 @@ namespace JaegerSoft
             this.tabPageOtros.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvOtrosPagos)).EndInit();
             this.tabPageAbonos.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView5)).EndInit();
             this.tabPageFolios.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvFolios)).EndInit();
             this.tabPageCategorias.SuspendLayout();
@@ -909,6 +972,8 @@ namespace JaegerSoft
         // Elementos UI Nuevos
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPageEfectivo;
+        private System.Windows.Forms.TabPage tabPageEntradas;
+        private System.Windows.Forms.TabPage tabPageSalidas;
         private System.Windows.Forms.TabPage tabPageTarjeta;
         private System.Windows.Forms.TabPage tabPageTrans;
         private System.Windows.Forms.TabPage tabPageOtros;
@@ -918,7 +983,7 @@ namespace JaegerSoft
         private System.Windows.Forms.TabPage tabPageCategoriasAgrupadas;
         private System.Windows.Forms.Panel panelOculto;
 
-        // Elementos Mantenidos (Para no romper el código trasero)
+        // Elementos Mantenidos
         private System.Windows.Forms.Label labelApertura;
         private System.Windows.Forms.Label lblApertura;
         private System.Windows.Forms.Label label4;
@@ -935,6 +1000,8 @@ namespace JaegerSoft
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.DataGridView dgvCorte;
+        private System.Windows.Forms.DataGridView dgvEntradas;
+        private System.Windows.Forms.DataGridView dgvSalidas;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label lblTotal;

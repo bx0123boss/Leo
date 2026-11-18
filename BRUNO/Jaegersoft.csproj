@@ -477,6 +477,12 @@
     <Compile Include="frmLogin.Designer.cs">
       <DependentUpon>frmLogin.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmOpcionesImpresionCorte.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmOpcionesImpresionCorte.Designer.cs">
+      <DependentUpon>frmOpcionesImpresionCorte.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmPago.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -717,6 +723,7 @@
     <Compile Include="ReciboAbonoCarta.cs" />
     <Compile Include="Sesion.cs" />
     <Compile Include="TicketMediaCarta.cs" />
+    <Compile Include="TicketPrinter.cs" />
     <EmbeddedResource Include="frmAbonoApartado.resx">
       <DependentUpon>frmAbonoApartado.cs</DependentUpon>
     </EmbeddedResource>

@@ -38,7 +38,34 @@ namespace JaegerSoft
 
         private void dgvCorte_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
+            if (!EsCeldaValida(dgvCorte, e)) return;
             if (dgvCorte.Columns[e.ColumnIndex].Name == "Monto")
+            {
+                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
+                {
+                    e.Value = value.ToString("C2");
+                    e.FormattingApplied = true;
+                }
+            }
+        }
+
+        private void dgvEntradas_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (!EsCeldaValida(dgvEntradas, e)) return;
+            if (dgvEntradas.Columns[e.ColumnIndex].Name == "Monto")
+            {
+                if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
+                {
+                    e.Value = value.ToString("C2");
+                    e.FormattingApplied = true;
+                }
+            }
+        }
+
+        private void dgvSalidas_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (!EsCeldaValida(dgvSalidas, e)) return;
+            if (dgvSalidas.Columns[e.ColumnIndex].Name == "Monto")
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
                 {
@@ -50,6 +77,7 @@ namespace JaegerSoft
 
         private void dataGridView4_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
+            if (!EsCeldaValida(dataGridView4, e)) return;
             if (dataGridView4.Columns[e.ColumnIndex].Name == "Monto")
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
@@ -62,6 +90,7 @@ namespace JaegerSoft
 
         private void dataGridView3_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
+            if (!EsCeldaValida(dataGridView3, e)) return;
             if (dataGridView3.Columns[e.ColumnIndex].Name == "Monto")
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
@@ -75,6 +104,7 @@ namespace JaegerSoft
         // Evento de formato para la nueva tabla de Otros Pagos
         private void dgvOtrosPagos_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
+            if (!EsCeldaValida(dgvOtrosPagos, e)) return;
             if (dgvOtrosPagos.Columns[e.ColumnIndex].Name == "Monto")
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
@@ -87,6 +117,7 @@ namespace JaegerSoft
 
         private void dgvFolios_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
+            if (!EsCeldaValida(dgvFolios, e)) return;
             if (dgvFolios.Columns[e.ColumnIndex].Name == "Monto" || dgvFolios.Columns[e.ColumnIndex].Name == "Descuento" || dgvFolios.Columns[e.ColumnIndex].Name == "Monto sin IVA" || dgvFolios.Columns[e.ColumnIndex].Name == "IVA")
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
@@ -99,7 +130,7 @@ namespace JaegerSoft
 
         private void dataGridView6_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            // Formato de moneda para el Total
+            if (!EsCeldaValida(dataGridView6, e)) return;
             if (dataGridView6.Columns[e.ColumnIndex].Name == "Total")
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
@@ -108,17 +139,15 @@ namespace JaegerSoft
                     e.FormattingApplied = true;
                 }
             }
-            // Formato numérico para Piezas
             else if (dataGridView6.Columns[e.ColumnIndex].Name == "Piezas")
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
                 {
-                    e.Value = value.ToString("N0"); // Muestra sin decimales (ej. 1,250)
+                    e.Value = value.ToString("N0");
                     e.FormattingApplied = true;
                 }
             }
 
-            // Estilo especial para la fila de TOTAL GENERAL
             if (e.RowIndex >= 0 && dataGridView6.Rows[e.RowIndex].Cells["Categoria"].Value?.ToString() == "TOTAL GENERAL")
             {
                 dataGridView6.Rows[e.RowIndex].DefaultCellStyle.Font = new Font(dataGridView6.Font, FontStyle.Bold);
@@ -129,7 +158,7 @@ namespace JaegerSoft
 
         private void dgvCategoriasAgrupadas_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            // Formato de moneda para el Total
+            if (!EsCeldaValida(dgvCategoriasAgrupadas, e)) return;
             if (dgvCategoriasAgrupadas.Columns[e.ColumnIndex].Name == "Total")
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
@@ -138,7 +167,6 @@ namespace JaegerSoft
                     e.FormattingApplied = true;
                 }
             }
-            // Formato numérico para Piezas
             else if (dgvCategoriasAgrupadas.Columns[e.ColumnIndex].Name == "Piezas")
             {
                 if (e.Value != null && decimal.TryParse(e.Value.ToString(), out decimal value))
@@ -148,7 +176,6 @@ namespace JaegerSoft
                 }
             }
 
-            // Estilo especial para la fila de TOTAL GENERAL
             if (e.RowIndex >= 0 && dgvCategoriasAgrupadas.Rows[e.RowIndex].Cells["Grupo"].Value?.ToString() == "TOTAL GENERAL")
             {
                 dgvCategoriasAgrupadas.Rows[e.RowIndex].DefaultCellStyle.Font = new Font(dgvCategoriasAgrupadas.Font, FontStyle.Bold);
@@ -194,12 +221,37 @@ namespace JaegerSoft
             }
             reader.Close();
 
-            // 1. EFECTIVO
+            // 1. EFECTIVO (Solo ventas y cancelaciones, sin Apertura, Entradas ni Salidas)
             ds = new DataSet();
-            da = new SqlDataAdapter("select * from Corte where (Pago='01=EFECTIVO' OR Pago ='Efectivo') AND Concepto NOT LIKE 'Abono%';", conectar);
+            da = new SqlDataAdapter(@"
+            SELECT * FROM Corte 
+            WHERE (Pago='01=EFECTIVO' OR Pago ='Efectivo') 
+              AND Concepto NOT LIKE 'Abono%' 
+              AND Concepto <> 'APERTURA DE CAJA'
+              AND Concepto NOT LIKE 'Entrada en caja por concepto%' 
+              AND Concepto NOT LIKE 'Salida en caja por concepto%';", conectar);
             da.Fill(ds, "Id");
             dgvCorte.DataSource = ds.Tables["Id"];
             dgvCorte.Columns[0].Visible = false;
+
+            // 1.1 ENTRADAS (Incluye APERTURA DE CAJA y Entradas manuales)
+            ds = new DataSet();
+            da = new SqlDataAdapter(@"
+            SELECT * FROM Corte 
+            WHERE Concepto LIKE 'Entrada en caja por concepto%' 
+               OR Concepto = 'APERTURA DE CAJA';", conectar);
+            da.Fill(ds, "Entradas");
+            dgvEntradas.DataSource = ds.Tables["Entradas"];
+            dgvEntradas.Columns[0].Visible = false;
+
+            // 1.2 SALIDAS
+            ds = new DataSet();
+            da = new SqlDataAdapter(@"
+                SELECT * FROM Corte 
+                WHERE Concepto LIKE 'Salida en caja por concepto%';", conectar);
+            da.Fill(ds, "Salidas");
+            dgvSalidas.DataSource = ds.Tables["Salidas"];
+            dgvSalidas.Columns[0].Visible = false;
 
             // 2. TARJETAS
             ds = new DataSet();
@@ -217,7 +269,7 @@ namespace JaegerSoft
 
             // 4. OTROS PAGOS
             ds = new DataSet();
-            da = new SqlDataAdapter("select * from Corte where Pago NOT IN ('01=EFECTIVO','Transferencia', 'Tarjeta','Efectivo','04=TARJETA DE CREDITO', '28=TARJETA DE DEBITO', '03=TRANFERENCIA ELECTRONICA DE FONDOS') AND Concepto NOT LIKE 'Abono%';", conectar);
+            da = new SqlDataAdapter("select * from Corte where Pago NOT IN ('01=EFECTIVO','Transferencia', 'Tarjeta','Efectivo','04=TARJETA DE CREDITO', '28=TARJETA DE DEBITO', '03=TRANFERENCIA ELECTRONICA DE FONDOS') AND Concepto NOT LIKE 'Abono%' AND Concepto NOT LIKE 'Entrada en caja por concepto%' AND Concepto NOT LIKE 'Salida en caja por concepto%';", conectar);
             da.Fill(ds, "Id");
             dgvOtrosPagos.DataSource = ds.Tables["Id"];
             dgvOtrosPagos.Columns[0].Visible = false;
@@ -305,8 +357,7 @@ namespace JaegerSoft
             // ======================================================================
             // CÁLCULOS DE MONTOS
             // ======================================================================
-
-            // Efectivo (separando Apertura, Entradas, Salidas, Cancelaciones y Ventas en Efectivo)
+            // Efectivo (Cancelaciones y Ventas en Efectivo)
             for (int i = 0; i < dgvCorte.RowCount; i++)
             {
                 if (dgvCorte.Rows[i].IsNewRow) continue;
@@ -315,20 +366,8 @@ namespace JaegerSoft
                     double valorNumerico = Convert.ToDouble(dgvCorte[2, i].Value);
                     string concepto = dgvCorte[1, i].Value?.ToString().Trim() ?? "";
 
-                    if (concepto.Equals("APERTURA DE CAJA", StringComparison.OrdinalIgnoreCase))
-                    {
-                        apertura += valorNumerico;
-                    }
-                    else if (concepto.StartsWith("Entrada en caja por concepto", StringComparison.OrdinalIgnoreCase))
-                    {
-                        entradas += Math.Abs(valorNumerico);
-                    }
-                    else if (concepto.StartsWith("Salida en caja por concepto", StringComparison.OrdinalIgnoreCase))
-                    {
-                        salidas += Math.Abs(valorNumerico);
-                    }
-                    else if (concepto.IndexOf("Cancelacion", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                             concepto.IndexOf("Cancelación", StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (concepto.IndexOf("Cancelacion", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        concepto.IndexOf("Cancelación", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         cancelaciones += Math.Abs(valorNumerico);
                     }
@@ -337,6 +376,35 @@ namespace JaegerSoft
                         if (valorNumerico > 0) mas += valorNumerico;
                         else if (valorNumerico < 0) salidas += Math.Abs(valorNumerico);
                     }
+                }
+            }
+
+            // Entradas (Separando Apertura de Caja vs Entradas de efectivo)
+            for (int i = 0; i < dgvEntradas.RowCount; i++)
+            {
+                if (dgvEntradas.Rows[i].IsNewRow) continue;
+                if (dgvEntradas[2, i].Value != null && dgvEntradas[2, i].Value != DBNull.Value)
+                {
+                    double valorNumerico = Convert.ToDouble(dgvEntradas[2, i].Value);
+                    string concepto = dgvEntradas[1, i].Value?.ToString().Trim() ?? "";
+
+                    if (concepto.Equals("APERTURA DE CAJA", StringComparison.OrdinalIgnoreCase))
+                    {
+                        apertura += valorNumerico;
+                    }
+                    else
+                    {
+                        entradas += Math.Abs(valorNumerico);
+                    }
+                }
+            }
+            // Salidas (Desde dgvSalidas)
+            for (int i = 0; i < dgvSalidas.RowCount; i++)
+            {
+                if (dgvSalidas.Rows[i].IsNewRow) continue;
+                if (dgvSalidas[2, i].Value != null && dgvSalidas[2, i].Value != DBNull.Value)
+                {
+                    salidas += Math.Abs(Convert.ToDouble(dgvSalidas[2, i].Value));
                 }
             }
 
@@ -476,7 +544,7 @@ namespace JaegerSoft
             }
 
             // ======================================================================
-            // ASIGNACIÓN DE TEXTOS A LAS ETIQUETAS (EN EL NUEVO ORDEN)
+            // ASIGNACIÓN DE TEXTOS A LAS ETIQUETAS
             // ======================================================================
 
             // --- Sección de control de efectivo físico ---
@@ -502,13 +570,8 @@ namespace JaegerSoft
             lblOtros.Text = $"{otros:C}";
 
             // --- FÓRMULAS SOLICITADAS ---
-            // Total Neto = +ventas en efectivo +ventas con tarjeta +Comisión +Transferencias +Otros ingresos
             decimal tn = Convert.ToDecimal(mas) + tarjetaSinComision + comisionTarjeta + Convert.ToDecimal(trans) + Convert.ToDecimal(otros);
-
-            // (tn / 1.16) = Subtotal
             decimal subtotal = tn / 1.16m;
-
-            // (tn * 0.16) = IVA
             decimal iva = tn * 0.16m;
 
             lblNoIva.Text = $"{subtotal:C2}";
@@ -525,6 +588,8 @@ namespace JaegerSoft
             // ESTILIZACIÓN DE GRIDS
             EstilizarDataGridView(this.dgvFolios);
             EstilizarDataGridView(this.dgvCorte);
+            EstilizarDataGridView(this.dgvEntradas);
+            EstilizarDataGridView(this.dgvSalidas);
             EstilizarDataGridView(this.dgvOtrosPagos);
             EstilizarDataGridView(this.dataGridView5);
             EstilizarDataGridView(this.dataGridView1);
@@ -542,24 +607,67 @@ namespace JaegerSoft
 
         private void button1_Click(object sender, EventArgs e)
         {
-            bool tieneTotalGeneral = false;
+            bool tieneMovimientos = false;
 
+            // Revisar si hay ventas o cancelaciones en Efectivo
             foreach (DataGridViewRow row in dgvCorte.Rows)
             {
                 if (row.IsNewRow) continue;
-                if (row.Cells["Concepto"].Value?.ToString() != "APERTURA DE CAJA")
+                tieneMovimientos = true;
+                break;
+            }
+
+            // Revisar si hay entradas reales (distintas a APERTURA DE CAJA)
+            if (!tieneMovimientos)
+            {
+                foreach (DataGridViewRow row in dgvEntradas.Rows)
                 {
-                    tieneTotalGeneral = true;
-                    break;
+                    if (row.IsNewRow) continue;
+                    string concepto = row.Cells[1].Value?.ToString().Trim() ?? "";
+                    if (!concepto.Equals("APERTURA DE CAJA", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tieneMovimientos = true;
+                        break;
+                    }
                 }
             }
 
-            if (!tieneTotalGeneral)
+            // Revisar Salidas, Tarjetas, Transferencias, Otros o Abonos
+            if (!tieneMovimientos && (dgvSalidas.Rows.Count > 0 || dataGridView3.Rows.Count > 0 || dataGridView4.Rows.Count > 0 || dgvOtrosPagos.Rows.Count > 0 || dataGridView5.Rows.Count > 0))
             {
-                MessageBox.Show("No hay artículos vendidos en este corte. No se puede realizar el corte de caja.",
+                tieneMovimientos = true;
+            }
+
+            if (!tieneMovimientos)
+            {
+                MessageBox.Show("No hay artículos vendidos ni movimientos en este corte. No se puede realizar el corte de caja.",
                                 "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+
+            // 1. Mostrar modal de opciones de impresión antes de procesar el cierre
+            bool deseaImprimir = false;
+            bool impResumen = false;
+            bool detallado = false;
+            bool impGrupos = false;
+            bool impCategorias = false;
+            bool impSalidas = false;
+
+            using (frmOpcionesImpresionCorte frmOpciones = new frmOpcionesImpresionCorte(
+                Sesion.TienePermiso("IMPRESION_CORTE"),
+                dgvSalidas.Rows.Count > 0))
+            {
+                if (frmOpciones.ShowDialog() == DialogResult.OK)
+                {
+                    deseaImprimir = true;
+                    impResumen = frmOpciones.ImprimirResumen;
+                    detallado = frmOpciones.ImprimirFoliosDetallados;
+                    impGrupos = frmOpciones.ImprimirGrupos;
+                    impCategorias = frmOpciones.ImprimirCategorias;
+                    impSalidas = frmOpciones.ImprimirSalidas;
+                }
+            }
+
             #region folios nuevos
             int foli = 0;
             List<Producto> productos = new List<Producto>();
@@ -571,16 +679,6 @@ namespace JaegerSoft
             }
             reader.Close();
 
-            bool detallado = false;
-            DialogResult dialogResult;
-            if (Sesion.TienePermiso("IMPRESION_CORTE"))
-            {
-                dialogResult = MessageBox.Show("¿Desea imprimir el corte detallado?", "Alto!", MessageBoxButtons.YesNo);
-                if (dialogResult == DialogResult.Yes)
-                {
-                    detallado = true;
-                }
-            }
             double masB = 0, tarjetaB = 0, transB = 0, otrosB = 0, totalB = 0, utilidadB = 0;
             string primerFolio = "";
             string ultimoFolio = "";
@@ -596,15 +694,12 @@ namespace JaegerSoft
                     });
                 string folioVenta = row.Cells["Folio"].Value.ToString();
 
-
                 if (row.Cells["Seleccionar"].Value != null && Convert.ToBoolean(row.Cells["Seleccionar"].Value))
                 {
-                    // Extraemos el monto y el tipo de pago
                     string montoLimpio = Regex.Replace(row.Cells["Monto"].Value.ToString(), @"[^\d.-]", "");
                     double montoVenta = Convert.ToDouble(montoLimpio);
                     string tipoPago = row.Cells["Pago"].Value.ToString().ToUpper();
 
-                    // --- SUMATORIAS PARA EL CORTE B ---
                     totalB += montoVenta;
 
                     if (tipoPago.Contains("EFECTIVO") || tipoPago.Contains("01=")) masB += montoVenta;
@@ -612,7 +707,6 @@ namespace JaegerSoft
                     else if (tipoPago.Contains("TRANFERENCIA") || tipoPago.Contains("03=")) transB += montoVenta;
                     else otrosB += montoVenta;
 
-                    // Buscamos la utilidad exacta de esta venta para que los reportes B cuadren perfecto
                     double utVenta = 0;
                     using (SqlCommand cmdUt = new SqlCommand("SELECT SUM(Utilidad) FROM VentasContado WHERE FolioVenta='" + folioVenta + "'", conectar))
                     {
@@ -670,30 +764,44 @@ namespace JaegerSoft
                                                 "Corte de caja:", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString(),
                                                  "TOTAL DE ARTICULOS: "+totalArticulos.ToString()};
 
+            // Guardado en historial Cortes
             for (int i = 0; i < dgvCorte.RowCount; i++)
             {
+                if (dgvCorte.Rows[i].IsNewRow) continue;
                 cmd = new SqlCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvCorte[1, i].Value.ToString() + "','" + dgvCorte[2, i].Value.ToString() + "','" + folio + "','" + dgvCorte[4, i].Value.ToString() + "');", conectar);
+                cmd.ExecuteNonQuery();
+            }
+            for (int i = 0; i < dgvEntradas.RowCount; i++)
+            {
+                if (dgvEntradas.Rows[i].IsNewRow) continue;
+                cmd = new SqlCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvEntradas[1, i].Value.ToString() + "','" + dgvEntradas[2, i].Value.ToString() + "','" + folio + "','" + dgvEntradas[4, i].Value.ToString() + "');", conectar);
+                cmd.ExecuteNonQuery();
+            }
+            for (int i = 0; i < dgvSalidas.RowCount; i++)
+            {
+                if (dgvSalidas.Rows[i].IsNewRow) continue;
+                cmd = new SqlCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvSalidas[1, i].Value.ToString() + "','" + dgvSalidas[2, i].Value.ToString() + "','" + folio + "','" + dgvSalidas[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             for (int i = 0; i < dataGridView3.RowCount; i++)
             {
+                if (dataGridView3.Rows[i].IsNewRow) continue;
                 cmd = new SqlCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dataGridView3[1, i].Value.ToString() + "','" + dataGridView3[2, i].Value.ToString() + "','" + folio + "','" + dataGridView3[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
             for (int i = 0; i < dataGridView4.RowCount; i++)
             {
+                if (dataGridView4.Rows[i].IsNewRow) continue;
                 cmd = new SqlCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dataGridView4[1, i].Value.ToString() + "','" + dataGridView4[2, i].Value.ToString() + "','" + folio + "','" + dataGridView4[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
-
-            // Insertamos la nueva pestaña de OTROS al historial de cortes detallados
             for (int i = 0; i < dgvOtrosPagos.RowCount; i++)
             {
+                if (dgvOtrosPagos.Rows[i].IsNewRow) continue;
                 cmd = new SqlCommand("insert into Cortes(Concepto,Monto,idCorte,Tipo) Values('" + dgvOtrosPagos[1, i].Value.ToString() + "','" + dgvOtrosPagos[2, i].Value.ToString() + "','" + folio + "','" + dgvOtrosPagos[4, i].Value.ToString() + "');", conectar);
                 cmd.ExecuteNonQuery();
             }
 
-            // Se conserva (apertura + mas + entradas) en Mas y -(salidas + cancelaciones) en Menos para mantener compatibilidad con tu histórico
             double totalSalidasHistorico = -(salidas + cancelaciones);
             cmd = new SqlCommand("INSERT INTO histocortes(Id,Monto,Fecha,Mas,Menos,Tarjeta,utilidad,inversion) VALUES ('" + folio + "','" + lblTotal.Text + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + (apertura + mas + entradas) + "','" + totalSalidasHistorico + "','" + tarjeta + "','" + utilidad + "','" + inversion + "');", conectar);
             cmd.ExecuteNonQuery();
@@ -714,28 +822,92 @@ namespace JaegerSoft
                 return Regex.Replace(input, @"[^\d.-]", "");
             }
 
-            dialogResult = MessageBox.Show("¿Desea imprimir el corte de caja?", "Alto!", MessageBoxButtons.YesNo);
-            if (dialogResult == DialogResult.Yes)
+            // 2. Ejecución de impresiones seleccionadas (cada una sale en ticket separado)
+            if (deseaImprimir && Conexion.Ticket)
             {
-                Dictionary<string, double> totales = new Dictionary<string, double>();
-                totales.Add("Apertura Caja", Convert.ToDouble(GetNumericValue(lblApertura.Text)));
-                totales.Add("Efectivo", Convert.ToDouble(GetNumericValue(lblCorte.Text)));
-                totales.Add("Entradas", Convert.ToDouble(GetNumericValue(lblEntrada.Text)));
-                totales.Add("Salidas", Convert.ToDouble(GetNumericValue(lblSalida.Text)));
-                totales.Add("Cancelaciones", Convert.ToDouble(GetNumericValue(lblCancelaciones.Text)));
-                totales.Add("Efectivo en Caja", Convert.ToDouble(GetNumericValue(lblECaja.Text)));
-                totales.Add("Tarjetas", Convert.ToDouble(GetNumericValue(lblCredito.Text)));
-                totales.Add("Comision", Convert.ToDouble(GetNumericValue(lbl5por.Text)));
-                totales.Add("Transferencias", Convert.ToDouble(GetNumericValue(lblTrans.Text)));
-                totales.Add("Otros Pagos", Convert.ToDouble(GetNumericValue(lblOtros.Text)));
-                totales.Add("Sin IVA", Convert.ToDouble(GetNumericValue(lblNoIva.Text)));
-                totales.Add("IVA", Convert.ToDouble(GetNumericValue(lblIVA.Text)));
-                totales.Add("Total", Convert.ToDouble(GetNumericValue(lblTotal.Text)));
-                string[] pieDePagina = new string[] { "" };
-                TicketPrinter ticketPrinter = new TicketPrinter(encabezados, Conexion.pieDeTicket, Conexion.logoPath, productos, "", "", "", total, true, totales);
-                if (Conexion.Ticket)
-                    ticketPrinter.ImprimirTicket();
+                // TICKET 1: Resumen Financiero
+                if (impResumen)
+                {
+                    Dictionary<string, double> totales = new Dictionary<string, double>();
+                    totales.Add("Apertura Caja", Convert.ToDouble(GetNumericValue(lblApertura.Text)));
+                    totales.Add("Efectivo", Convert.ToDouble(GetNumericValue(lblCorte.Text)));
+                    totales.Add("Entradas", Convert.ToDouble(GetNumericValue(lblEntrada.Text)));
+                    totales.Add("Salidas", Convert.ToDouble(GetNumericValue(lblSalida.Text)));
+                    totales.Add("Cancelaciones", Convert.ToDouble(GetNumericValue(lblCancelaciones.Text)));
+                    totales.Add("Efectivo en Caja", Convert.ToDouble(GetNumericValue(lblECaja.Text)));
+                    totales.Add("Tarjetas", Convert.ToDouble(GetNumericValue(lblCredito.Text)));
+                    totales.Add("Comision", Convert.ToDouble(GetNumericValue(lbl5por.Text)));
+                    totales.Add("Transferencias", Convert.ToDouble(GetNumericValue(lblTrans.Text)));
+                    totales.Add("Otros Pagos", Convert.ToDouble(GetNumericValue(lblOtros.Text)));
+                    totales.Add("Sin IVA", Convert.ToDouble(GetNumericValue(lblNoIva.Text)));
+                    totales.Add("IVA", Convert.ToDouble(GetNumericValue(lblIVA.Text)));
+                    totales.Add("Total", Convert.ToDouble(GetNumericValue(lblTotal.Text)));
+
+                    TicketPrinter ticketResumen = new TicketPrinter(encabezados, Conexion.pieDeTicket, Conexion.logoPath, productos, "", "", "", total, true, totales);
+                    ticketResumen.ImprimirTicket();
+                }
+
+                // TICKET 2A: Grupos de Categorías
+                if (impGrupos)
+                {
+                    List<ItemCorteCategoria> listaGrupos = new List<ItemCorteCategoria>();
+                    foreach (DataGridViewRow row in dgvCategoriasAgrupadas.Rows)
+                    {
+                        if (row.IsNewRow) continue;
+                        string grupo = row.Cells["Grupo"].Value?.ToString() ?? "";
+                        double pzs = row.Cells["Piezas"].Value != null && row.Cells["Piezas"].Value != DBNull.Value
+                                     ? Convert.ToDouble(row.Cells["Piezas"].Value) : 0;
+                        double tot = row.Cells["Total"].Value != null && row.Cells["Total"].Value != DBNull.Value
+                                     ? Convert.ToDouble(row.Cells["Total"].Value) : 0;
+
+                        listaGrupos.Add(new ItemCorteCategoria { Nombre = grupo, Piezas = pzs, Total = tot });
+                    }
+
+                    TicketPrinter ticketGrupos = new TicketPrinter(new List<Producto>(), "", "");
+                    ticketGrupos.ImprimirCategoriasCorte("POR GRUPOS DE CATEGORÍA", fechaApertura, listaGrupos);
+                }
+
+                // TICKET 2B: Categorías Individuales
+                if (impCategorias)
+                {
+                    List<ItemCorteCategoria> listaCategorias = new List<ItemCorteCategoria>();
+                    foreach (DataGridViewRow row in dataGridView6.Rows)
+                    {
+                        if (row.IsNewRow) continue;
+                        string cat = row.Cells["Categoria"].Value?.ToString() ?? "";
+                        double pzs = row.Cells["Piezas"].Value != null && row.Cells["Piezas"].Value != DBNull.Value
+                                     ? Convert.ToDouble(row.Cells["Piezas"].Value) : 0;
+                        double tot = row.Cells["Total"].Value != null && row.Cells["Total"].Value != DBNull.Value
+                                     ? Convert.ToDouble(row.Cells["Total"].Value) : 0;
+
+                        listaCategorias.Add(new ItemCorteCategoria { Nombre = cat, Piezas = pzs, Total = tot });
+                    }
+
+                    TicketPrinter ticketCats = new TicketPrinter(new List<Producto>(), "", "");
+                    ticketCats.ImprimirCategoriasCorte("POR CATEGORÍA", fechaApertura, listaCategorias);
+                }
+
+                // TICKET 3: Salidas Detalladas
+                if (impSalidas)
+                {
+                    List<ItemCorteSalida> listaSalidas = new List<ItemCorteSalida>();
+                    double totalTicketSalidas = 0;
+                    foreach (DataGridViewRow row in dgvSalidas.Rows)
+                    {
+                        if (row.IsNewRow) continue;
+                        string concepto = row.Cells[1].Value?.ToString() ?? "";
+                        double monto = row.Cells[2].Value != null && row.Cells[2].Value != DBNull.Value
+                                       ? Math.Abs(Convert.ToDouble(row.Cells[2].Value)) : 0;
+
+                        totalTicketSalidas += monto;
+                        listaSalidas.Add(new ItemCorteSalida { Concepto = concepto, Monto = monto });
+                    }
+
+                    TicketPrinter ticketSalidas = new TicketPrinter(new List<Producto>(), "", "");
+                    ticketSalidas.ImprimirSalidasCorte(fechaApertura, listaSalidas, totalTicketSalidas);
+                }
             }
+
             MessageBox.Show("CORTE REALIZADO CON EXITO", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             foreach (Form form in Application.OpenForms)
             {
@@ -748,7 +920,6 @@ namespace JaegerSoft
 
             Application.Exit();
         }
-
         private void button2_Click(object sender, EventArgs e)
         {
             button2.Visible = false;
@@ -757,18 +928,27 @@ namespace JaegerSoft
             ticket.MaxChar = Conexion.MaxChar;
             ticket.FontSize = Conexion.FontSize;
             ticket.MaxCharDescription = Conexion.MaxCharDescription;
-            if (Conexion.Font == "")
+            if (Conexion.Font != "")
             {
-
-            }
-            else
                 ticket.FontName = Conexion.Font;
+            }
             ticket.AddHeaderLine("******** CORTE PARCIAL  *******");
             ticket.AddSubHeaderLine("FECHA Y HORA:");
             ticket.AddSubHeaderLine(DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
             for (int i = 0; i < dgvCorte.RowCount; i++)
             {
+                if (dgvCorte.Rows[i].IsNewRow) continue;
                 ticket.AddItem("1", dgvCorte[1, i].Value.ToString(), "   $" + dgvCorte[2, i].Value.ToString());
+            }
+            for (int i = 0; i < dgvEntradas.RowCount; i++)
+            {
+                if (dgvEntradas.Rows[i].IsNewRow) continue;
+                ticket.AddItem("1", dgvEntradas[1, i].Value.ToString(), "   $" + dgvEntradas[2, i].Value.ToString());
+            }
+            for (int i = 0; i < dgvSalidas.RowCount; i++)
+            {
+                if (dgvSalidas.Rows[i].IsNewRow) continue;
+                ticket.AddItem("1", dgvSalidas[1, i].Value.ToString(), "   $" + dgvSalidas[2, i].Value.ToString());
             }
             ticket.AddTotal("Efectivo", lblCorte.Text);
             ticket.AddTotal("Tarjetas", lblCredito.Text);
@@ -779,5 +959,15 @@ namespace JaegerSoft
             MessageBox.Show("CORTE REALIZADO CON EXITO", "EXITO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();
         }
+        private bool EsCeldaValida(DataGridView dgv, DataGridViewCellFormattingEventArgs e)
+        {
+            return dgv != null
+                   && !dgv.IsDisposed
+                   && !this.Disposing
+                   && e.RowIndex >= 0
+                   && e.ColumnIndex >= 0
+                   && e.ColumnIndex < dgv.Columns.Count;
+        }
     }
+
 }
